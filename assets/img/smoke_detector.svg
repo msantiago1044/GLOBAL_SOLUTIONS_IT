@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <radialGradient id="ceilingLight" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </radialGradient>
+    <radialGradient id="detectorGrad" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#e5e7eb"/>
+      <stop offset="100%" stop-color="#9ca3af"/>
+    </radialGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <!-- Cielo falso acústico -->
+  <rect width="400" height="300" fill="url(#ceilingLight)"/>
+  <line x1="0" y1="150" x2="400" y2="150" stroke="#cbd5e1" stroke-width="2"/>
+  <line x1="200" y1="0" x2="200" y2="300" stroke="#cbd5e1" stroke-width="2"/>
+  <circle cx="200" cy="150" r="130" fill="none" stroke="#f1f5f9" stroke-width="4"/>
+  <!-- Base del detector -->
+  <circle cx="200" cy="150" r="95" fill="#f8fafc" stroke="#94a3b8" stroke-width="3" filter="url(#dropShadow)"/>
+  <!-- Cuerpo del detector de humo -->
+  <circle cx="200" cy="150" r="75" fill="url(#detectorGrad)" stroke="#64748b" stroke-width="2"/>
+  <!-- Cámara óptica con ranuras de ventilación -->
+  <circle cx="200" cy="150" r="45" fill="#334155" stroke="#1e293b" stroke-width="3"/>
+  <!-- Rejilla deflectora -->
+  <circle cx="200" cy="150" r="28" fill="#1e293b"/>
+  <circle cx="200" cy="150" r="14" fill="#0f172a"/>
+  <!-- Ranuras radiales de detección -->
+  <line x1="200" y1="110" x2="200" y2="128" stroke="#475569" stroke-width="3"/>
+  <line x1="200" y1="172" x2="200" y2="190" stroke="#475569" stroke-width="3"/>
+  <line x1="160" y1="150" x2="178" y2="150" stroke="#475569" stroke-width="3"/>
+  <line x1="222" y1="150" x2="240" y2="150" stroke="#475569" stroke-width="3"/>
+  <!-- LED indicador verde intermitente de operación normal -->
+  <circle cx="235" cy="120" r="5" fill="#10b981" filter="url(#dropShadow)"/>
+  <circle cx="235" cy="120" r="2" fill="#a7f3d0"/>
+  <!-- Etiqueta de identificación de campo -->
+  <rect x="130" y="245" width="140" height="30" rx="6" fill="#0284c7" opacity="0.95"/>
+  <text x="200" y="265" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">DET-HAB-INSTALADO OK</text>
+</svg>

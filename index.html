@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Solutions IT | Plataforma de Gestión y Ejecución de Obras</title>
+  
+  <!-- Favicon Oficial con el Logo de GSIT en la pestaña del navegador -->
+  <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="apple-touch-icon" href="assets/favicon.png">
+
+  <!-- Tipografía Moderna Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Estilos Principales -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ==========================================================================
+       CABECERA PRINCIPAL (NAVBAR)
+       ========================================================================== -->
+  <header class="main-header">
+    <div class="brand-wrapper" onclick="showView('landing')">
+      <img src="assets/logo.png" alt="Logo Global Solutions IT" class="brand-logo-img">
+      <div class="brand-text-container">
+        <span class="brand-title">Global Solutions IT</span>
+        <span class="brand-subtitle">Control Operativo & Obras</span>
+      </div>
+    </div>
+
+    <div class="header-center-info">
+      <div class="project-badge-pill">
+        <span class="pulse-dot"></span>
+        <span>Torre Titanium 33 Pisos</span>
+        <span style="opacity: 0.65;">|</span>
+        <span class="global-progress-value" style="color: var(--brand-blue-deep); font-weight: 800;">90.4%</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn btn-secondary" data-action="select-project" style="font-size: 0.8rem;">
+        📂 Proyectos
+      </button>
+      <button class="btn btn-primary" data-action="open-billing">
+        📋 Corte de Facturación
+      </button>
+      <button class="btn btn-secondary" data-action="open-login" id="nav-btn-login">
+        🔑 Acceder
+      </button>
+
+      <div class="user-profile-menu" id="nav-user-profile" style="display: none;">
+        <div class="user-avatar">AD</div>
+        <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">Admin GSIT</span>
+        <button class="btn btn-outline-danger" data-action="logout" style="padding: 0.2rem 0.5rem; font-size: 0.72rem; margin-left: 0.25rem;">
+          Salir
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       VISTA 1: LANDING PAGE DE PRESENTACIÓN
+       ========================================================================== -->
+  <main id="view-landing" class="view-container active">
+    <section class="landing-hero">
+      <div class="hero-tag">
+        🛡️ SISTEMAS DE PROTECCIÓN & DETECCIÓN CONTRA INCENDIOS
+      </div>
+      <h1 class="hero-title">
+        Control de Ejecución de Obras, Redes de Tubería y Cableado en <span>Tiempo Real</span>
+      </h1>
+      <p class="hero-subtitle">
+        Supervisión interactiva plano a plano para proyectos de alta complejidad. Registro in situ de tubería EMT, cableado FPLR, sensores, sirenas y corte de facturación automatizado por fechas para contratistas e interventoría.
+      </p>
+
+      <div class="hero-cta-buttons">
+        <button class="btn btn-primary btn-lg" onclick="showView('execution')">
+          🚀 Explorar Demo: Torre Titanium (33 Pisos - 90% Ejecutado)
+        </button>
+        <button class="btn btn-secondary btn-lg" data-action="open-login">
+          🔐 Iniciar Sesión Operativa (admin / admin)
+        </button>
+      </div>
+
+      <!-- Indicadores de Impacto -->
+      <div class="hero-stats-strip">
+        <div class="stat-card">
+          <div class="stat-number">33 Pisos</div>
+          <div class="stat-label">Torre en Seguimiento Activo</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number global-progress-value">90.4%</div>
+          <div class="stat-label">Avance Global Ejecutado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">+14,250 m</div>
+          <div class="stat-label">Tubería Conduit EMT Instalada</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100% Digital</div>
+          <div class="stat-label">Cortes de Facturación con Filtro</div>
+        </div>
+      </div>
+
+      <!-- Beneficios Clave del Sistema -->
+      <div class="landing-features-grid">
+        <div class="feature-box">
+          <div class="feature-icon-wrapper">📐</div>
+          <h3>Planos Técnicos Interactivos</h3>
+          <p>Visualice habitación por habitación y pasillos. Inspeccione detectores autónomos, sirenas estrobo, estaciones manuales y el cerebro FACP en el Piso 1.</p>
+        </div>
+        <div class="feature-box">
+          <div class="feature-icon-wrapper">⚡</div>
+          <h3>Tubería y Cable Independientes</h3>
+          <p>Trazabilidad separada de tubería conduit EMT metálica vs cableado FPLR contra incendio. Cada tramo tiene metrado, costo y avance individual.</p>
+        </div>
+        <div class="feature-box">
+          <div class="feature-icon-wrapper">📸</div>
+          <h3>Registro Fotográfico y Facturación</h3>
+          <p>Adjunte evidencias fotográficas de montaje al instante y genere actas de corte de cobro filtrando por fechas con descarga a Excel/CSV.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==========================================================================
+       VISTA 2: SELECTOR DE PROYECTOS EN EJECUCIÓN
+       ========================================================================== -->
+  <section id="view-projects" class="view-container">
+    <div class="projects-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Portafolio de Proyectos en Ejecución</h2>
+          <p class="section-subtitle">Gestión centralizada de redes de detección contra incendios Global Solutions IT</p>
+        </div>
+        <button class="btn btn-primary" onclick="showView('execution')">
+          ▶ Continuar en Proyecto Activo
+        </button>
+      </div>
+
+      <div class="projects-grid">
+        <!-- Proyecto 1: Torre Titanium (Demo Principal) -->
+        <div class="project-card featured" data-action="select-project">
+          <div class="featured-ribbon">En Obra</div>
+          <div class="project-card-header">
+            <span class="project-category-tag">Edificación Vertical</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Pisos 0 al 33</span>
+          </div>
+          <h3 class="project-name">Torre Grand Titanium</h3>
+          <p class="project-meta-desc">
+            Instalación integral de sistema de detección y alarma contra incendios NFPA 72. Riser troncal, cuarto de control en Piso 1, oficinas, parqueaderos y 33 niveles residenciales.
+          </p>
+
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>Avance de Ejecución</span>
+              <span class="progress-pct global-progress-value">90.4%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill global-progress-fill" style="width: 90.4%;"></div>
+            </div>
+          </div>
+
+          <div class="project-info-pills">
+            <span class="pill-info">🏢 34 Niveles</span>
+            <span class="pill-info">📍 Bogotá D.C.</span>
+            <span class="pill-info">🧯 Notifier NFS2-3030</span>
+            <span class="pill-info">📷 Evidencias OK</span>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top: auto; width: 100%;">
+            Ingresar al Estudio Técnico de Obra
+          </button>
+        </div>
+
+        <!-- Proyecto 2 -->
+        <div class="project-card">
+          <div class="project-card-header">
+            <span class="project-category-tag">Complejo Empresarial</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">6 Niveles</span>
+          </div>
+          <h3 class="project-name">Connecta Hub Empresarial</h3>
+          <p class="project-meta-desc">
+            Redireccionamiento de lazos analógicos, detectores dobles fotoeléctricos/térmicos, cableado libre de halógenos y prueba de lazo secundario.
+          </p>
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>Avance de Ejecución</span>
+              <span class="progress-pct" style="color: var(--brand-blue);">64.2%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width: 64.2%; background: var(--brand-blue);"></div>
+            </div>
+          </div>
+          <div class="project-info-pills">
+            <span class="pill-info">🏢 6 Niveles</span>
+            <span class="pill-info">📍 Calle 26</span>
+            <span class="pill-info">🧯 Simplex 4100ES</span>
+          </div>
+          <button class="btn btn-secondary" style="margin-top: auto; width: 100%;" onclick="showToast('Proyecto en fase de cableado troncal')">
+            Ver Ficha Técnica
+          </button>
+        </div>
+
+        <!-- Proyecto 3 -->
+        <div class="project-card">
+          <div class="project-card-header">
+            <span class="project-category-tag">Logística Industrial</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Bodegas A-D</span>
+          </div>
+          <h3 class="project-name">Parque Logístico Sabana</h3>
+          <p class="project-meta-desc">
+            Sistema de detección por haz proyectado (barreras lineales de humo), tubería conduit exterior y monitoreo de válvulas de control de rociadores.
+          </p>
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>Avance de Ejecución</span>
+              <span class="progress-pct" style="color: var(--status-installed);">100%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+          <div class="project-info-pills">
+            <span class="pill-info">🏭 Bodegas</span>
+            <span class="pill-info">📍 Funza</span>
+            <span class="pill-info">✅ Entregado e Intervenido</span>
+          </div>
+          <button class="btn btn-secondary" style="margin-top: auto; width: 100%;" onclick="showToast('Proyecto finalizado y facturado al 100%')">
+            Ver Acta de Entrega
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       VISTA 4: ESTUDIO DE EJECUCIÓN (SPLIT LAYOUT: PANEL IZQUIERDO Y PLANO)
+       ========================================================================== -->
+  <section id="view-execution" class="view-container">
+    <div class="execution-studio">
+      
+      <!-- --------------------------------------------------------------------
+           PANEL IZQUIERDO: INFORMACIÓN DEL PROYECTO & CONTROLES
+           -------------------------------------------------------------------- -->
+      <aside class="project-sidebar">
+        <!-- Header del Proyecto -->
+        <div class="sidebar-header-box">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+            <span style="font-size: 0.7rem; font-weight: 800; color: var(--brand-blue); text-transform: uppercase;">Proyecto en Ejecución</span>
+            <span class="global-progress-value" style="font-size: 0.95rem; font-weight: 900; color: var(--status-installed);">90.4%</span>
+          </div>
+          <h2 class="sidebar-project-title">Torre Titanium Sky</h2>
+          <p class="sidebar-client-name">Cliente: Constructora Bolívar / Inversiones Colpatria</p>
+
+          <!-- Barra de Progreso Global -->
+          <div class="progress-bar-track" style="margin-top: 0.75rem; height: 6px;">
+            <div class="progress-bar-fill global-progress-fill" style="width: 90.4%;"></div>
+          </div>
+
+          <!-- Métricas Rápidas -->
+          <div class="sidebar-metric-grid">
+            <div class="metric-mini-card">
+              <div class="metric-mini-value" id="metric-pipe-meters">14,250 m</div>
+              <div class="metric-mini-label">Tubería EMT</div>
+            </div>
+            <div class="metric-mini-card">
+              <div class="metric-mini-value" id="metric-cable-meters">22,400 m</div>
+              <div class="metric-mini-label">Cable FPLR</div>
+            </div>
+            <div class="metric-mini-card">
+              <div class="metric-mini-value" id="metric-devices-count">3,115 un</div>
+              <div class="metric-mini-label">Equipos Inst.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selector de Pisos (Pisos 0 a 33) -->
+        <div class="floors-control-panel">
+          <div class="panel-subheading">
+            <span>Selección de Piso (34 Niveles)</span>
+            <span style="font-size: 0.7rem; color: var(--brand-blue); font-weight: 700;">Torre 33 Pisos</span>
+          </div>
+
+          <select id="floor-selector-dropdown" class="floor-select-dropdown">
+            <option value="33" selected>Piso 33 - Ático / Penthouse (En Ejecución - 78%)</option>
+            <option value="32">Piso 32 - Habitaciones 3201-3208 (82%)</option>
+            <option value="31">Piso 31 - Habitaciones 3101-3108 (86%)</option>
+            <option value="30">Piso 30 - Habitaciones 3001-3008 (89%)</option>
+            <option value="25">Piso 25 - Habitaciones 2501-2508 (100% OK)</option>
+            <option value="20">Piso 20 - Habitaciones 2001-2008 (100% OK)</option>
+            <option value="15">Piso 15 - Habitaciones 1501-1508 (100% OK)</option>
+            <option value="10">Piso 10 - Habitaciones 1001-1008 (100% OK)</option>
+            <option value="7">Piso 7 - Habitaciones 701-708 (100% OK)</option>
+            <option value="6">Piso 6 - Oficinas Corporativas (100% OK)</option>
+            <option value="3">Piso 3 - Oficinas Corporativas (100% OK)</option>
+            <option value="1">Piso 1 - CEREBRO DE LA OPERACIÓN (Central FACP) (100% OK)</option>
+            <option value="0">Piso 0 - Sótano / Parqueadero & Bombas (100% OK)</option>
+          </select>
+
+          <!-- Chips de navegación rápida entre pisos -->
+          <div class="floor-chips-scroller" id="floor-chips-scroller">
+            <!-- Se inyecta dinámicamente desde JS -->
+          </div>
+        </div>
+
+        <!-- Filtros de Capas en Plano -->
+        <div class="layers-filter-panel">
+          <div class="panel-subheading">
+            <span>Filtro de Redes & Dispositivos</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted);">Capas del Plano</span>
+          </div>
+
+          <div class="filter-pills-container">
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-tuberia" checked>
+              <span class="filter-color-indicator" style="background: var(--pipe-color);"></span>
+              <span><strong>Tubería Conduit EMT 3/4"</strong> (Tramos y Cajas)</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-cableado" checked>
+              <span class="filter-color-indicator" style="background: var(--cable-color);"></span>
+              <span><strong>Cableado FPLR Contra Incendio</strong> (Lazo SLC)</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-detectores" checked>
+              <span class="filter-color-indicator" style="background: var(--detector-color);"></span>
+              <span><strong>Detectores</strong> (Autónomos / Dobles)</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-sirenas" checked>
+              <span class="filter-color-indicator" style="background: var(--strobe-color);"></span>
+              <span><strong>Sirenas con Estrobo</strong> (Pasillos)</span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-palancas" checked>
+              <span class="filter-color-indicator" style="background: var(--pull-color);"></span>
+              <span><strong>Palancas / Estaciones Manuales</strong></span>
+            </label>
+            <label class="filter-checkbox-label">
+              <input type="checkbox" id="filter-facp" checked>
+              <span class="filter-color-indicator" style="background: var(--panel-color);"></span>
+              <span><strong>Cerebro FACP / Central</strong> (Piso 1)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Lista de Elementos del Piso Actual -->
+        <div class="current-floor-items-list">
+          <div class="panel-subheading">
+            <span>Elementos en este Piso</span>
+            <span style="font-size: 0.72rem; color: var(--brand-blue); cursor: pointer;" onclick="showToast('Haz clic en cualquier elemento para editar su estado y fotos')">ℹ️ Clic para editar</span>
+          </div>
+          <div id="current-floor-items-container">
+            <!-- Inyectado desde JS -->
+          </div>
+        </div>
+
+        <!-- Botón de Corte de Facturación en el Sidebar -->
+        <div style="padding: 1.25rem; border-top: 1px solid var(--border-light); background: var(--bg-subtle);">
+          <button class="btn btn-primary" style="width: 100%;" data-action="open-billing">
+            📄 Generar Corte de Facturación
+          </button>
+        </div>
+      </aside>
+
+      <!-- --------------------------------------------------------------------
+           ÁREA CENTRAL/DERECHA: PLANO ARQUITECTÓNICO INTERACTIVO
+           -------------------------------------------------------------------- -->
+      <main class="blueprint-workspace">
+        <!-- Barra de Herramientas del Plano -->
+        <div class="blueprint-toolbar">
+          <div class="blueprint-title-box">
+            <span style="font-size: 1.1rem;">📐</span>
+            <h3 class="blueprint-floor-title" id="blueprint-current-floor-title">Piso 33 - Ático / Penthouse</h3>
+            <span class="blueprint-floor-tag" id="blueprint-floor-status-tag">78% Ejecutado</span>
+          </div>
+
+          <div class="blueprint-controls">
+            <button class="tool-btn" id="btn-zoom-in" title="Acercar plano">+</button>
+            <button class="tool-btn" id="btn-zoom-out" title="Alejar plano">-</button>
+            <button class="tool-btn" id="btn-zoom-reset" title="Restablecer vista">⟲</button>
+          </div>
+        </div>
+
+        <!-- Leyenda Flotante -->
+        <div class="blueprint-legend">
+          <div class="legend-title">Simbología Técnica NFPA 72</div>
+          <div class="legend-row">
+            <span class="legend-line" style="background: #10b981;"></span>
+            <span>Instalado & Certificado</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-line" style="background: #f59e0b;"></span>
+            <span>Pendiente de Montaje</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-line" style="background: var(--pipe-color); height: 6px;"></span>
+            <span>Tubería EMT Conduit</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-line" style="background: var(--cable-color); height: 3px; border-bottom: 2px dashed #dc2626;"></span>
+            <span>Cableado FPLR de Incendio</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-circle" style="background: var(--detector-color);"></span>
+            <span>Detector Humo (Habitación / Pasillo)</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-circle" style="background: var(--strobe-color);"></span>
+            <span>Sirena Estroboscópica</span>
+          </div>
+          <div class="legend-row">
+            <span class="legend-circle" style="background: var(--pull-color);"></span>
+            <span>Estación Manual (Palanca)</span>
+          </div>
+        </div>
+
+        <!-- Contenedor del Lienzo SVG -->
+        <div class="blueprint-canvas-wrapper" id="blueprint-canvas-container">
+          <svg id="blueprint-main-svg" class="blueprint-svg" viewBox="0 0 1000 650" width="1000" height="650">
+            <!-- El plano vectorial interactivo se renderiza aquí dinámicamente -->
+          </svg>
+        </div>
+      </main>
+
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       MODAL 1: LOGIN (ADMIN / ADMIN)
+       ========================================================================== -->
+  <div id="login-modal-overlay" class="login-modal-overlay">
+    <div class="login-card" id="login-card-box">
+      <img src="assets/logo.png" alt="Logo GSIT" class="login-logo">
+      <h2 class="login-title">Acceso Operativo</h2>
+      <p class="login-subtitle">Gestión de Obras Global Solutions IT</p>
+
+      <div class="demo-credentials-box">
+        <div class="info-text">
+          <span>Credenciales de Prueba:</span><br>
+          <span class="credentials-code">admin / admin</span>
+        </div>
+        <button type="button" class="btn-fill-credentials" id="btn-fill-demo-creds">
+          Autocompletar
+        </button>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login-username">Usuario</label>
+          <input type="text" id="login-username" class="form-input" placeholder="ej. admin" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Contraseña</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; margin-top: 0.5rem;">
+          Ingresar al Panel
+        </button>
+      </form>
+
+      <button type="button" class="btn btn-secondary" id="login-modal-close" style="width: 100%; margin-top: 0.75rem; font-size: 0.82rem;">
+        Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 2: DETALLE DE ELEMENTO, REGISTRO Y ADJUNTO DE FOTOS
+       ========================================================================== -->
+  <div id="modal-item-detail" class="custom-modal-overlay">
+    <div class="modal-dialog-box">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span style="font-size: 1.3rem;">📋</span>
+          <div>
+            <h3 class="modal-title" id="modal-item-name">Ficha Técnica de Instalación</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);" id="modal-item-code">COD-000</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modal-item-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Tipo de Elemento</label>
+            <div id="modal-item-type" style="font-weight: 700; color: var(--brand-blue); font-size: 0.88rem;">-</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Modelo / Especificación</label>
+            <div id="modal-item-model" style="font-size: 0.85rem; color: var(--text-secondary);">-</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Ubicación en Obra</label>
+            <div id="modal-item-zone" style="font-size: 0.85rem; color: var(--text-secondary);">-</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Metrado / Cantidad</label>
+            <div id="modal-item-quantity" style="font-weight: 700; color: var(--text-main); font-size: 0.88rem;">-</div>
+          </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1.25rem 0;">
+
+        <!-- Formulario de Actualización de Estado -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="modal-item-status">Estado de Ejecución</label>
+            <select id="modal-item-status" class="form-input">
+              <option value="pending">⚠️ Pendiente de Instalación</option>
+              <option value="installed">✅ Instalado & Verificado</option>
+              <option value="review">🔍 En Inspección / Observado</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="modal-item-date">Fecha de Instalación</label>
+            <input type="date" id="modal-item-date" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-item-tech">Técnico o Cuadrilla Asignada</label>
+          <input type="text" id="modal-item-tech" class="form-input" placeholder="Nombre del técnico o cuadrilla">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-item-notes">Observaciones de Campo / Control de Calidad</label>
+          <textarea id="modal-item-notes" class="form-input" rows="2" placeholder="Notas sobre la instalación, prueba de lazo, fijación o detalles técnicos..."></textarea>
+        </div>
+
+        <!-- Sección de Evidencia Fotográfica -->
+        <div class="form-group">
+          <label class="form-label">Evidencia Fotográfica de la Instalación In Situ</label>
+          <div class="photo-upload-section">
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              📸 Adjunte fotografías del montaje, tubería acoplada, cableado peinado o rótulo:
+            </p>
+            <input type="file" id="item-photo-input" accept="image/*" style="font-size: 0.8rem;">
+            
+            <div class="photo-preview-grid" id="modal-photo-preview-container">
+              <!-- Previsualización de fotos -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-item-modal">Cancelar</button>
+        <button type="button" class="btn btn-success" id="btn-save-item-modal">
+          💾 Guardar y Actualizar Avance
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL 3: CORTE DE FACTURACIÓN CON FILTRO DE FECHAS
+       ========================================================================== -->
+  <div id="modal-billing-cutoff" class="custom-modal-overlay">
+    <div class="modal-dialog-box billing-modal-box">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <span style="font-size: 1.4rem;">🧾</span>
+          <div>
+            <h3 class="modal-title">Corte de Facturación de Obra | Global Solutions IT</h3>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Generación de Acta de Cobro de Ítems Instalados</span>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="modal-billing-close">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Filtros de Período y Alcance -->
+        <div class="form-grid-2" style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="billing-date-start">Fecha Inicial</label>
+            <input type="date" id="billing-date-start" class="form-input">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="billing-date-end">Fecha Final</label>
+            <input type="date" id="billing-date-end" class="form-input">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="billing-floor-scope">Alcance de Pisos</label>
+            <select id="billing-floor-scope" class="form-input">
+              <option value="all">Todos los Pisos (0 al 33)</option>
+              <option value="33">Solo Piso 33</option>
+              <option value="32">Solo Piso 32</option>
+              <option value="31">Solo Piso 31</option>
+              <option value="30">Solo Piso 30</option>
+              <option value="1">Solo Piso 1 (Cerebro FACP)</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button class="btn btn-primary" id="btn-apply-billing-filter" style="width: 100%;">
+              🔍 Aplicar Filtro de Corte
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de Resumen Financiero y Cuantitativo -->
+        <div class="billing-summary-cards">
+          <div class="billing-card">
+            <div class="billing-value" id="billing-summary-pipe">0 m</div>
+            <div class="billing-label">Tubería Conduit EMT</div>
+          </div>
+          <div class="billing-card">
+            <div class="billing-value" id="billing-summary-cable">0 m</div>
+            <div class="billing-label">Cable FPLR Instalado</div>
+          </div>
+          <div class="billing-card">
+            <div class="billing-value" id="billing-summary-devices">0 un</div>
+            <div class="billing-label">Dispositivos & Sensores</div>
+          </div>
+          <div class="billing-card highlight">
+            <div class="billing-value" id="billing-summary-total" style="color: var(--brand-blue-deep);">$ 0</div>
+            <div class="billing-label">Valor Total Facturable</div>
+          </div>
+        </div>
+
+        <!-- Tabla Detallada de Ítems Instalados -->
+        <div class="billing-table-wrapper">
+          <table class="billing-table">
+            <thead>
+              <tr>
+                <th>Fecha Inst.</th>
+                <th>Código</th>
+                <th>Descripción Técnica</th>
+                <th>Piso</th>
+                <th>Cant. / Metros</th>
+                <th>Precio Unitario</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="billing-table-body">
+              <!-- Inyectado desde JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btn-print-billing">
+          🖨️ Imprimir Acta Formal
+        </button>
+        <button type="button" class="btn btn-success" id="btn-export-billing-csv">
+          📊 Descargar Excel / CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificaciones -->
+  <div id="toast-notification" class="toast-notification"></div>
+
+  <!-- Scripts -->
+  <script src="js/app.js"></script>
+</body>
+</html>

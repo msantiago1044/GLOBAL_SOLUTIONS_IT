@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="bodyRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="100%" stop-color="#b91c1c"/>
+    </linearGradient>
+    <filter id="shadowPull" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Pared -->
+  <rect width="400" height="300" fill="#f8fafc"/>
+  <rect x="0" y="270" width="400" height="30" fill="#e2e8f0"/>
+  <!-- Tubo alimentador superior EMT -->
+  <rect x="193" y="0" width="14" height="40" fill="#94a3b8" stroke="#475569"/>
+  <rect x="189" y="36" width="22" height="8" rx="2" fill="#64748b"/>
+  <!-- Gabinete rojo de la palanca -->
+  <rect x="135" y="44" width="130" height="180" rx="14" fill="url(#bodyRed)" stroke="#991b1b" stroke-width="3" filter="url(#shadowPull)"/>
+  <rect x="145" y="54" width="110" height="40" rx="6" fill="#7f1d1d"/>
+  <text x="200" y="80" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">FIRE</text>
+  <!-- Mecanismo de palanca doble acción -->
+  <rect x="150" y="105" width="100" height="70" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <rect x="160" y="115" width="80" height="36" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-dasharray="2 2"/>
+  <text x="200" y="132" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#dc2626" text-anchor="middle">PUSH IN</text>
+  <text x="200" y="145" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#1e293b" text-anchor="middle">PULL DOWN</text>
+  <!-- Tirador / Manija de palanca -->
+  <path d="M 175 148 L 225 148 L 220 168 L 180 168 Z" fill="#ffffff" stroke="#dc2626" stroke-width="3"/>
+  <!-- Cerradura de llave de reinicio -->
+  <circle cx="200" cy="195" r="9" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+  <rect x="198" y="190" width="4" height="10" fill="#334155"/>
+  <!-- Tag de instalación -->
+  <rect x="110" y="240" width="180" height="30" rx="6" fill="#10b981"/>
+  <text x="200" y="260" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">PALANCA MANUAL OK</text>
+</svg>
