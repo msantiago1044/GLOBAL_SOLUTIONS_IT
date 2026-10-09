@@ -636,6 +636,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventListeners();
   updateAuthUI();
   updateUI();
+  if (AppState.activeView === 'execution') {
+    renderFloorBlueprint();
+    renderFloorItemsList();
+  }
 });
 
 // Enrutador sencillo para vistas SPA
@@ -659,6 +663,7 @@ function showView(viewId) {
   window.scrollTo(0, 0);
 
   if (viewId === 'execution') {
+    updateUI();
     renderFloorBlueprint();
     renderFloorItemsList();
   }
@@ -863,6 +868,9 @@ function closeLoginModal() {
 // Selector de Piso
 function selectFloor(floorNum) {
   AppState.selectedFloor = floorNum;
+  AppState.zoomLevel = 1;
+  AppState.panX = 0;
+  AppState.panY = 0;
 
   // Actualizar selector desplegable
   const dropdown = document.getElementById('floor-selector-dropdown');
@@ -1014,8 +1022,13 @@ function renderFloorItemsList() {
 // RENDERIZADO DEL PLANO ARQUITECTÓNICO INTERACTIVO (SVG VECTORIAL DINÁMICO)
 // ==========================================================================
 function renderFloorBlueprint() {
-  const svg = document.getElementById('blueprint-main-svg');
-  if (!svg) return;
+  const container = document.getElementById('blueprint-canvas-container');
+  if (!container) return;
+
+  if (!AppState.database || !AppState.database.floors) {
+    console.warn('Base de datos no disponible para plano');
+    return;
+  }
 
   const floor = AppState.database.floors[AppState.selectedFloor];
   if (!floor) return;
@@ -1385,7 +1398,11 @@ function renderFloorBlueprint() {
     }
   }
 
-  svg.innerHTML = svgContent;
+  container.innerHTML = `
+    <svg id="blueprint-main-svg" class="blueprint-svg" viewBox="0 0 1000 650" width="1000" height="650" xmlns="http://www.w3.org/2000/svg">
+      ${svgContent}
+    </svg>
+  `;
   applyBlueprintTransform();
 }
 
@@ -1393,7 +1410,10 @@ function renderFloorBlueprint() {
 function applyBlueprintTransform() {
   const svg = document.getElementById('blueprint-main-svg');
   if (svg) {
-    svg.style.transform = `translate(${AppState.panX}px, ${AppState.panY}px) scale(${AppState.zoomLevel})`;
+    const zoom = (typeof AppState.zoomLevel === 'number' && !isNaN(AppState.zoomLevel)) ? AppState.zoomLevel : 1;
+    const px = (typeof AppState.panX === 'number' && !isNaN(AppState.panX)) ? AppState.panX : 0;
+    const py = (typeof AppState.panY === 'number' && !isNaN(AppState.panY)) ? AppState.panY : 0;
+    svg.style.transform = `translate(${px}px, ${py}px) scale(${zoom})`;
   }
 }
 

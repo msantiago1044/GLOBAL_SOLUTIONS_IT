@@ -84,12 +84,19 @@ body {
 .view-container {
   display: none;
   width: 100%;
-  min-height: 100vh;
+  min-height: calc(100vh - 68px);
 }
 
 .view-container.active {
   display: flex;
   flex-direction: column;
+}
+
+#view-execution.active {
+  height: calc(100vh - 68px);
+  min-height: 0;
+  max-height: calc(100vh - 68px);
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -784,7 +791,8 @@ body {
 .execution-studio {
   display: flex;
   flex: 1;
-  height: calc(100vh - 68px);
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -1026,6 +1034,9 @@ body {
    ========================================================================== */
 .blueprint-workspace {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
+  height: 100%;
   background-color: #f1f5f9;
   background-image: 
     radial-gradient(#cbd5e1 1px, transparent 1px),
@@ -1149,9 +1160,11 @@ body {
 /* Contenedor del SVG del Plano */
 .blueprint-canvas-wrapper {
   flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: calc(100% - 54px);
   display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: auto;
   position: relative;
   cursor: grab;
@@ -1163,6 +1176,13 @@ body {
 }
 
 .blueprint-svg {
+  display: block;
+  margin: auto;
+  width: 1000px;
+  height: 650px;
+  min-width: 1000px;
+  min-height: 650px;
+  flex-shrink: 0;
   background: #ffffff;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -1785,6 +1805,11 @@ body {
 
 /* Responsive */
 @media (max-width: 1024px) {
+  #view-execution.active {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
   .execution-studio {
     flex-direction: column;
     height: auto;
@@ -1799,7 +1824,7 @@ body {
     border-bottom: 1px solid var(--border-light);
   }
   .blueprint-workspace {
-    height: 600px;
+    height: 700px;
   }
   .hero-stats-strip, .landing-features-grid {
     grid-template-columns: repeat(2, 1fr);
