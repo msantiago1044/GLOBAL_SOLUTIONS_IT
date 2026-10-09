@@ -98,7 +98,10 @@
     <div class="projects-section">
       <div class="section-header">
         <div>
-          <h2 class="section-title">Portafolio de Proyectos en Ejecución</h2>
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+            <h2 class="section-title" style="margin-bottom: 0;">Portafolio de Proyectos en Ejecución</h2>
+            <span class="access-role-badge public" id="projects-role-badge">👁️ Consulta Pública (Solo Lectura)</span>
+          </div>
           <p class="section-subtitle">Gestión centralizada de redes de detección contra incendios Global Solutions IT</p>
         </div>
       </div>
@@ -133,8 +136,8 @@
             <span class="pill-info">📷 Evidencias OK</span>
           </div>
 
-          <button class="btn btn-primary" style="margin-top: auto; width: 100%;">
-            Ingresar al Estudio Técnico de Obra
+          <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="showView('execution')">
+            🔍 Ingresar al Estudio Técnico de Obra
           </button>
         </div>
 
@@ -320,7 +323,7 @@
         <div class="current-floor-items-list">
           <div class="panel-subheading">
             <span>Elementos en este Piso</span>
-            <span style="font-size: 0.72rem; color: var(--brand-blue); cursor: pointer;" onclick="showToast('Haz clic en cualquier elemento para editar su estado y fotos')">ℹ️ Clic para editar</span>
+            <span id="items-help-tag" style="font-size: 0.72rem; color: var(--brand-blue); cursor: pointer;">👁️ Clic para ver ficha técnica</span>
           </div>
           <div id="current-floor-items-container">
             <!-- Inyectado desde JS -->

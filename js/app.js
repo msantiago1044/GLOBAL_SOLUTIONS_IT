@@ -805,6 +805,8 @@ function updateAuthUI() {
   const loginBtn = document.getElementById('nav-btn-login');
   const navRoleBadge = document.getElementById('nav-role-badge');
   const sidebarAccessTag = document.getElementById('sidebar-access-tag');
+  const projectsRoleBadge = document.getElementById('projects-role-badge');
+  const itemsHelpTag = document.getElementById('items-help-tag');
 
   const adminActive = isAdmin();
 
@@ -819,6 +821,14 @@ function updateAuthUI() {
       sidebarAccessTag.className = 'sidebar-access-tag admin';
       sidebarAccessTag.innerHTML = '🛡️ Modo Edición Habilitado (Administrador)';
     }
+    if (projectsRoleBadge) {
+      projectsRoleBadge.className = 'access-role-badge admin';
+      projectsRoleBadge.innerHTML = '🛡️ Modo Edición (Administrador)';
+    }
+    if (itemsHelpTag) {
+      itemsHelpTag.innerHTML = '✏️ Clic para editar elemento';
+      itemsHelpTag.onclick = () => showToast('Modo Administrador: Haz clic en cualquier elemento para modificar su instalación y fotos');
+    }
   } else {
     if (profileMenu) profileMenu.style.display = 'none';
     if (loginBtn) loginBtn.style.display = 'inline-flex';
@@ -829,6 +839,14 @@ function updateAuthUI() {
     if (sidebarAccessTag) {
       sidebarAccessTag.className = 'sidebar-access-tag public';
       sidebarAccessTag.innerHTML = '👁️ Modo Consulta Pública (Solo Lectura)';
+    }
+    if (projectsRoleBadge) {
+      projectsRoleBadge.className = 'access-role-badge public';
+      projectsRoleBadge.innerHTML = '👁️ Consulta Pública (Solo Lectura)';
+    }
+    if (itemsHelpTag) {
+      itemsHelpTag.innerHTML = '👁️ Clic para ver ficha técnica';
+      itemsHelpTag.onclick = () => showToast('Modo Consulta Pública: Haz clic en cualquier elemento para ver sus especificaciones técnicas');
     }
   }
 }
