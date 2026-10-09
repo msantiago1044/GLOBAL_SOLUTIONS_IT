@@ -38,6 +38,7 @@
         <span style="opacity: 0.65;">|</span>
         <span class="global-progress-value" style="color: var(--brand-blue-deep); font-weight: 800;">90.4%</span>
       </div>
+      <span class="access-role-badge public" id="nav-role-badge">👁️ Consulta Pública</span>
     </div>
 
     <div class="header-actions">
@@ -54,7 +55,7 @@
         📋 Corte de Facturación
       </button>
       <button class="btn btn-secondary" data-action="open-login" id="nav-btn-login">
-        🔑 Acceder
+        🔑 Acceso Admin
       </button>
 
       <div class="user-profile-menu" id="nav-user-profile" style="display: none;">
@@ -84,10 +85,10 @@
 
       <div class="hero-cta-buttons">
         <button class="btn btn-primary btn-lg" onclick="showView('execution')">
-          🚀 Explorar Demo: Torre Titanium (33 Pisos - 90% Ejecutado)
+          🚀 Explorar Proyecto Torre Titanium (33 Pisos — 90.4% Ejecutado)
         </button>
         <button class="btn btn-secondary btn-lg" data-action="open-login">
-          🔐 Iniciar Sesión Operativa (admin / admin)
+          🔐 Acceso Administrador de Obra
         </button>
       </div>
 
@@ -148,7 +149,7 @@
       </div>
 
       <div class="projects-grid">
-        <!-- Proyecto 1: Torre Titanium (Demo Principal) -->
+        <!-- Proyecto 1: Torre Titanium Sky -->
         <div class="project-card featured" data-action="select-project">
           <div class="featured-ribbon">En Obra</div>
           <div class="project-card-header">
@@ -261,6 +262,9 @@
           </div>
           <h2 class="sidebar-project-title">Torre Titanium Sky</h2>
           <p class="sidebar-client-name">Cliente: Constructora Bolívar / Inversiones Colpatria</p>
+          <div class="sidebar-access-tag public" id="sidebar-access-tag">
+            👁️ Modo Consulta Pública (Solo Lectura)
+          </div>
 
           <!-- Barra de Progreso Global -->
           <div class="progress-bar-track" style="margin-top: 0.75rem; height: 6px;">
@@ -445,13 +449,13 @@
       <h2 class="login-title">Acceso Operativo</h2>
       <p class="login-subtitle">Gestión de Obras Global Solutions IT</p>
 
-      <div class="demo-credentials-box">
+      <div class="auth-security-box">
         <div class="info-text">
-          <span>Credenciales de Prueba:</span><br>
-          <span class="credentials-code">admin / admin</span>
+          <span>Portal Administrativo de Ingeniería</span><br>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Acceso autorizado para edición de avances y firmas técnicas</span>
         </div>
-        <button type="button" class="btn-fill-credentials" id="btn-fill-demo-creds">
-          Autocompletar
+        <button type="button" class="btn-fill-credentials" id="btn-fill-admin-creds" title="Rellenar credenciales autorizadas">
+          Rellenar Admin
         </button>
       </div>
 
@@ -515,6 +519,15 @@
 
         <hr style="border: 0; border-top: 1px solid var(--border-light); margin: 1.25rem 0;">
 
+        <!-- Banner de Rol de Acceso (Consulta Pública vs Edición Admin) -->
+        <div id="modal-role-banner" class="modal-role-banner public">
+          <span class="role-icon">👁️</span>
+          <div>
+            <strong>Modo Consulta Pública (Solo Lectura)</strong>
+            <p>Visualización de especificaciones técnicas y trazabilidad. El registro de avances, modificación de estados y carga de evidencias requiere inicio de sesión como Administrador.</p>
+          </div>
+        </div>
+
         <!-- Formulario de Actualización de Estado -->
         <div class="form-grid-2">
           <div class="form-group">
@@ -546,10 +559,12 @@
         <div class="form-group">
           <label class="form-label">Evidencia Fotográfica de la Instalación In Situ</label>
           <div class="photo-upload-section">
-            <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-              📸 Adjunte fotografías del montaje, tubería acoplada, cableado peinado o rótulo:
-            </p>
-            <input type="file" id="item-photo-input" accept="image/*" style="font-size: 0.8rem;">
+            <div id="modal-photo-upload-controls" style="display: none;">
+              <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                📸 Adjunte fotografías del montaje, tubería acoplada, cableado peinado o rótulo:
+              </p>
+              <input type="file" id="item-photo-input" accept="image/*" style="font-size: 0.8rem;">
+            </div>
             
             <div class="photo-preview-grid" id="modal-photo-preview-container">
               <!-- Previsualización de fotos -->
@@ -559,8 +574,11 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="btn-cancel-item-modal">Cancelar</button>
-        <button type="button" class="btn btn-success" id="btn-save-item-modal">
+        <button type="button" class="btn btn-secondary" id="btn-cancel-item-modal">Cerrar</button>
+        <button type="button" class="btn btn-primary" id="btn-login-from-modal" data-action="open-login">
+          🔐 Iniciar Sesión para Editar
+        </button>
+        <button type="button" class="btn btn-success" id="btn-save-item-modal" style="display: none;">
           💾 Guardar y Actualizar Avance
         </button>
       </div>

@@ -28,6 +28,12 @@ const AppState = {
   database: null
 };
 
+// Verificación de Rol y Permisos de Acceso
+function isAdmin() {
+  return AppState.currentUser === 'admin';
+}
+window.isAdmin = isAdmin;
+
 // ==========================================================================
 // MODELO DE DATOS INICIAL DE LA TORRE GRAND TITANIUM (34 NIVELES: 0 AL 33)
 // ==========================================================================
@@ -677,10 +683,13 @@ function initEventListeners() {
   const loginForm = document.getElementById('login-form');
   loginForm?.addEventListener('submit', handleLogin);
 
-  document.getElementById('btn-fill-demo-creds')?.addEventListener('click', () => {
-    document.getElementById('login-username').value = 'admin';
-    document.getElementById('login-password').value = 'admin';
-    showToast('Credenciales admin / admin autocompletadas');
+  const fillAdminBtn = document.getElementById('btn-fill-admin-creds') || document.getElementById('btn-fill-demo-creds');
+  fillAdminBtn?.addEventListener('click', () => {
+    const userIn = document.getElementById('login-username');
+    const passIn = document.getElementById('login-password');
+    if (userIn) userIn.value = 'admin';
+    if (passIn) passIn.value = 'admin';
+    showToast('Credenciales de Administrador completadas');
   });
 
   // Botón Logout
@@ -763,10 +772,16 @@ function handleLogin(e) {
     localStorage.setItem('gsit_auth_user', 'admin');
     closeLoginModal();
     updateAuthUI();
-    showToast('Bienvenido, Ingeniero Residente / Administrador GSIT');
-    showView('execution');
+    showToast('Bienvenido, Ingeniero Administrador GSIT — Modo Edición Habilitado');
+
+    // Si la ficha técnica estaba abierta en modo público, refrescarla a modo editable
+    if (AppState.selectedItemForModal) {
+      openItemModal(AppState.selectedItemForModal);
+    } else if (AppState.activeView !== 'execution') {
+      showView('execution');
+    }
   } else {
-    showToast('Credenciales incorrectas. Usa admin / admin');
+    showToast('Credenciales incorrectas. Acceso exclusivo para administradores de obra.');
     const box = document.getElementById('login-card-box');
     box?.classList.add('shake');
     setTimeout(() => box?.classList.remove('shake'), 400);
@@ -777,20 +792,44 @@ function handleLogout() {
   localStorage.removeItem('gsit_auth_user');
   AppState.currentUser = null;
   updateAuthUI();
-  showToast('Sesión operativa cerrada con éxito');
-  showView('landing');
+
+  // Si la ficha técnica estaba abierta, refrescarla a modo solo lectura
+  if (AppState.selectedItemForModal) {
+    openItemModal(AppState.selectedItemForModal);
+  }
+  showToast('Sesión de administrador finalizada. Modo Consulta Pública (Solo Lectura) activo');
 }
 
 function updateAuthUI() {
   const profileMenu = document.getElementById('nav-user-profile');
   const loginBtn = document.getElementById('nav-btn-login');
+  const navRoleBadge = document.getElementById('nav-role-badge');
+  const sidebarAccessTag = document.getElementById('sidebar-access-tag');
 
-  if (AppState.currentUser) {
+  const adminActive = isAdmin();
+
+  if (adminActive) {
     if (profileMenu) profileMenu.style.display = 'flex';
     if (loginBtn) loginBtn.style.display = 'none';
+    if (navRoleBadge) {
+      navRoleBadge.className = 'access-role-badge admin';
+      navRoleBadge.innerHTML = '🛡️ Administrador Autorizado';
+    }
+    if (sidebarAccessTag) {
+      sidebarAccessTag.className = 'sidebar-access-tag admin';
+      sidebarAccessTag.innerHTML = '🛡️ Modo Edición Habilitado (Administrador)';
+    }
   } else {
     if (profileMenu) profileMenu.style.display = 'none';
     if (loginBtn) loginBtn.style.display = 'inline-flex';
+    if (navRoleBadge) {
+      navRoleBadge.className = 'access-role-badge public';
+      navRoleBadge.innerHTML = '👁️ Consulta Pública';
+    }
+    if (sidebarAccessTag) {
+      sidebarAccessTag.className = 'sidebar-access-tag public';
+      sidebarAccessTag.innerHTML = '👁️ Modo Consulta Pública (Solo Lectura)';
+    }
   }
 }
 
@@ -1402,22 +1441,75 @@ function openItemModal(item) {
   document.getElementById('modal-item-zone').textContent = item.zone;
   document.getElementById('modal-item-quantity').textContent = `${item.quantity} ${item.unit}`;
 
+  const isUserAdmin = isAdmin();
+
+  // Banner explicativo según rol
+  const roleBanner = document.getElementById('modal-role-banner');
+  if (roleBanner) {
+    if (isUserAdmin) {
+      roleBanner.className = 'modal-role-banner admin';
+      roleBanner.innerHTML = `
+        <span class="role-icon">🛡️</span>
+        <div>
+          <strong>Modo Edición Autorizada (Administrador de Obra)</strong>
+          <p>Tiene permisos de control técnico para actualizar estados de instalación, certificar fechas y cuadrillas, y registrar evidencias fotográficas in situ.</p>
+        </div>
+      `;
+    } else {
+      roleBanner.className = 'modal-role-banner public';
+      roleBanner.innerHTML = `
+        <span class="role-icon">👁️</span>
+        <div>
+          <strong>Modo Consulta Pública (Solo Lectura)</strong>
+          <p>Visualización de especificaciones técnicas y trazabilidad. El registro de avances, modificación de estados y carga de evidencias requiere inicio de sesión como Administrador.</p>
+        </div>
+      `;
+    }
+  }
+
   // Estado
   const statusSelect = document.getElementById('modal-item-status');
-  if (statusSelect) statusSelect.value = item.status;
+  if (statusSelect) {
+    statusSelect.value = item.status;
+    statusSelect.disabled = !isUserAdmin;
+  }
 
   // Fecha de Instalación (si no tiene, colocar fecha actual)
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('modal-item-date');
-  if (dateInput) dateInput.value = item.installDate || today;
+  if (dateInput) {
+    dateInput.value = item.installDate || today;
+    dateInput.disabled = !isUserAdmin;
+  }
 
   // Técnico
   const techInput = document.getElementById('modal-item-tech');
-  if (techInput) techInput.value = item.technician || 'Cuadrilla de Instalación GSIT';
+  if (techInput) {
+    techInput.value = item.technician || 'Cuadrilla de Instalación GSIT';
+    techInput.disabled = !isUserAdmin;
+  }
 
   // Notas de campo
   const notesInput = document.getElementById('modal-item-notes');
-  if (notesInput) notesInput.value = item.notes || '';
+  if (notesInput) {
+    notesInput.value = item.notes || '';
+    notesInput.disabled = !isUserAdmin;
+  }
+
+  // Controles de carga de fotos
+  const photoUploadControls = document.getElementById('modal-photo-upload-controls');
+  if (photoUploadControls) {
+    photoUploadControls.style.display = isUserAdmin ? 'block' : 'none';
+  }
+
+  // Botones de acción del pie de modal
+  const btnSave = document.getElementById('btn-save-item-modal');
+  const btnLogin = document.getElementById('btn-login-from-modal');
+  const btnCancel = document.getElementById('btn-cancel-item-modal');
+
+  if (btnSave) btnSave.style.display = isUserAdmin ? 'inline-flex' : 'none';
+  if (btnLogin) btnLogin.style.display = isUserAdmin ? 'none' : 'inline-flex';
+  if (btnCancel) btnCancel.textContent = isUserAdmin ? 'Cancelar' : 'Cerrar';
 
   // Fotos de evidencia
   renderItemModalPhotos(item);
@@ -1453,6 +1545,11 @@ function renderItemModalPhotos(item) {
 }
 
 function handleUserPhotoUpload(e) {
+  if (!isAdmin()) {
+    showToast('Acceso restringido: Solo los administradores pueden cargar fotografías de evidencia');
+    return;
+  }
+
   const file = e.target.files[0];
   if (!file) return;
 
@@ -1468,6 +1565,11 @@ function handleUserPhotoUpload(e) {
 }
 
 function saveItemModalChanges() {
+  if (!isAdmin()) {
+    showToast('Acceso denegado: Solo administradores autorizados pueden guardar cambios en obra.');
+    return;
+  }
+
   const item = AppState.selectedItemForModal;
   if (!item) return;
 

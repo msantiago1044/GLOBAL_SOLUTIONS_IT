@@ -510,9 +510,9 @@ body {
   box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.15);
 }
 
-.demo-credentials-box {
-  background: var(--brand-cyan-light);
-  border: 1px dashed var(--brand-accent);
+.auth-security-box {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   margin-bottom: 1.5rem;
@@ -522,12 +522,8 @@ body {
   text-align: left;
 }
 
-.demo-credentials-box .info-text {
+.auth-security-box .info-text {
   font-size: 0.78rem;
-  color: var(--brand-blue-deep);
-}
-
-.demo-credentials-box .credentials-code {
   font-weight: 700;
   color: var(--brand-blue-deep);
 }
@@ -537,15 +533,95 @@ body {
   color: var(--brand-blue);
   border: 1px solid var(--brand-accent);
   font-size: 0.75rem;
-  padding: 0.3rem 0.65rem;
+  padding: 0.35rem 0.75rem;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 700;
+  transition: var(--transition);
 }
 
 .btn-fill-credentials:hover {
   background: var(--brand-blue);
   color: white;
+}
+
+/* Badges de Rol y Modo de Acceso */
+.access-role-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.25rem 0.65rem;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid transparent;
+  transition: var(--transition);
+}
+
+.access-role-badge.public {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.access-role-badge.admin {
+  background: var(--status-installed-bg);
+  color: #065f46;
+  border-color: var(--status-installed-border);
+}
+
+.sidebar-access-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  margin-top: 0.4rem;
+  display: inline-block;
+  transition: var(--transition);
+}
+
+.sidebar-access-tag.public {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.sidebar-access-tag.admin {
+  background: var(--status-installed-bg);
+  color: #065f46;
+  border: 1px solid var(--status-installed-border);
+}
+
+/* Banner de Rol en Ficha Técnica */
+.modal-role-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  border: 1px solid transparent;
+}
+
+.modal-role-banner.public {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+  border-left: 4px solid var(--brand-accent);
+}
+
+.modal-role-banner.admin {
+  background: var(--status-installed-bg);
+  border-color: var(--status-installed-border);
+  color: #065f46;
+  border-left: 4px solid var(--status-installed);
+}
+
+.modal-role-banner .role-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
 }
 
 /* ==========================================================================

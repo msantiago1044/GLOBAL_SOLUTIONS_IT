@@ -7,11 +7,11 @@ Plataforma web para la supervisión y control operativo de sistemas de redes de 
 ## 🚀 Características Principales
 
 1. **Panel Inicial Institucional**: Presentación corporativa con indicadores de obra en tiempo real.
-2. **Acceso Operativo Seguro**:
-   - Usuario Demo: `admin`
-   - Contraseña Demo: `admin`
+2. **Control de Acceso y Roles de Seguridad**:
+   - **Consulta Pública (Solo Lectura)**: Acceso libre para supervisores, clientes e interventoría para inspeccionar los 34 pisos, planos técnicos, especificaciones y actas de facturación sin alterar registros.
+   - **Administrador de Obra**: Autenticación para ingenieros autorizados (`admin` / `admin`) con permisos exclusivos de edición de estados, fechas, cuadrillas y adjunto de evidencias fotográficas.
 3. **Portafolio de Proyectos**:
-   - **Torre Grand Titanium (33 Pisos)**: Demo funcional completa con un avance global del **90.4%**.
+   - **Torre Grand Titanium (33 Pisos)**: Proyecto en ejecución activa con un avance global certificado del **90.4%**.
 4. **Estudio Técnico por Pisos (0 al 33)**:
    - **Piso 0**: Sótano y parqueaderos (100% OK).
    - **Piso 1**: **CEREBRO DE LA OPERACIÓN** con Central FACP Notifier NFS2-3030, baterías y riser vertical.
