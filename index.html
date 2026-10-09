@@ -31,31 +31,12 @@
       </div>
     </div>
 
-    <div class="header-center-info">
-      <div class="project-badge-pill">
-        <span class="pulse-dot"></span>
-        <span>Torre Titanium 33 Pisos</span>
-        <span style="opacity: 0.65;">|</span>
-        <span class="global-progress-value" style="color: var(--brand-blue-deep); font-weight: 800;">90.4%</span>
-      </div>
-      <span class="access-role-badge public" id="nav-role-badge">👁️ Consulta Pública</span>
-    </div>
-
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick="showView('landing')" style="font-size: 0.8rem;">
-        🏠 Inicio
-      </button>
-      <button class="btn btn-secondary" onclick="showView('projects')" style="font-size: 0.8rem;">
+      <button class="btn btn-secondary" onclick="showView('projects')" id="nav-btn-projects" style="font-size: 0.85rem; padding: 0.45rem 1rem;">
         📂 Proyectos
       </button>
-      <button class="btn btn-secondary" onclick="showView('execution')" style="font-size: 0.8rem;">
-        📐 Estudio de Obra
-      </button>
-      <button class="btn btn-primary" data-action="open-billing">
-        📋 Corte de Facturación
-      </button>
-      <button class="btn btn-secondary" data-action="open-login" id="nav-btn-login">
-        🔑 Acceso Admin
+      <button class="btn btn-primary" data-action="open-login" id="nav-btn-login" style="font-size: 0.85rem; padding: 0.45rem 1.1rem;">
+        🔑 Acceso
       </button>
 
       <div class="user-profile-menu" id="nav-user-profile" style="display: none;">
@@ -84,32 +65,9 @@
       </p>
 
       <div class="hero-cta-buttons">
-        <button class="btn btn-primary btn-lg" onclick="showView('execution')">
-          🚀 Explorar Proyecto Torre Titanium (33 Pisos — 90.4% Ejecutado)
+        <button class="btn btn-primary btn-lg" data-action="open-login" style="min-width: 200px;">
+          🔐 Acceso
         </button>
-        <button class="btn btn-secondary btn-lg" data-action="open-login">
-          🔐 Acceso Administrador de Obra
-        </button>
-      </div>
-
-      <!-- Indicadores de Impacto -->
-      <div class="hero-stats-strip">
-        <div class="stat-card">
-          <div class="stat-number">33 Pisos</div>
-          <div class="stat-label">Torre en Seguimiento Activo</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number global-progress-value">90.4%</div>
-          <div class="stat-label">Avance Global Ejecutado</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">+14,250 m</div>
-          <div class="stat-label">Tubería Conduit EMT Instalada</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number">100% Digital</div>
-          <div class="stat-label">Cortes de Facturación con Filtro</div>
-        </div>
       </div>
 
       <!-- Beneficios Clave del Sistema -->
@@ -143,9 +101,6 @@
           <h2 class="section-title">Portafolio de Proyectos en Ejecución</h2>
           <p class="section-subtitle">Gestión centralizada de redes de detección contra incendios Global Solutions IT</p>
         </div>
-        <button class="btn btn-primary" onclick="showView('execution')">
-          ▶ Continuar en Proyecto Activo
-        </button>
       </div>
 
       <div class="projects-grid">
@@ -256,6 +211,9 @@
       <aside class="project-sidebar">
         <!-- Header del Proyecto -->
         <div class="sidebar-header-box">
+          <button class="btn btn-secondary btn-sm" onclick="showView('projects')" style="margin-bottom: 0.65rem; font-size: 0.74rem; padding: 0.25rem 0.6rem; width: 100%; justify-content: flex-start; gap: 0.35rem;">
+            ← Volver a Proyectos
+          </button>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
             <span style="font-size: 0.7rem; font-weight: 800; color: var(--brand-blue); text-transform: uppercase;">Proyecto en Ejecución</span>
             <span class="global-progress-value" style="font-size: 0.95rem; font-weight: 900; color: var(--status-installed);">90.4%</span>
