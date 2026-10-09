@@ -41,8 +41,14 @@
     </div>
 
     <div class="header-actions">
-      <button class="btn btn-secondary" data-action="select-project" style="font-size: 0.8rem;">
+      <button class="btn btn-secondary" onclick="showView('landing')" style="font-size: 0.8rem;">
+        🏠 Inicio
+      </button>
+      <button class="btn btn-secondary" onclick="showView('projects')" style="font-size: 0.8rem;">
         📂 Proyectos
+      </button>
+      <button class="btn btn-secondary" onclick="showView('execution')" style="font-size: 0.8rem;">
+        📐 Estudio de Obra
       </button>
       <button class="btn btn-primary" data-action="open-billing">
         📋 Corte de Facturación
@@ -571,15 +577,25 @@
           <span style="font-size: 1.4rem;">🧾</span>
           <div>
             <h3 class="modal-title">Corte de Facturación de Obra | Global Solutions IT</h3>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Generación de Acta de Cobro de Ítems Instalados</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Liquidación Formal & Acta de Cobro de Redes Contra Incendio NFPA 72</span>
           </div>
         </div>
-        <button class="modal-close-btn" id="modal-billing-close">&times;</button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <div class="billing-tabs-nav">
+            <button type="button" class="billing-tab-btn active" id="tab-btn-interactive" onclick="switchBillingTab('interactive')">
+              📊 Tabla & Métricas
+            </button>
+            <button type="button" class="billing-tab-btn" id="tab-btn-certificate" onclick="switchBillingTab('certificate')">
+              📄 Acta Formal Membretada
+            </button>
+          </div>
+          <button class="modal-close-btn" id="modal-billing-close">&times;</button>
+        </div>
       </div>
 
       <div class="modal-body">
         <!-- Filtros de Período y Alcance -->
-        <div class="form-grid-2" style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
+        <div class="form-grid-2 billing-filters-bar" style="background: var(--bg-subtle); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1.25rem;">
           <div class="form-group" style="margin-bottom: 0;">
             <label class="form-label" for="billing-date-start">Fecha Inicial</label>
             <input type="date" id="billing-date-start" class="form-input">
@@ -592,11 +608,12 @@
             <label class="form-label" for="billing-floor-scope">Alcance de Pisos</label>
             <select id="billing-floor-scope" class="form-input">
               <option value="all">Todos los Pisos (0 al 33)</option>
-              <option value="33">Solo Piso 33</option>
+              <option value="33">Solo Piso 33 - Ático / Penthouse</option>
               <option value="32">Solo Piso 32</option>
               <option value="31">Solo Piso 31</option>
               <option value="30">Solo Piso 30</option>
               <option value="1">Solo Piso 1 (Cerebro FACP)</option>
+              <option value="0">Solo Piso 0 (Sótano & Bombas)</option>
             </select>
           </div>
           <div style="display: flex; align-items: flex-end;">
@@ -606,45 +623,182 @@
           </div>
         </div>
 
-        <!-- Tarjetas de Resumen Financiero y Cuantitativo -->
-        <div class="billing-summary-cards">
-          <div class="billing-card">
-            <div class="billing-value" id="billing-summary-pipe">0 m</div>
-            <div class="billing-label">Tubería Conduit EMT</div>
+        <!-- VISTA 1: INTERACTIVA (TARJETAS Y TABLA) -->
+        <div id="billing-interactive-view">
+          <!-- Tarjetas de Resumen Financiero y Cuantitativo -->
+          <div class="billing-summary-cards">
+            <div class="billing-card">
+              <div class="billing-value" id="billing-summary-pipe">0 m</div>
+              <div class="billing-label">Tubería Conduit EMT</div>
+            </div>
+            <div class="billing-card">
+              <div class="billing-value" id="billing-summary-cable">0 m</div>
+              <div class="billing-label">Cable FPLR Instalado</div>
+            </div>
+            <div class="billing-card">
+              <div class="billing-value" id="billing-summary-devices">0 un</div>
+              <div class="billing-label">Dispositivos & Sensores</div>
+            </div>
+            <div class="billing-card highlight">
+              <div class="billing-value" id="billing-summary-total" style="color: var(--brand-blue-deep);">$ 0</div>
+              <div class="billing-label">Valor Total Facturable (+IVA 19%)</div>
+            </div>
           </div>
-          <div class="billing-card">
-            <div class="billing-value" id="billing-summary-cable">0 m</div>
-            <div class="billing-label">Cable FPLR Instalado</div>
-          </div>
-          <div class="billing-card">
-            <div class="billing-value" id="billing-summary-devices">0 un</div>
-            <div class="billing-label">Dispositivos & Sensores</div>
-          </div>
-          <div class="billing-card highlight">
-            <div class="billing-value" id="billing-summary-total" style="color: var(--brand-blue-deep);">$ 0</div>
-            <div class="billing-label">Valor Total Facturable</div>
+
+          <!-- Tabla Detallada de Ítems Instalados -->
+          <div class="billing-table-wrapper">
+            <table class="billing-table">
+              <thead>
+                <tr>
+                  <th>Fecha Inst.</th>
+                  <th>Código</th>
+                  <th>Descripción Técnica</th>
+                  <th>Piso</th>
+                  <th>Cant. / Metros</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal COP</th>
+                </tr>
+              </thead>
+              <tbody id="billing-table-body">
+                <!-- Inyectado desde JS -->
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- Tabla Detallada de Ítems Instalados -->
-        <div class="billing-table-wrapper">
-          <table class="billing-table">
+        <!-- VISTA 2: ACTA FORMAL MEMBRETADA CON FIRMAS (VISIBLE EN PESTAÑA Y AL IMPRIMIR) -->
+        <div id="billing-printable-certificate" class="formal-certificate-view" style="display: none;">
+          <!-- Membrete Corporativo Oficial -->
+          <div class="cert-header">
+            <div class="cert-brand">
+              <img src="assets/logo.png" alt="Logo Global Solutions IT" class="cert-logo-img">
+              <div class="cert-company-text">
+                <h2 class="cert-company-name">GLOBAL SOLUTIONS IT S.A.S.</h2>
+                <span class="cert-company-nit">NIT: 901.458.921-3 | Régimen Común</span>
+                <span class="cert-company-desc">Especialistas en Diseño, Montaje y Certificación de Redes de Detección Contra Incendios NFPA 72</span>
+                <span class="cert-company-contact">Cra. 15 # 98-42 Of. 602, Bogotá D.C. | PBX: (+57 1) 745-8900 | info@globalsolutionsit.com</span>
+              </div>
+            </div>
+            <div class="cert-doc-number-box">
+              <div class="cert-doc-badge">ACTA FORMAL DE CORTE DE OBRA</div>
+              <div class="cert-doc-code" id="cert-doc-code">GSIT-TITANIUM-2026-004</div>
+              <div class="cert-doc-date" id="cert-doc-date">Fecha: 08/10/2026</div>
+            </div>
+          </div>
+
+          <!-- Metadatos de la Obra y del Contrato -->
+          <div class="cert-meta-grid">
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">PROYECTO:</span>
+              <span class="cert-meta-val">Torre Grand Titanium (34 Niveles: Sótano + Pisos 1 al 33)</span>
+            </div>
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">CLIENTE / CONTRATANTE:</span>
+              <span class="cert-meta-val">Constructora Bolívar S.A. / Inversiones Colpatria</span>
+            </div>
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">SISTEMA INSTALADO:</span>
+              <span class="cert-meta-val">Red Direccionable Inteligente NFPA 72 — Notifier ONYX NFS2-3030</span>
+            </div>
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">INTERVENTORÍA TÉCNICA:</span>
+              <span class="cert-meta-val">Consorcio Interventorías Civiles & Eléctricas S.A.S.</span>
+            </div>
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">PERÍODO LIQUIDADO:</span>
+              <span class="cert-meta-val" id="cert-period-range">-</span>
+            </div>
+            <div class="cert-meta-row">
+              <span class="cert-meta-label">ALCANCE DE PISOS:</span>
+              <span class="cert-meta-val" id="cert-scope-floors">Todos los Niveles (0 al 33)</span>
+            </div>
+          </div>
+
+          <!-- Resumen Cuantitativo del Acta -->
+          <div class="cert-summary-strip">
+            <div class="cert-sum-item">
+              <span class="cert-sum-sub">Tubería Conduit EMT:</span>
+              <strong id="cert-sum-pipe">0 m</strong>
+            </div>
+            <div class="cert-sum-item">
+              <span class="cert-sum-sub">Cableado FPLR Incendio:</span>
+              <strong id="cert-sum-cable">0 m</strong>
+            </div>
+            <div class="cert-sum-item">
+              <span class="cert-sum-sub">Dispositivos Certificados:</span>
+              <strong id="cert-sum-devices">0 un</strong>
+            </div>
+            <div class="cert-sum-item total">
+              <span class="cert-sum-sub">TOTAL FACTURABLE CON IVA:</span>
+              <strong id="cert-sum-total">$ 0 COP</strong>
+            </div>
+          </div>
+
+          <!-- Tabla Formal Imprimible -->
+          <table class="cert-items-table">
             <thead>
               <tr>
                 <th>Fecha Inst.</th>
-                <th>Código</th>
-                <th>Descripción Técnica</th>
-                <th>Piso</th>
-                <th>Cant. / Metros</th>
-                <th>Precio Unitario</th>
-                <th>Subtotal</th>
+                <th>Código Ítem</th>
+                <th>Descripción Técnica del Material / Dispositivo</th>
+                <th>Ubicación</th>
+                <th>Cant.</th>
+                <th>Vlr. Unitario COP</th>
+                <th>Subtotal COP</th>
               </tr>
             </thead>
-            <tbody id="billing-table-body">
-              <!-- Inyectado desde JS -->
+            <tbody id="cert-items-table-body">
+              <!-- Renderizado desde JS -->
             </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" style="text-align: right; font-weight: 700;">Subtotal Obra Ejecutada:</td>
+                <td colspan="2" id="cert-val-subtotal" style="font-weight: 700;">$ 0</td>
+              </tr>
+              <tr>
+                <td colspan="5" style="text-align: right; font-weight: 700;">IVA (19%):</td>
+                <td colspan="2" id="cert-val-iva" style="font-weight: 700;">$ 0</td>
+              </tr>
+              <tr class="cert-total-row">
+                <td colspan="5" style="text-align: right; font-weight: 800; font-size: 0.95rem;">VALOR TOTAL A LIQUIDAR Y FACTURAR:</td>
+                <td colspan="2" id="cert-val-total" style="font-weight: 900; font-size: 1rem; color: #004b87;">$ 0</td>
+              </tr>
+            </tfoot>
           </table>
+
+          <!-- Bloque de Firmas Formales -->
+          <div class="cert-signatures-block">
+            <div class="cert-signature-card">
+              <div class="cert-sig-line"></div>
+              <div class="cert-sig-name">Ing. Carlos Arturo Mendoza R.</div>
+              <div class="cert-sig-title">Ingeniero Residente de Obra / Especialista NFPA 72</div>
+              <div class="cert-sig-meta">Matrícula Prof. CNEM 25202-184930 CND</div>
+              <div class="cert-sig-company">Global Solutions IT S.A.S.</div>
+            </div>
+
+            <div class="cert-signature-card">
+              <div class="cert-sig-line"></div>
+              <div class="cert-sig-name">Ing. Patricia Elena Valenzuela</div>
+              <div class="cert-sig-title">Ingeniera Interventora Especialista</div>
+              <div class="cert-sig-meta">Matrícula Prof. COPNIA 11204-098231</div>
+              <div class="cert-sig-company">Consorcio Interventoría Técnica S.A.S.</div>
+            </div>
+
+            <div class="cert-signature-card">
+              <div class="cert-sig-line"></div>
+              <div class="cert-sig-name">Arq. Mauricio Gómez Delgado</div>
+              <div class="cert-sig-title">Director de Proyecto & Construcción</div>
+              <div class="cert-sig-meta">C.C. 79.845.210 de Bogotá</div>
+              <div class="cert-sig-company">Constructora Bolívar / Colpatria</div>
+            </div>
+          </div>
+
+          <!-- Nota de Aprobación Técnica -->
+          <div class="cert-legal-note">
+            <p><strong>Certificación de Conformidad:</strong> Se certifica que los tramos de tubería conduit EMT, conductores FPLR y dispositivos de campo detallados en la presente acta han sido instalados, verificados con continuidad/aislamiento y enlazados a la central de incendio conforme a los planos récord aprobados y la normativa NFPA 72 (National Fire Alarm and Signaling Code) y RETIE.</p>
+          </div>
         </div>
+
       </div>
 
       <div class="modal-footer">

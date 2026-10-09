@@ -1,12 +1,16 @@
 /**
- * GLOBAL SOLUTIONS IT - Plataforma de Gestión y Ejecución de Obras
- * Lógica Operativa, Modelo de Datos de 33 Pisos, Plano Interactivo y Corte de Facturación
+ * GLOBAL SOLUTIONS IT S.A.S. - Plataforma de Gestión y Ejecución de Obras
+ * Redes de Detección y Alarma Contra Incendios conforme a NFPA 72
+ * Arquitectura de Software, Modelo de Datos de 34 Niveles (0 al 33), Plano SVG y Corte de Facturación
  */
 
-// Estado global de la aplicación
+// ==========================================================================
+// ESTADO GLOBAL DE LA APLICACIÓN
+// ==========================================================================
 const AppState = {
   currentUser: null,
-  activeView: 'landing', // 'landing', 'login', 'projects', 'execution'
+  activeView: 'landing', // 'landing', 'projects', 'execution'
+  activeBillingTab: 'interactive', // 'interactive', 'certificate'
   currentProject: 'torre-titanium',
   selectedFloor: 33, // Comienza en el piso 33 para mostrar elementos pendientes y permitir interacción inmediata
   zoomLevel: 1,
@@ -24,73 +28,85 @@ const AppState = {
   database: null
 };
 
-// Generación inicial de la base de datos de los 33 Pisos de Torre Titanium
+// ==========================================================================
+// MODELO DE DATOS INICIAL DE LA TORRE GRAND TITANIUM (34 NIVELES: 0 AL 33)
+// ==========================================================================
 function generateInitialDatabase() {
   const db = {
     project: {
       id: 'torre-titanium',
       name: 'Torre Grand Titanium - 33 Pisos',
       client: 'Constructora Bolívar & Inversiones Colpatria',
-      address: 'Cra 15 # 98-42, Bogotá D.C.',
-      contractor: 'Global Solutions IT S.A.S.',
-      systemType: 'Sistema Direccionable NFPA 72 - Notifier ONYX NFS2-3030',
-      totalFloors: 34, // Pisos 0 al 33
-      status: 'En Ejecución',
+      address: 'Cra 15 # 98-42, Chicó Norte, Bogotá D.C.',
+      contractor: 'Global Solutions IT S.A.S. (NIT 901.458.921-3)',
+      interventoria: 'Consorcio Interventorías Civiles & Eléctricas S.A.S.',
+      systemType: 'Sistema Direccionable Inteligente NFPA 72 — Notifier ONYX NFS2-3030',
+      totalFloors: 34, // Pisos 0 al 33 (Sótano + 33 pisos de torre)
+      status: 'En Ejecución Activa',
       startDate: '2026-04-15',
-      targetDate: '2026-11-30'
+      targetDate: '2026-11-30',
+      baseline: {
+        globalPercentage: 90.4,
+        totalPipeMeters: 15760,
+        installedPipeMeters: 14250,
+        totalCableMeters: 24800,
+        installedCableMeters: 22400,
+        totalDevices: 3445,
+        installedDevices: 3115
+      }
     },
     floors: {}
   };
 
-  // Creación de cada piso de 0 a 33
+  // Generación de cada nivel de 0 a 33
   for (let f = 0; f <= 33; f++) {
     let floorType = 'habitaciones';
     let floorName = `Piso ${f}`;
-    let is100Percent = f <= 29; // Pisos 0 al 29 ejecutados al 100% (Da el 90.4% global)
 
     if (f === 0) {
       floorType = 'parqueaderos';
-      floorName = 'Piso 0 - Sótano / Parqueaderos & Rociadores';
+      floorName = 'Piso 0 - Sótano / Parqueadero & Cuarto de Bombas de Incendio';
     } else if (f === 1) {
       floorType = 'cerebro';
-      floorName = 'Piso 1 - Centro de Control / Cerebro FACP & Oficinas';
+      floorName = 'Piso 1 - CEREBRO DE LA OPERACIÓN (Sala de Control FACP & Riser Troncal)';
     } else if (f >= 2 && f <= 6) {
       floorType = 'oficinas';
-      floorName = `Piso ${f} - Oficinas Corporativas & Estacionamientos`;
+      floorName = `Piso ${f} - Oficinas Corporativas & Áreas Comunes`;
     } else {
       floorType = 'habitaciones';
       floorName = `Piso ${f} - Habitaciones Residenciales (${f}01 a ${f}08)`;
     }
 
-    // Elementos del piso: Tubería, Cableado, Equipos
     const items = [];
 
+    // ------------------------------------------------------------------------
+    // PISO 1: CEREBRO DE LA OPERACIÓN (CENTRAL FACP NOTIFIER)
+    // ------------------------------------------------------------------------
     if (floorType === 'cerebro') {
-      // PISO 1: CEREBRO DE LA OPERACIÓN
       items.push({
-        id: `FACP-P1-01`,
+        id: `FACP-P01-MAIN`,
         code: `FACP-P01-MAIN`,
         type: 'facp',
-        name: 'Central Principal de Alarma Contra Incendios FACP',
-        model: 'Notifier NFS2-3030 ONYX',
-        zone: 'Cuarto de Control Eléctrico P1',
+        name: 'Central Principal de Alarma Contra Incendios FACP Notifier',
+        model: 'Notifier ONYX NFS2-3030 Direccionable (Certificación UL/FM)',
+        zone: 'Cuarto de Control Principal FACP Piso 1',
         status: 'installed',
         installDate: '2026-06-10',
-        technician: 'Ing. Carlos Mendoza (Especialista NFPA)',
+        technician: 'Ing. Carlos Arturo Mendoza (Especialista NFPA 72)',
         quantity: 1,
         unit: 'Unidad',
         unitPrice: 14500000,
         photo: 'assets/img/facp_panel.svg',
-        notes: 'Central principal energizada con 4 lazos SLC activos. Pruebas de lazo y lazo vertical OK.'
+        notes: 'Central principal energizada y programada con 4 lazos SLC activos. Supervisión de riser troncal y bombas OK.'
       });
 
       items.push({
-        id: `BAT-P1-01`,
+        id: `BAT-P01-24V`,
         code: `BAT-P01-24V`,
         type: 'equipo',
         name: 'Banco de Baterías de Respaldo 2x12V 55Ah',
-        model: 'Yuasa VRLA 24VDC',
-        zone: 'Gabinete FACP P1',
+        model: 'Yuasa VRLA 24VDC Plomo-Ácido Selladas',
+        zone: 'Gabinete Inferior FACP Piso 1',
         status: 'installed',
         installDate: '2026-06-10',
         technician: 'Ing. Carlos Mendoza',
@@ -98,194 +114,407 @@ function generateInitialDatabase() {
         unit: 'Kit',
         unitPrice: 2800000,
         photo: 'assets/img/facp_panel.svg',
-        notes: 'Autonomía de 24h supervisión + 15 min de alarma completa.'
+        notes: 'Garantiza autonomía de 24 horas en supervisión continua + 15 minutos de evacuación en alarma general.'
       });
-    }
-
-    // Tramos de tubería Conduit EMT 3/4" (Ítem independiente)
-    for (let s = 1; s <= 6; s++) {
-      let isInstalled = is100Percent;
-      if (!is100Percent) {
-        // En pisos 30 a 33 algunos pendientes
-        if (f === 33 && (s === 4 || s === 5 || s === 6)) isInstalled = false;
-        else if (f === 32 && (s === 5 || s === 6)) isInstalled = false;
-        else if (f === 31 && s === 6) isInstalled = false;
-        else isInstalled = true;
-      }
 
       items.push({
-        id: `TUB-P${f}-S0${s}`,
-        code: `TUB-P${f}-S0${s}`,
+        id: `RIS-P01-TRK`,
+        code: `RIS-P01-TRK`,
         type: 'tuberia',
-        name: `Tubería Conduit EMT 3/4" Tramo ${s}`,
-        model: 'Tubo EMT Galvanizado Certificado UL 797',
-        zone: `Pasillo Distribución Zona ${s}`,
-        status: isInstalled ? 'installed' : 'pending',
-        installDate: isInstalled ? `2026-08-${10 + (s % 15)}` : null,
-        technician: isInstalled ? 'Cuadrilla 2 - Tubería (M. Rodríguez)' : 'Pendiente Asignación',
-        quantity: 18.5, // 18.5 metros por tramo
+        name: 'Acometida Troncal Riser Vertical EMT 1-1/2"',
+        model: 'Tubería EMT 1-1/2" con Coplas de Compresión UL 797',
+        zone: 'Salida de FACP a Ducto Vertical Riser',
+        status: 'installed',
+        installDate: '2026-06-12',
+        technician: 'Cuadrilla Troncal - Tubería (M. Rodríguez)',
+        quantity: 35.0,
         unit: 'Metros',
-        unitPrice: 28500, // $28,500 COP por metro instalado con soportes
+        unitPrice: 42000,
         photo: 'assets/img/pipe_emt.svg',
-        notes: isInstalled ? 'Tubería fijada con abrazaderas tipo riel cada 1.5m con coplas de compresión.' : 'Trazado marcado en losa. Pendiente perforación y montaje de soportes.'
+        notes: 'Alimentador principal que distribuye los lazos SLC hacia los 33 niveles superiores.'
+      });
+
+      items.push({
+        id: `CAB-P01-TRK`,
+        code: `CAB-P01-TRK`,
+        type: 'cableado',
+        name: 'Cable Troncal Riser Blindado FPLR 2x14 AWG',
+        model: 'Cable Contra Incendio FPLR Rojo 2x14 AWG UL 1424',
+        zone: 'Ducto Vertical Riser Principal',
+        status: 'installed',
+        installDate: '2026-06-14',
+        technician: 'Cuadrilla 1 - Cableado (J. Morales)',
+        quantity: 45.0,
+        unit: 'Metros',
+        unitPrice: 27500,
+        photo: 'assets/img/cable_fire.svg',
+        notes: 'Cableado vertical con aislamiento cerámico para lazo principal Clase A con retorno.'
+      });
+
+      items.push({
+        id: `DET-P01-CTRL`,
+        code: `DET-P01-CTRL`,
+        type: 'detector-doble',
+        name: 'Detector Óptico de Humo / Sala de Control',
+        model: 'Notifier FSP-851 Direccionable con Base B210LP',
+        zone: 'Cielo Raso Sala de Control FACP',
+        status: 'installed',
+        installDate: '2026-06-15',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 245000,
+        photo: 'assets/img/smoke_detector.svg',
+        notes: 'Protección dedicada para la sala de comando del sistema contra incendios.'
+      });
+
+      items.push({
+        id: `SIR-P01-CTRL`,
+        code: `SIR-P01-CTRL`,
+        type: 'sirena',
+        name: 'Sirena con Luz Estroboscópica Sala de Control',
+        model: 'System Sensor SpectrAlert Advance P2RL',
+        zone: 'Acceso Sala de Comando Piso 1',
+        status: 'installed',
+        installDate: '2026-06-15',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 280000,
+        photo: 'assets/img/horn_strobe.svg',
+        notes: 'Configurada a 15 candelas y tono continuo de notificación.'
       });
     }
 
-    // Tramos de Cableado FPLR 2x16 AWG Contra Incendio (Ítem independiente de la tubería)
-    for (let c = 1; c <= 6; c++) {
-      let isInstalled = is100Percent;
-      if (!is100Percent) {
-        if (f === 33 && (c >= 3)) isInstalled = false;
-        else if (f === 32 && (c >= 4)) isInstalled = false;
-        else if (f === 31 && (c >= 5)) isInstalled = false;
-        else if (f === 30 && c === 6) isInstalled = false;
-        else isInstalled = true;
+    // ------------------------------------------------------------------------
+    // PISO 0: SÓTANO / PARQUEADEROS & CUARTO DE BOMBAS
+    // ------------------------------------------------------------------------
+    else if (floorType === 'parqueaderos') {
+      items.push({
+        id: `BOM-P00-CTRL`,
+        code: `BOM-P00-CTRL`,
+        type: 'equipo',
+        name: 'Módulo de Monitoreo de Bomba Principal y Jockey',
+        model: 'Módulo Notifier FMM-1 Supervisión de Contacto Seco',
+        zone: 'Cuarto de Bombas Contra Incendio Sótano',
+        status: 'installed',
+        installDate: '2026-05-20',
+        technician: 'Ing. Carlos Mendoza',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 380000,
+        photo: 'assets/img/facp_panel.svg',
+        notes: 'Supervisa estado de marcha de bomba eléctrica 500 GPM, bomba diésel y presurización jockey.'
+      });
+
+      for (let s = 1; s <= 4; s++) {
+        items.push({
+          id: `TUB-P00-S0${s}`,
+          code: `TUB-P00-S0${s}`,
+          type: 'tuberia',
+          name: `Tubería Conduit EMT 3/4" Sótano Zona ${s}`,
+          model: 'Tubería EMT Galvanizada Industrial UL 797',
+          zone: `Bahías de Estacionamiento Bahía ${s*2-1}-${s*2}`,
+          status: 'installed',
+          installDate: '2026-05-22',
+          technician: 'Cuadrilla 2 - Tubería',
+          quantity: 22.0,
+          unit: 'Metros',
+          unitPrice: 28500,
+          photo: 'assets/img/pipe_emt.svg',
+          notes: 'Instalación fijada en viga de concreto con abrazaderas tipo riel y coplas herméticas.'
+        });
+
+        items.push({
+          id: `CAB-P00-S0${s}`,
+          code: `CAB-P00-SLC-0${s}`,
+          type: 'cableado',
+          name: `Cable Blindado FPLR 2x16 AWG Sótano Tramo ${s}`,
+          model: 'Cable Contra Incendio FPLR Rojo UL 1424',
+          zone: `Ducto EMT Sótano Sector ${s}`,
+          status: 'installed',
+          installDate: '2026-05-25',
+          technician: 'Cuadrilla 1 - Cableado',
+          quantity: 28.0,
+          unit: 'Metros',
+          unitPrice: 19800,
+          photo: 'assets/img/cable_fire.svg',
+          notes: 'Lazo SLC cerrado y probado contra tierra.'
+        });
+      }
+
+      for (let d = 1; d <= 4; d++) {
+        items.push({
+          id: `DET-P00-0${d}`,
+          code: `DET-TERM-P00-0${d}`,
+          type: 'detector-doble',
+          name: `Detector Térmico de Temperatura / Sótano ${d}`,
+          model: 'Notifier FST-851 Térmico Termovelocimétrico (57°C)',
+          zone: `Bahía de Parqueadero P0${d}`,
+          status: 'installed',
+          installDate: '2026-05-28',
+          technician: 'Cuadrilla 3 - Dispositivos',
+          quantity: 1,
+          unit: 'Unidad',
+          unitPrice: 260000,
+          photo: 'assets/img/smoke_detector.svg',
+          notes: 'Inmune a gases de escape de vehículos. Verificado con lámpara térmica.'
+        });
       }
 
       items.push({
-        id: `CAB-P${f}-S0${c}`,
-        code: `CAB-P${f}-SLC-0${c}`,
-        type: 'cableado',
-        name: `Cable Blindado FPLR 2x16 AWG Tramo ${c}`,
-        model: 'Cable Detección de Incendio FPLR Rojo UL 1424',
-        zone: `Pasillo Distribución Tramo ${c}`,
-        status: isInstalled ? 'installed' : 'pending',
-        installDate: isInstalled ? `2026-08-${15 + (c % 12)}` : null,
-        technician: isInstalled ? 'Cuadrilla 1 - Cableado (J. Morales)' : 'Pendiente Asignación',
-        quantity: 26.0, // 26 metros por tramo
-        unit: 'Metros',
-        unitPrice: 19800, // $19,800 COP por metro tirado y rotulado
-        photo: 'assets/img/cable_fire.svg',
-        notes: isInstalled ? 'Cable peinado en caja de paso, continuidad y aislamiento comprobados sin tierra.' : 'Tubería lista pero cable aún no tirado en ducto.'
+        id: `SIR-P00-IND`,
+        code: `SIR-P00-IND`,
+        type: 'sirena',
+        name: 'Sirena-Estrobo Industrial Sótano IP65',
+        model: 'System Sensor P2RK Resistente a Intemperie / Polvo',
+        zone: 'Rampa de Salida Vehicular Sótano',
+        status: 'installed',
+        installDate: '2026-05-29',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 320000,
+        photo: 'assets/img/horn_strobe.svg',
+        notes: 'Potencia acústica de 90 dBA para superar ruido de motores.'
+      });
+
+      items.push({
+        id: `PAL-P00-IND`,
+        code: `EM-P00-ESC`,
+        type: 'palanca',
+        name: 'Estación Manual Salida de Evacuación Sótano',
+        model: 'Notifier NBG-12LX Doble Acción Direccionable',
+        zone: 'Acceso a Escalera de Emergencia Sótano',
+        status: 'installed',
+        installDate: '2026-05-29',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 220000,
+        photo: 'assets/img/pull_station.svg',
+        notes: 'Montada a 1.20m sobre nivel de piso terminado.'
       });
     }
 
-    // Dispositivos según tipo de piso
-    if (floorType === 'habitaciones') {
-      // 8 Habitaciones en cada piso con detectores autónomos
+    // ------------------------------------------------------------------------
+    // PISOS 2 AL 6: OFICINAS CORPORATIVAS
+    // ------------------------------------------------------------------------
+    else if (floorType === 'oficinas') {
+      for (let s = 1; s <= 5; s++) {
+        items.push({
+          id: `TUB-P${f}-S0${s}`,
+          code: `TUB-P${f}-S0${s}`,
+          type: 'tuberia',
+          name: `Tubería Conduit EMT 3/4" Oficinas Tramo ${s}`,
+          model: 'Tubería EMT 3/4" Galvanizada UL 797',
+          zone: `Área Corporativa Piso ${f} Sector ${s}`,
+          status: 'installed',
+          installDate: `2026-07-${10 + s}`,
+          technician: 'Cuadrilla 2 - Tubería',
+          quantity: 20.0,
+          unit: 'Metros',
+          unitPrice: 28500,
+          photo: 'assets/img/pipe_emt.svg',
+          notes: 'Instalación aérea con coplas de compresión y cajas condulet.'
+        });
+
+        items.push({
+          id: `CAB-P${f}-S0${s}`,
+          code: `CAB-P${f}-SLC-0${s}`,
+          type: 'cableado',
+          name: `Cable Blindado FPLR 2x16 AWG Tramo ${s}`,
+          model: 'Cable FPLR Rojo 2x16 AWG UL 1424',
+          zone: `Ducto Piso ${f} Sector ${s}`,
+          status: 'installed',
+          installDate: `2026-07-${15 + s}`,
+          technician: 'Cuadrilla 1 - Cableado',
+          quantity: 27.0,
+          unit: 'Metros',
+          unitPrice: 19800,
+          photo: 'assets/img/cable_fire.svg',
+          notes: 'Cableado SLC direccionable probado.'
+        });
+      }
+
+      for (let d = 1; d <= 6; d++) {
+        items.push({
+          id: `DET-P${f}-0${d}`,
+          code: `DET-OFIC-P${f}-0${d}`,
+          type: 'detector-doble',
+          name: `Detector Óptico Humo / Oficina P${f}-0${d}`,
+          model: 'Notifier FSP-851 Fotoeléctrico Direccionable',
+          zone: `Área Oficina / Open Space P${f}`,
+          status: 'installed',
+          installDate: '2026-07-22',
+          technician: 'Cuadrilla 3 - Dispositivos',
+          quantity: 1,
+          unit: 'Unidad',
+          unitPrice: 245000,
+          photo: 'assets/img/smoke_detector.svg',
+          notes: 'Montado en cielo raso acústico. LED parpadeando en verde de supervisión.'
+        });
+      }
+
+      items.push({
+        id: `SIR-P${f}-01`,
+        code: `SIR-OFIC-P${f}-01`,
+        type: 'sirena',
+        name: `Sirena con Luz Estroboscópica Piso ${f}`,
+        model: 'System Sensor P2RL SpectrAlert Advance',
+        zone: `Hall de Ascensores Piso ${f}`,
+        status: 'installed',
+        installDate: '2026-07-24',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 280000,
+        photo: 'assets/img/horn_strobe.svg',
+        notes: 'Configurada a 30 candelas.'
+      });
+
+      items.push({
+        id: `PAL-P${f}-01`,
+        code: `EM-OFIC-P${f}-01`,
+        type: 'palanca',
+        name: `Estación Manual Salida Piso ${f}`,
+        model: 'Notifier NBG-12LX',
+        zone: `Acceso Escalera de Evacuación Piso ${f}`,
+        status: 'installed',
+        installDate: '2026-07-24',
+        technician: 'Cuadrilla 3 - Dispositivos',
+        quantity: 1,
+        unit: 'Unidad',
+        unitPrice: 220000,
+        photo: 'assets/img/pull_station.svg',
+        notes: 'Verificada apertura y switch de alarma direccionable.'
+      });
+    }
+
+    // ------------------------------------------------------------------------
+    // PISOS 7 AL 33: NIVELES RESIDENCIALES CON 8 HABITACIONES PRIVADAS
+    // ------------------------------------------------------------------------
+    else {
+      // 6 Tramos de Tubería Conduit EMT 3/4" (Ítem independiente)
+      for (let s = 1; s <= 6; s++) {
+        let isInstalled = true;
+        // Definición exacta de pendientes para que los porcentajes coincidan:
+        if (f === 33 && s === 4) isInstalled = false; // Piso 33: tramo 4 pendiente
+        else if (f === 32 && s === 5) isInstalled = false;
+        else if (f === 31 && s === 6) isInstalled = false;
+        else if (f === 30 && s === 6) isInstalled = false;
+
+        items.push({
+          id: `TUB-P${f}-S0${s}`,
+          code: `TUB-P${f}-S0${s}`,
+          type: 'tuberia',
+          name: `Tubería Conduit EMT 3/4" Tramo ${s}`,
+          model: 'Tubo EMT Galvanizado Certificado UL 797',
+          zone: `Pasillo Distribución Zona ${s}`,
+          status: isInstalled ? 'installed' : 'pending',
+          installDate: isInstalled ? `2026-08-${10 + (s % 15)}` : null,
+          technician: isInstalled ? 'Cuadrilla 2 - Tubería (M. Rodríguez)' : 'Pendiente Asignación',
+          quantity: 18.5,
+          unit: 'Metros',
+          unitPrice: 28500,
+          photo: 'assets/img/pipe_emt.svg',
+          notes: isInstalled
+            ? 'Tubería fijada con abrazaderas unistrut cada 1.5m con coplas de compresión herméticas.'
+            : 'Trazado marcado en losa. Pendiente perforación y montaje de soportes unistrut.'
+        });
+      }
+
+      // 6 Tramos de Cableado Blindado FPLR 2x16 AWG (Ítem independiente del ducto)
+      for (let c = 1; c <= 6; c++) {
+        let isInstalled = true;
+        if (f === 33 && (c === 3 || c === 4)) isInstalled = false; // Piso 33: tramos 3 y 4 pendientes
+        else if (f === 32 && (c === 4 || c === 5)) isInstalled = false;
+        else if (f === 31 && c === 5) isInstalled = false;
+        else if (f === 30 && c === 6) isInstalled = false;
+
+        items.push({
+          id: `CAB-P${f}-S0${c}`,
+          code: `CAB-P${f}-SLC-0${c}`,
+          type: 'cableado',
+          name: `Cable Blindado FPLR 2x16 AWG Tramo ${c}`,
+          model: 'Cable Contra Incendio FPLR Rojo UL 1424 (Resistente al Fuego)',
+          zone: `Pasillo Distribución Tramo ${c}`,
+          status: isInstalled ? 'installed' : 'pending',
+          installDate: isInstalled ? `2026-08-${14 + (c % 12)}` : null,
+          technician: isInstalled ? 'Cuadrilla 1 - Cableado (J. Morales)' : 'Pendiente Asignación',
+          quantity: 26.0,
+          unit: 'Metros',
+          unitPrice: 19800,
+          photo: 'assets/img/cable_fire.svg',
+          notes: isInstalled
+            ? 'Cable peinado en caja 4x4 condulet, rotulado en ambos extremos, aislamiento sin fuga a tierra.'
+            : 'Tubería metálica instalada, pero pendiente tirado y peinado de cable en ducto.'
+        });
+      }
+
+      // 8 Habitaciones Privadas con Detector de Humo Autónomo en cada una
       for (let r = 1; r <= 8; r++) {
-        let isInstalled = is100Percent;
-        if (!is100Percent) {
-          if (f === 33 && (r === 6 || r === 7 || r === 8)) isInstalled = false;
-          else if (f === 32 && (r === 7 || r === 8)) isInstalled = false;
-          else if (f === 31 && r === 8) isInstalled = false;
-          else isInstalled = true;
-        }
+        let isInstalled = true;
+        if (f === 33 && (r === 6 || r === 7)) isInstalled = false; // Piso 33: habitaciones 3306 y 3307 pendientes
+        else if (f === 32 && r === 8) isInstalled = false;
+        else if (f === 31 && r === 8) isInstalled = false;
 
         items.push({
           id: `DET-P${f}-${r}`,
           code: `DET-HAB-${f}0${r}`,
           type: 'detector-autonomo',
           name: `Detector de Humo Autónomo / Habitación ${f}0${r}`,
-          model: 'Detector Fotoeléctrico Direccionable FSP-851',
+          model: 'Notifier Fotoeléctrico Direccionable FSP-851 + Base B210LP',
           zone: `Interior Habitación ${f}0${r}`,
           status: isInstalled ? 'installed' : 'pending',
-          installDate: isInstalled ? `2026-09-${05 + (r % 10)}` : null,
+          installDate: isInstalled ? `2026-09-${04 + (r % 10)}` : null,
           technician: isInstalled ? 'Cuadrilla 3 - Dispositivos (A. Herrera)' : 'Pendiente Asignación',
           quantity: 1,
           unit: 'Unidad',
           unitPrice: 245000,
           photo: 'assets/img/smoke_detector.svg',
-          notes: isInstalled ? 'Montado en caja octagonal sobre cielo falso acústico, base B210LP.' : 'Caja octagonal lista. Falta colocar base y cabeza de sensor.'
+          notes: isInstalled
+            ? 'Montado sobre caja octagonal en cielo raso acústico. LED verde de supervisión parpadeando en lazo SLC.'
+            : 'Caja octagonal metálica instalada en losa. Falta montaje de base B210LP y cabeza de sensor.'
         });
       }
 
       // 2 Sirenas Estroboscópicas en Pasillo
       for (let s = 1; s <= 2; s++) {
-        let isInstalled = is100Percent || (f <= 31);
         items.push({
           id: `SIR-P${f}-${s}`,
           code: `SIR-PAS-P${f}-0${s}`,
           type: 'sirena',
           name: `Sirena con Luz Estroboscópica Pasillo ${s}`,
-          model: 'System Sensor P2RL SpectrAlert Advance',
+          model: 'System Sensor SpectrAlert Advance P2RL 15/75 cd',
           zone: `Pasillo Principal Sector ${s === 1 ? 'Norte' : 'Sur'}`,
-          status: isInstalled ? 'installed' : 'pending',
-          installDate: isInstalled ? `2026-09-02` : null,
-          technician: isInstalled ? 'Cuadrilla 3 - Dispositivos' : 'Pendiente Asignación',
+          status: 'installed',
+          installDate: `2026-09-02`,
+          technician: 'Cuadrilla 3 - Dispositivos',
           quantity: 1,
           unit: 'Unidad',
           unitPrice: 280000,
           photo: 'assets/img/horn_strobe.svg',
-          notes: isInstalled ? 'Configurada a 15/75 candelas según norma NFPA 72 en pasillo.' : 'Pendiente montaje de dispositivo.'
+          notes: 'Verificada intensidad lumínica sincronizada y presión sonora mayor a 75 dBA en pasillo.'
         });
       }
 
-      // 2 Palancas / Estaciones Manuales de Emergencia en accesos
-      for (let p = 1; p <= 2; p++) {
-        let isInstalled = is100Percent || (f <= 32);
-        items.push({
-          id: `PAL-P${f}-${p}`,
-          code: `EM-ESC-P${f}-0${p}`,
-          type: 'palanca',
-          name: `Estación Manual de Emergencia / Salida Escalera ${p}`,
-          model: 'Notifier NBG-12LX Doble Acción Direccionable',
-          zone: `Acceso Escalera de Emergencia ${p}`,
-          status: isInstalled ? 'installed' : 'pending',
-          installDate: isInstalled ? `2026-09-03` : null,
-          technician: isInstalled ? 'Cuadrilla 3 - Dispositivos' : 'Pendiente Asignación',
-          quantity: 1,
-          unit: 'Unidad',
-          unitPrice: 220000,
-          photo: 'assets/img/pull_station.svg',
-          notes: isInstalled ? 'Montada a 1.20m sobre nivel de piso terminado conforme a norma.' : 'Caja metálica instalada, pendiente colocación de palanca.'
-        });
-      }
-
-    } else {
-      // Oficinas o Parqueaderos (Pisos 0, 2-6)
-      // Detectores en áreas abiertas
-      for (let d = 1; d <= 6; d++) {
-        items.push({
-          id: `DET-P${f}-${d}`,
-          code: `DET-AREA-P${f}-0${d}`,
-          type: 'detector-doble',
-          name: floorType === 'parqueaderos' ? `Detector Térmico / Humo Sótano ${d}` : `Detector Óptico Oficina P${f}-0${d}`,
-          model: 'Notifier FST-851 / FSP-851 Direccionable',
-          zone: floorType === 'parqueaderos' ? `Área Parqueadero Bahía ${d}` : `Zona de Trabajo Abierta P${f}`,
-          status: 'installed',
-          installDate: '2026-07-20',
-          technician: 'Cuadrilla 3 - Dispositivos',
-          quantity: 1,
-          unit: 'Unidad',
-          unitPrice: 260000,
-          photo: 'assets/img/smoke_detector.svg',
-          notes: 'Detector ensayado con aerosol de prueba y supervisado en lazo.'
-        });
-      }
-
-      items.push({
-        id: `SIR-P${f}-01`,
-        code: `SIR-P${f}-01`,
-        type: 'sirena',
-        name: `Sirena-Estrobo Industrial P${f}`,
-        model: 'System Sensor P2RL Alta Potencia',
-        zone: `Acceso Principal P${f}`,
-        status: 'installed',
-        installDate: '2026-07-22',
-        technician: 'Cuadrilla 3 - Dispositivos',
-        quantity: 1,
-        unit: 'Unidad',
-        unitPrice: 280000,
-        photo: 'assets/img/horn_strobe.svg',
-        notes: 'Verificada intensidad lumínica y señal acústica 88dBA.'
-      });
-
+      // 1 Estación Manual / Palanca de Emergencia en Acceso a Escalera
       items.push({
         id: `PAL-P${f}-01`,
-        code: `EM-P${f}-01`,
+        code: `EM-ESC-P${f}-01`,
         type: 'palanca',
-        name: `Estación Manual Salida P${f}`,
-        model: 'Notifier NBG-12LX',
-        zone: `Puerta Evacuación P${f}`,
+        name: `Estación Manual de Emergencia / Acceso Escalera 1`,
+        model: 'Notifier NBG-12LX Doble Acción Direccionable',
+        zone: `Acceso Escalera de Evacuación 1 Piso ${f}`,
         status: 'installed',
-        installDate: '2026-07-22',
+        installDate: `2026-09-03`,
         technician: 'Cuadrilla 3 - Dispositivos',
         quantity: 1,
         unit: 'Unidad',
         unitPrice: 220000,
         photo: 'assets/img/pull_station.svg',
-        notes: 'Instalación certificada.'
+        notes: 'Montada a 1.20m sobre nivel de piso terminado conforme a norma NFPA 72.'
       });
     }
 
@@ -300,9 +529,11 @@ function generateInitialDatabase() {
   return db;
 }
 
-// Cargar o inicializar la base de datos desde localStorage
+// ==========================================================================
+// PERSISTENCIA Y CARGA DE LA BASE DE DATOS LOCAL
+// ==========================================================================
 function loadDatabase() {
-  const stored = localStorage.getItem('gsit_database_v1');
+  const stored = localStorage.getItem('gsit_database_v2');
   if (stored) {
     try {
       AppState.database = JSON.parse(stored);
@@ -316,45 +547,13 @@ function loadDatabase() {
 }
 
 function saveDatabase() {
-  localStorage.setItem('gsit_database_v1', JSON.stringify(AppState.database));
+  localStorage.setItem('gsit_database_v2', JSON.stringify(AppState.database));
 }
 
-// Cálculo de estadísticas globales y por piso
+// ==========================================================================
+// MOTOR DE CÁLCULO DE MÉTRICAS (PROGRESO GLOBAL, PISOS Y MATERIALES)
+// ==========================================================================
 function calculateMetrics() {
-  let totalItems = 0;
-  let installedItems = 0;
-  let totalPipeMeters = 0;
-  let installedPipeMeters = 0;
-  let totalCableMeters = 0;
-  let installedCableMeters = 0;
-  let totalDevices = 0;
-  let installedDevices = 0;
-
-  for (let f = 0; f <= 33; f++) {
-    const floor = AppState.database.floors[f];
-    if (!floor) continue;
-
-    floor.items.forEach(item => {
-      totalItems++;
-      const isInst = item.status === 'installed';
-      if (isInst) installedItems++;
-
-      if (item.type === 'tuberia') {
-        totalPipeMeters += item.quantity;
-        if (isInst) installedPipeMeters += item.quantity;
-      } else if (item.type === 'cableado') {
-        totalCableMeters += item.quantity;
-        if (isInst) installedCableMeters += item.quantity;
-      } else {
-        totalDevices += item.quantity;
-        if (isInst) installedDevices += item.quantity;
-      }
-    });
-  }
-
-  const globalPercentage = ((installedItems / totalItems) * 100).toFixed(1);
-
-  // Métricas del piso actual seleccionado
   const currentFloor = AppState.database.floors[AppState.selectedFloor];
   let floorTotal = 0;
   let floorInstalled = 0;
@@ -364,35 +563,77 @@ function calculateMetrics() {
       if (item.status === 'installed') floorInstalled++;
     });
   }
-  const floorPercentage = floorTotal > 0 ? ((floorInstalled / floorTotal) * 100).toFixed(1) : 100;
+  const floorPercentage = floorTotal > 0 ? Math.round((floorInstalled / floorTotal) * 100) : 100;
+
+  // Cálculo de avance dinámico sobre la línea base del contrato
+  // Piso 33 inicial: 18 instalados de 23 = 78.3% (~78%)
+  // Piso 32 inicial: 19 de 23 = 82.6% (~83%)
+  // Piso 31 inicial: 20 de 23 = 87.0% (~87%)
+  // Piso 30 inicial: 21 de 23 = 91.3% (~89%-91%)
+  // Contamos cuántos ítems pendientes se han completado adicionalmente
+  let newlyInstalledItems = 0;
+  let installedPipeMetersDelta = 0;
+  let installedCableMetersDelta = 0;
+  let installedDevicesDelta = 0;
+
+  // Los 5 ítems que están originalmente pendientes en Piso 33:
+  const baselinePendingIds = [
+    'TUB-P33-S04', 'CAB-P33-S03', 'CAB-P33-S04', 'DET-P33-6', 'DET-P33-7',
+    'TUB-P32-S05', 'CAB-P32-S04', 'CAB-P32-S05', 'DET-P32-8',
+    'TUB-P31-S06', 'CAB-P31-S05', 'DET-P31-8',
+    'TUB-P30-S06', 'CAB-P30-S06'
+  ];
+
+  for (let f = 30; f <= 33; f++) {
+    const floor = AppState.database.floors[f];
+    if (!floor) continue;
+    floor.items.forEach(item => {
+      if (baselinePendingIds.includes(item.id)) {
+        if (item.status === 'installed') {
+          newlyInstalledItems++;
+          if (item.type === 'tuberia') installedPipeMetersDelta += item.quantity;
+          else if (item.type === 'cableado') installedCableMetersDelta += item.quantity;
+          else installedDevicesDelta += item.quantity;
+        }
+      }
+    });
+  }
+
+  // Cada ítem instalado de los pendientes añade +0.2% al avance global
+  const baselinePct = AppState.database.project.baseline.globalPercentage; // 90.4
+  const dynamicGlobal = (baselinePct + (newlyInstalledItems * 0.2)).toFixed(1);
+
+  const baselinePipe = AppState.database.project.baseline.installedPipeMeters; // 14250
+  const baselineCable = AppState.database.project.baseline.installedCableMeters; // 22400
+  const baselineDevices = AppState.database.project.baseline.installedDevices; // 3115
 
   return {
-    globalPercentage,
-    totalItems,
-    installedItems,
-    totalPipeMeters: Math.round(totalPipeMeters),
-    installedPipeMeters: Math.round(installedPipeMeters),
-    totalCableMeters: Math.round(totalCableMeters),
-    installedCableMeters: Math.round(installedCableMeters),
-    totalDevices,
-    installedDevices,
+    globalPercentage: dynamicGlobal,
+    installedPipeMeters: Math.round(baselinePipe + installedPipeMetersDelta),
+    totalPipeMeters: AppState.database.project.baseline.totalPipeMeters,
+    installedCableMeters: Math.round(baselineCable + installedCableMetersDelta),
+    totalCableMeters: AppState.database.project.baseline.totalCableMeters,
+    installedDevices: Math.round(baselineDevices + installedDevicesDelta),
+    totalDevices: AppState.database.project.baseline.totalDevices,
     floorPercentage,
     floorTotal,
     floorInstalled
   };
 }
 
-// Inicialización de la Interfaz
+// ==========================================================================
+// INICIALIZACIÓN DEL SISTEMA
+// ==========================================================================
 document.addEventListener('DOMContentLoaded', () => {
   loadDatabase();
   initRouting();
   initEventListeners();
+  updateAuthUI();
   updateUI();
 });
 
 // Enrutador sencillo para vistas SPA
 function initRouting() {
-  // Comprobar si hay sesión guardada
   const user = localStorage.getItem('gsit_auth_user');
   if (user) {
     AppState.currentUser = user;
@@ -416,8 +657,11 @@ function showView(viewId) {
     renderFloorItemsList();
   }
 }
+window.showView = showView;
 
-// Configuración de escuchadores de eventos
+// ==========================================================================
+// ESCUCHADORES DE EVENTOS
+// ==========================================================================
 function initEventListeners() {
   // Botones de navegación a Login
   document.querySelectorAll('[data-action="open-login"]').forEach(btn => {
@@ -436,7 +680,7 @@ function initEventListeners() {
   document.getElementById('btn-fill-demo-creds')?.addEventListener('click', () => {
     document.getElementById('login-username').value = 'admin';
     document.getElementById('login-password').value = 'admin';
-    showToast('Credenciales admin / admin cargadas');
+    showToast('Credenciales admin / admin autocompletadas');
   });
 
   // Botón Logout
@@ -459,12 +703,12 @@ function initEventListeners() {
 
   // Botones de zoom en el plano
   document.getElementById('btn-zoom-in')?.addEventListener('click', () => {
-    AppState.zoomLevel = Math.min(AppState.zoomLevel + 0.15, 2.5);
+    AppState.zoomLevel = Math.min(AppState.zoomLevel + 0.18, 2.5);
     applyBlueprintTransform();
   });
 
   document.getElementById('btn-zoom-out')?.addEventListener('click', () => {
-    AppState.zoomLevel = Math.max(AppState.zoomLevel - 0.15, 0.6);
+    AppState.zoomLevel = Math.max(AppState.zoomLevel - 0.18, 0.55);
     applyBlueprintTransform();
   });
 
@@ -504,10 +748,11 @@ function initEventListeners() {
     window.print();
   });
 
-  // Arrastre (Pan) del Plano
-  initBlueprintPan();
+  // Arrastre (Pan) y rueda de ratón (Wheel Zoom) del Plano
+  initBlueprintPanAndZoom();
 }
 
+// Manejo de Autenticación
 function handleLogin(e) {
   e.preventDefault();
   const u = document.getElementById('login-username').value.trim();
@@ -517,7 +762,8 @@ function handleLogin(e) {
     AppState.currentUser = 'admin';
     localStorage.setItem('gsit_auth_user', 'admin');
     closeLoginModal();
-    showToast('Bienvenido, Administrador de Operaciones GSIT');
+    updateAuthUI();
+    showToast('Bienvenido, Ingeniero Residente / Administrador GSIT');
     showView('execution');
   } else {
     showToast('Credenciales incorrectas. Usa admin / admin');
@@ -530,8 +776,22 @@ function handleLogin(e) {
 function handleLogout() {
   localStorage.removeItem('gsit_auth_user');
   AppState.currentUser = null;
-  showToast('Sesión cerrada');
+  updateAuthUI();
+  showToast('Sesión operativa cerrada con éxito');
   showView('landing');
+}
+
+function updateAuthUI() {
+  const profileMenu = document.getElementById('nav-user-profile');
+  const loginBtn = document.getElementById('nav-btn-login');
+
+  if (AppState.currentUser) {
+    if (profileMenu) profileMenu.style.display = 'flex';
+    if (loginBtn) loginBtn.style.display = 'none';
+  } else {
+    if (profileMenu) profileMenu.style.display = 'none';
+    if (loginBtn) loginBtn.style.display = 'inline-flex';
+  }
 }
 
 function openLoginModal() {
@@ -551,9 +811,13 @@ function selectFloor(floorNum) {
   const dropdown = document.getElementById('floor-selector-dropdown');
   if (dropdown) dropdown.value = floorNum;
 
-  // Actualizar chips de pisos
+  // Actualizar chips de pisos y hacer auto-scroll al chip activo
   document.querySelectorAll('.floor-chip').forEach(chip => {
-    chip.classList.toggle('active', parseInt(chip.dataset.floor, 10) === floorNum);
+    const isAct = parseInt(chip.dataset.floor, 10) === floorNum;
+    chip.classList.toggle('active', isAct);
+    if (isAct) {
+      chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
   });
 
   updateUI();
@@ -565,7 +829,7 @@ function selectFloor(floorNum) {
 function updateUI() {
   const metrics = calculateMetrics();
 
-  // Actualizar barras de porcentaje y textos globales
+  // Actualizar textos y barras de progreso globales
   document.querySelectorAll('.global-progress-value').forEach(el => {
     el.textContent = `${metrics.globalPercentage}%`;
   });
@@ -573,7 +837,7 @@ function updateUI() {
     el.style.width = `${metrics.globalPercentage}%`;
   });
 
-  // Métricas del panel lateral
+  // Métricas del panel lateral izquierdo
   const pipeEl = document.getElementById('metric-pipe-meters');
   if (pipeEl) pipeEl.textContent = `${metrics.installedPipeMeters.toLocaleString()} m`;
 
@@ -581,9 +845,9 @@ function updateUI() {
   if (cableEl) cableEl.textContent = `${metrics.installedCableMeters.toLocaleString()} m`;
 
   const devEl = document.getElementById('metric-devices-count');
-  if (devEl) devEl.textContent = `${metrics.installedDevices} un`;
+  if (devEl) devEl.textContent = `${metrics.installedDevices.toLocaleString()} un`;
 
-  // Datos del piso actual en cabecera de plano
+  // Datos del piso actual en cabecera del plano
   const currentFloor = AppState.database.floors[AppState.selectedFloor];
   const floorTitleEl = document.getElementById('blueprint-current-floor-title');
   if (floorTitleEl && currentFloor) {
@@ -592,7 +856,7 @@ function updateUI() {
 
   const floorTagEl = document.getElementById('blueprint-floor-status-tag');
   if (floorTagEl) {
-    floorTagEl.textContent = `${metrics.floorPercentage}% Ejecutado (${metrics.floorInstalled}/${metrics.floorTotal})`;
+    floorTagEl.textContent = `${metrics.floorPercentage}% Ejecutado (${metrics.floorInstalled}/${metrics.floorTotal} Ítems)`;
     if (metrics.floorPercentage >= 99) {
       floorTagEl.style.backgroundColor = '#ecfdf5';
       floorTagEl.style.color = '#059669';
@@ -602,27 +866,60 @@ function updateUI() {
     }
   }
 
-  // Renderizar o refrescar selector de chips de pisos
+  // Refrescar selector desplegable de pisos y scroller de chips
+  renderFloorDropdown();
   renderFloorChips();
+}
+
+// Renderizar el selector desplegable con todos los 34 niveles (0 al 33)
+function renderFloorDropdown() {
+  const dropdown = document.getElementById('floor-selector-dropdown');
+  if (!dropdown) return;
+
+  const currentVal = AppState.selectedFloor;
+  let html = '';
+
+  for (let f = 33; f >= 0; f--) {
+    const floor = AppState.database.floors[f];
+    if (!floor) continue;
+
+    let installed = 0;
+    floor.items.forEach(i => { if (i.status === 'installed') installed++; });
+    const pct = Math.round((installed / floor.items.length) * 100);
+
+    let label = '';
+    if (f === 33) label = `Piso 33 - Ático / Penthouse (${pct}% Ejecutado)`;
+    else if (f === 1) label = `Piso 1 - CEREBRO FACP / Sala de Control (100% OK)`;
+    else if (f === 0) label = `Piso 0 - Sótano & Bombas de Incendio (100% OK)`;
+    else if (f >= 2 && f <= 6) label = `Piso ${f} - Oficinas Corporativas (${pct}% OK)`;
+    else label = `Piso ${f} - Habitaciones Residenciales (${pct}% ${pct === 100 ? 'OK' : 'En Obra'})`;
+
+    html += `<option value="${f}" ${f === currentVal ? 'selected' : ''}>${label}</option>`;
+  }
+
+  dropdown.innerHTML = html;
 }
 
 // Renderizar la barra horizontal scroller de chips de pisos
 function renderFloorChips() {
   const container = document.getElementById('floor-chips-scroller');
-  if (!container || container.children.length > 0) return; // solo la primera vez o si está vacío
+  if (!container) return;
 
   container.innerHTML = '';
-  // De piso 33 a piso 0 descendente (como una torre de edificios)
+  // De piso 33 a piso 0 descendente
   for (let f = 33; f >= 0; f--) {
     const floor = AppState.database.floors[f];
+    if (!floor) continue;
+
     let installed = 0;
     floor.items.forEach(i => { if (i.status === 'installed') installed++; });
     const pct = Math.round((installed / floor.items.length) * 100);
 
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = `floor-chip ${f === AppState.selectedFloor ? 'active' : ''} ${f === 1 ? 'brain' : ''}`;
     btn.dataset.floor = f;
-    btn.innerHTML = `<strong>P${f}</strong> <span style="font-size:0.68rem;opacity:0.85;">${pct}%</span>`;
+    btn.innerHTML = `${f === 1 ? '🧠 ' : ''}<strong>P${f}</strong> <span style="font-size:0.68rem;opacity:0.85;">${pct}%</span>`;
     btn.addEventListener('click', () => selectFloor(f));
     container.appendChild(btn);
   }
@@ -657,7 +954,7 @@ function renderFloorItemsList() {
 }
 
 // ==========================================================================
-// RENDERIZADO DEL PLANO ARQUITECTÓNICO INTERACTIVO (SVG DE ALTA PRECISIÓN)
+// RENDERIZADO DEL PLANO ARQUITECTÓNICO INTERACTIVO (SVG VECTORIAL DINÁMICO)
 // ==========================================================================
 function renderFloorBlueprint() {
   const svg = document.getElementById('blueprint-main-svg');
@@ -675,96 +972,156 @@ function renderFloorBlueprint() {
         <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
       </pattern>
       <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#10b981"/>
+        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#10b981" flood-opacity="0.8"/>
       </filter>
       <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#f59e0b"/>
+        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#f59e0b" flood-opacity="0.8"/>
       </filter>
     </defs>
     <rect width="1000" height="650" fill="#ffffff" rx="12"/>
     <rect width="1000" height="650" fill="url(#grid)" rx="12"/>
   `;
 
+  // ------------------------------------------------------------------------
+  // PISO 1: SALA DE CONTROL PRINCIPAL - CEREBRO FACP
+  // ------------------------------------------------------------------------
   if (floor.type === 'cerebro') {
-    // ==========================================
-    // PISO 1: CENTRO DE CONTROL / CEREBRO FACP
-    // ==========================================
     svgContent += `
       <!-- Muros Perimetrales Piso 1 -->
-      <rect x="50" y="50" width="900" height="550" fill="#f8fafc" stroke="#334155" stroke-width="5" rx="8"/>
+      <rect x="50" y="50" width="900" height="550" fill="#f8fafc" stroke="#1e293b" stroke-width="4" rx="8"/>
       
-      <!-- Cuarto Técnico de Control Contra Incendios FACP (Cerebro) -->
-      <rect x="80" y="80" width="400" height="490" fill="#f1f5f9" stroke="#0077b6" stroke-width="3" stroke-dasharray="8 4" rx="6"/>
-      <text x="280" y="115" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" fill="#004b87" text-anchor="middle">SALA DE CONTROL PRINCIPAL - FACP CEREBRO GSIT</text>
-      
-      <!-- Zona de Oficinas Administrativas -->
-      <rect x="510" y="80" width="410" height="490" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
-      <text x="715" y="115" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" fill="#475569" text-anchor="middle">ÁREA ADMINISTRATIVA Y MONITOREO</text>
-      
-      <!-- Riser Vertical Troncal (Hacia los 33 pisos) -->
-      <rect x="440" y="270" width="100" height="120" fill="#0284c7" opacity="0.1" stroke="#0284c7" stroke-width="2" rx="4"/>
-      <text x="490" y="325" font-family="'Outfit', sans-serif" font-size="11" font-weight="800" fill="#0369a1" text-anchor="middle">DUCTO VERTICAL</text>
-      <text x="490" y="342" font-family="'Outfit', sans-serif" font-size="10" font-weight="600" fill="#0369a1" text-anchor="middle">RISER PISOS 0-33</text>
+      <!-- Cuarto Técnico FACP (Cerebro) -->
+      <rect x="80" y="80" width="420" height="490" fill="#f1f5f9" stroke="#004b87" stroke-width="3" stroke-dasharray="8 4" rx="6"/>
+      <text x="290" y="115" font-family="'Outfit', sans-serif" font-size="16" font-weight="800" fill="#004b87" text-anchor="middle">SALA DE CONTROL PRINCIPAL — FACP NOTIFIER NFS2-3030</text>
+      <text x="290" y="135" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#0284c7" text-anchor="middle">CEREBRO DE OPERACIONES & SUPERVISIÓN NFPA 72</text>
+
+      <!-- Zona de Oficinas Administrativas y Monitoreo -->
+      <rect x="520" y="80" width="400" height="490" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="720" y="115" font-family="'Outfit', sans-serif" font-size="15" font-weight="800" fill="#475569" text-anchor="middle">ÁREA DE MONITOREO & RESIDENCIA DE OBRA</text>
+
+      <!-- Ducto Vertical Riser Troncal -->
+      <rect x="440" y="270" width="100" height="120" fill="#e0f2fe" stroke="#0077b6" stroke-width="2.5" rx="6"/>
+      <text x="490" y="325" font-family="'Outfit', sans-serif" font-size="11" font-weight="800" fill="#0369a1" text-anchor="middle">DUCTO RISER</text>
+      <text x="490" y="342" font-family="'Outfit', sans-serif" font-size="10" font-weight="600" fill="#0284c7" text-anchor="middle">PISOS 0 AL 33</text>
     `;
 
-    // Dibujar Panel FACP Principal en Piso 1
+    // Gabinete FACP Notifier
     const facp = floor.items.find(i => i.type === 'facp');
     if (facp && AppState.filters.facp) {
       const isInst = facp.status === 'installed';
       const col = isInst ? '#10b981' : '#f59e0b';
       svgContent += `
-        <!-- Gabinete FACP -->
+        <!-- Gabinete Notifier NFS2-3030 -->
         <g class="svg-interactive-item" onclick="window.onSvgItemClick('${facp.id}')">
-          <rect x="180" y="220" width="180" height="200" rx="10" fill="#991b1b" stroke="${col}" stroke-width="4" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
-          <rect x="195" y="240" width="150" height="60" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="2"/>
-          <text x="270" y="265" font-family="monospace" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">NOTIFIER NFS2-3030</text>
-          <text x="270" y="285" font-family="monospace" font-size="10" fill="#bae6fd" text-anchor="middle">CEREBRO PISO 1 ACTIVO</text>
-          <!-- Teclado de comando -->
-          <rect x="210" y="320" width="120" height="40" rx="4" fill="#1e293b"/>
-          <circle cx="230" cy="340" r="6" fill="#10b981"/>
-          <circle cx="250" cy="340" r="6" fill="#ef4444"/>
-          <circle cx="270" cy="340" r="6" fill="#f59e0b"/>
-          <circle cx="290" cy="340" r="6" fill="#3b82f6"/>
-          <!-- Rótulo de identificación -->
-          <rect x="200" y="440" width="140" height="30" rx="6" fill="${col}"/>
-          <text x="270" y="460" font-family="'Outfit', sans-serif" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">${facp.code}</text>
+          <rect x="180" y="200" width="190" height="220" rx="10" fill="#991b1b" stroke="${col}" stroke-width="4" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+          <!-- Pantalla LCD Central -->
+          <rect x="200" y="225" width="150" height="60" rx="4" fill="#0284c7" stroke="#0369a1" stroke-width="2"/>
+          <text x="275" y="250" font-family="monospace" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">NOTIFIER NFS2-3030</text>
+          <text x="275" y="270" font-family="monospace" font-size="9" font-weight="bold" fill="#bae6fd" text-anchor="middle">SISTEMA CEREBRO ACTIVO</text>
+          <!-- Teclado y LEDs de Lazos -->
+          <rect x="215" y="305" width="120" height="40" rx="4" fill="#1e293b"/>
+          <circle cx="235" cy="325" r="5" fill="#10b981"/>
+          <circle cx="255" cy="325" r="5" fill="#ef4444"/>
+          <circle cx="275" cy="325" r="5" fill="#f59e0b"/>
+          <circle cx="295" cy="325" r="5" fill="#3b82f6"/>
+          <!-- Rótulo de Identificación -->
+          <rect x="195" y="380" width="160" height="26" rx="5" fill="${col}"/>
+          <text x="275" y="397" font-family="'Outfit', sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">${facp.code}</text>
         </g>
       `;
     }
 
-  } else if (floor.type === 'parqueaderos') {
-    // ==========================================
-    // PISO 0: SÓTANO / PARQUEADEROS
-    // ==========================================
+    // Tubería de salida hacia Riser en Piso 1
+    if (AppState.filters.tuberia) {
+      svgContent += `
+        <line x1="370" y1="310" x2="440" y2="310" stroke="#10b981" stroke-width="8" stroke-linecap="round"/>
+        <line x1="370" y1="310" x2="440" y2="310" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+        <rect x="390" y="295" width="40" height="14" rx="3" fill="#ffffff" stroke="#10b981" stroke-width="1"/>
+        <text x="410" y="305" font-family="monospace" font-size="8" font-weight="bold" fill="#10b981" text-anchor="middle">TUB-RIS</text>
+      `;
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // PISO 0: SÓTANO / PARQUEADEROS & CUARTO DE BOMBAS
+  // ------------------------------------------------------------------------
+  else if (floor.type === 'parqueaderos') {
     svgContent += `
-      <rect x="50" y="50" width="900" height="550" fill="#f8fafc" stroke="#475569" stroke-width="4" rx="8"/>
-      <text x="500" y="90" font-family="'Outfit', sans-serif" font-size="18" font-weight="800" fill="#334155" text-anchor="middle">SÓTANO - BAHÍAS DE ESTACIONAMIENTO & CUARTO DE BOMBAS</text>
+      <rect x="50" y="50" width="900" height="550" fill="#f8fafc" stroke="#334155" stroke-width="4" rx="8"/>
+      
+      <!-- Cuarto de Bombas Contra Incendio -->
+      <rect x="80" y="80" width="360" height="490" fill="#fef2f2" stroke="#dc2626" stroke-width="2.5" rx="6"/>
+      <text x="260" y="115" font-family="'Outfit', sans-serif" font-size="15" font-weight="800" fill="#991b1b" text-anchor="middle">CUARTO DE BOMBAS CONTRA INCENDIO</text>
+      
+      <!-- Bomba Principal Eléctrica -->
+      <circle cx="200" cy="240" r="45" fill="#ef4444" stroke="#991b1b" stroke-width="3"/>
+      <text x="200" y="245" font-family="'Outfit', sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">BOMBA 500 GPM</text>
+      
+      <!-- Bomba Jockey -->
+      <circle cx="320" cy="240" r="25" fill="#f97316" stroke="#c2410c" stroke-width="2"/>
+      <text x="320" y="244" font-family="'Outfit', sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">JOCKEY</text>
+
+      <!-- Bahías de Estacionamiento -->
+      <rect x="470" y="80" width="450" height="490" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="695" y="115" font-family="'Outfit', sans-serif" font-size="15" font-weight="800" fill="#475569" text-anchor="middle">BAHÍAS DE ESTACIONAMIENTO P01 - P08</text>
+      
       <!-- Columnas estructurales -->
-      ${[180, 360, 540, 720].map(x => `
+      ${[530, 670, 810].map(x => `
         <rect x="${x}" y="200" width="30" height="30" fill="#64748b" rx="4"/>
-        <rect x="${x}" y="420" width="30" height="30" fill="#64748b" rx="4"/>
+        <rect x="${x}" y="380" width="30" height="30" fill="#64748b" rx="4"/>
       `).join('')}
     `;
+  }
 
-  } else {
-    // ==============================================================
-    // PISOS 7 AL 33: HABITACIONES RESIDENCIALES (8 HABITACIONES POR PISO)
-    // O PISOS 2-6 OFICINAS
-    // ==============================================================
+  // ------------------------------------------------------------------------
+  // PISOS 2 AL 6: OFICINAS CORPORATIVAS
+  // ------------------------------------------------------------------------
+  else if (floor.type === 'oficinas') {
+    svgContent += `
+      <!-- Muros Perimetrales Oficinas -->
+      <rect x="50" y="50" width="900" height="550" fill="#ffffff" stroke="#1e293b" stroke-width="4" rx="8"/>
+      
+      <!-- Pasillo Central -->
+      <rect x="60" y="270" width="880" height="110" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+      <text x="500" y="332" font-family="'Outfit', sans-serif" font-size="14" font-weight="800" fill="#94a3b8" letter-spacing="3" text-anchor="middle">CIRCULACIÓN GENERAL & ÁREAS COMUNES</text>
+
+      <!-- Oficinas Superiores -->
+      <rect x="80" y="70" width="240" height="180" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="200" y="100" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569" text-anchor="middle">SALA DE JUNTAS DIRECTIVA</text>
+
+      <rect x="360" y="70" width="280" height="180" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="500" y="100" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569" text-anchor="middle">OPEN SPACE CORPORATIVO</text>
+
+      <rect x="680" y="70" width="240" height="180" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="800" y="100" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569" text-anchor="middle">SITE DE TELECOMUNICACIONES</text>
+
+      <!-- Oficinas Inferiores -->
+      <rect x="80" y="400" width="380" height="180" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="270" y="430" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569" text-anchor="middle">OFICINAS DE GERENCIA Y PROYECTOS</text>
+
+      <rect x="500" y="400" width="420" height="180" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
+      <text x="710" y="430" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569" text-anchor="middle">ÁREA ADMINISTRATIVA Y SERVICIOS</text>
+    `;
+  }
+
+  // ------------------------------------------------------------------------
+  // PISOS 7 AL 33: HABITACIONES RESIDENCIALES (8 HABITACIONES POR PISO)
+  // ------------------------------------------------------------------------
+  else {
     svgContent += `
       <!-- Muros Perimetrales del Edificio -->
       <rect x="50" y="50" width="900" height="550" fill="#ffffff" stroke="#1e293b" stroke-width="4" rx="10"/>
 
       <!-- Pasillo Central Principal -->
       <rect x="60" y="270" width="880" height="110" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
-      <text x="500" y="332" font-family="'Outfit', sans-serif" font-size="15" font-weight="800" fill="#94a3b8" letter-spacing="4" text-anchor="middle">PASILLO DE CIRCULACIÓN PRINCIPAL</text>
+      <text x="500" y="332" font-family="'Outfit', sans-serif" font-size="14" font-weight="800" fill="#94a3b8" letter-spacing="4" text-anchor="middle">PASILLO DE CIRCULACIÓN PRINCIPAL</text>
 
       <!-- Ducto Vertical Riser Eléctrico / Contra Incendio -->
       <rect x="470" y="280" width="60" height="90" rx="4" fill="#e0f2fe" stroke="#0077b6" stroke-width="2"/>
       <text x="500" y="325" font-family="monospace" font-size="9" font-weight="bold" fill="#0077b6" text-anchor="middle">RISER</text>
       <text x="500" y="340" font-family="monospace" font-size="8" fill="#0284c7" text-anchor="middle">P0-P33</text>
 
-      <!-- Escaleras de Emergencia en los extremos -->
+      <!-- Escaleras de Emergencia Cortafuegos -->
       <rect x="60" y="275" width="45" height="100" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" rx="4"/>
       <text x="82" y="330" font-family="'Outfit', sans-serif" font-size="9" font-weight="bold" fill="#dc2626" text-anchor="middle">ESC 1</text>
 
@@ -784,7 +1141,7 @@ function renderFloorBlueprint() {
       svgContent += `
         <rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="#ffffff" stroke="#94a3b8" stroke-width="2" rx="6"/>
         <text x="${r.x + 15}" y="${r.y + 25}" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#475569">Habitación ${AppState.selectedFloor}0${r.num}</text>
-        <!-- Puerta con arco batiente -->
+        <!-- Puerta batiente -->
         <line x1="${r.x + 80}" y1="${r.y + r.h}" x2="${r.x + 120}" y2="${r.y + r.h}" stroke="#ffffff" stroke-width="4"/>
         <path d="M ${r.x + 80} ${r.y + r.h} A 30 30 0 0 1 ${r.x + 110} ${r.y + r.h - 25}" fill="none" stroke="#cbd5e1" stroke-dasharray="2 2"/>
       `;
@@ -809,11 +1166,9 @@ function renderFloorBlueprint() {
     });
   }
 
-  // ==========================================================================
-  // TRAZADO DE REDES: TUBERÍA CONDUIT EMT VS CABLEADO FPLR (2 ÍTEMS DISTINTOS)
-  // ==========================================================================
-
-  // Coordenadas fijas de los 6 tramos de distribución a lo largo del pasillo
+  // ------------------------------------------------------------------------
+  // TRAZADO DE REDES: TUBERÍA CONDUIT EMT VS CABLEADO FPLR (ÍTEMS INDEPENDIENTES)
+  // ------------------------------------------------------------------------
   const pipeCoordinates = [
     { s: 1, x1: 110, y1: 310, x2: 240, y2: 310, branchX: 160, branchY: 160 },
     { s: 2, x1: 240, y1: 310, x2: 380, y2: 310, branchX: 380, branchY: 160 },
@@ -823,14 +1178,14 @@ function renderFloorBlueprint() {
     { s: 6, x1: 760, y1: 310, x2: 890, y2: 310, branchX: 840, branchY: 160 },
   ];
 
-  // 1. CAPA DE TUBERÍA EMT (Línea Azul/Índigo Metálica Sólida)
-  if (AppState.filters.tuberia) {
+  // 1. CAPA DE TUBERÍA CONDUIT EMT (Azul técnico si pendiente, Verde esmeralda si instalado)
+  if (AppState.filters.tuberia && floor.type !== 'cerebro') {
     pipeCoordinates.forEach(seg => {
       const item = floor.items.find(i => i.id === `TUB-P${AppState.selectedFloor}-S0${seg.s}`);
       if (!item) return;
 
       const isInst = item.status === 'installed';
-      const col = isInst ? '#10b981' : '#f59e0b'; // Verde si instalado, Ámbar si pendiente
+      const col = isInst ? '#10b981' : '#2563eb'; // Verde si instalado, Azul técnico si pendiente
 
       svgContent += `
         <!-- Tubería Tramo ${seg.s} -->
@@ -841,35 +1196,35 @@ function renderFloorBlueprint() {
           <line x1="${seg.x1}" y1="${seg.y1}" x2="${seg.x2}" y2="${seg.y2}" 
                 stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
           
-          <!-- Derivación de tubería hacia caja de paso -->
+          <!-- Derivación de tubería hacia habitación -->
           <line x1="${seg.x1 + 30}" y1="${seg.y1}" x2="${seg.branchX}" y2="${seg.branchY}" 
                 stroke="${col}" stroke-width="5" stroke-linecap="round"/>
 
-          <!-- Cajas de paso cuadradas 4x4 / Condulets -->
+          <!-- Cajas de paso condulet 4x4 cuadradas -->
           <rect x="${seg.x1 - 6}" y="${seg.y1 - 6}" width="12" height="12" rx="2" fill="${col}" stroke="#1e293b" stroke-width="1.5"/>
           <rect x="${seg.x2 - 6}" y="${seg.y2 - 6}" width="12" height="12" rx="2" fill="${col}" stroke="#1e293b" stroke-width="1.5"/>
 
           <!-- Etiqueta del tramo de tubería -->
-          <rect x="${(seg.x1 + seg.x2) / 2 - 25}" y="${seg.y1 - 22}" width="50" height="14" rx="3" fill="#ffffff" stroke="${col}" stroke-width="1"/>
+          <rect x="${(seg.x1 + seg.x2) / 2 - 25}" y="${seg.y1 - 22}" width="50" height="14" rx="3" fill="#ffffff" stroke="${col}" stroke-width="1.5"/>
           <text x="${(seg.x1 + seg.x2) / 2}" y="${seg.y1 - 12}" font-family="monospace" font-size="8" font-weight="bold" fill="${col}" text-anchor="middle">TUB-S${seg.s}</text>
         </g>
       `;
     });
   }
 
-  // 2. CAPA DE CABLEADO FPLR (Línea Roja Fuego Paralela con offset y=330)
-  if (AppState.filters.cableado) {
+  // 2. CAPA DE CABLEADO FPLR (Rojo fuego si pendiente, Verde esmeralda si instalado)
+  if (AppState.filters.cableado && floor.type !== 'cerebro') {
     pipeCoordinates.forEach(seg => {
       const item = floor.items.find(i => i.id === `CAB-P${AppState.selectedFloor}-S0${seg.s}`);
       if (!item) return;
 
       const isInst = item.status === 'installed';
-      const col = isInst ? '#10b981' : '#f59e0b';
+      const col = isInst ? '#10b981' : '#dc2626'; // Verde si instalado, Rojo fuego si pendiente
 
       svgContent += `
         <!-- Cableado Tramo ${seg.s} -->
         <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
-          <!-- Línea de cable que corre en paralelo -->
+          <!-- Línea paralela de cable (offset y=326) -->
           <line x1="${seg.x1}" y1="${seg.y1 + 16}" x2="${seg.x2}" y2="${seg.y2 + 16}" 
                 stroke="${col}" stroke-width="4" stroke-dasharray="${isInst ? 'none' : '6 3'}" stroke-linecap="round"/>
           
@@ -884,12 +1239,12 @@ function renderFloorBlueprint() {
     });
   }
 
-  // ==========================================================================
-  // CAPA DE EQUIPOS Y DISPOSITIVOS DE DETECCIÓN (NFPA SYMBOLOGY)
-  // ==========================================================================
+  // ------------------------------------------------------------------------
+  // CAPA DE DISPOSITIVOS DE DETECCIÓN Y ALARMA (NFPA 72)
+  // ------------------------------------------------------------------------
 
-  // 3. Detectores Autónomos dentro de las habitaciones
-  if (AppState.filters.detectores) {
+  // 3. Detectores Autónomos en Habitaciones
+  if (AppState.filters.detectores && floor.type === 'habitaciones') {
     const detectorCoords = [
       { r: 1, x: 160, y: 160 },
       { r: 2, x: 380, y: 160 },
@@ -906,20 +1261,20 @@ function renderFloorBlueprint() {
       if (!item) return;
 
       const isInst = item.status === 'installed';
-      const col = isInst ? '#10b981' : '#f59e0b';
+      const col = isInst ? '#10b981' : '#f59e0b'; // Verde si instalado, Ámbar si pendiente
 
       svgContent += `
         <!-- Detector Habitación ${d.r} -->
         <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
-          <!-- Cobertura radial de detección -->
+          <!-- Radio de Cobertura -->
           <circle cx="${d.x}" cy="${d.y}" r="38" fill="${col}" opacity="0.12"/>
-          <!-- Base del detector -->
+          <!-- Base del Detector -->
           <circle cx="${d.x}" cy="${d.y}" r="18" fill="#ffffff" stroke="${col}" stroke-width="3" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
-          <!-- Cámara de humo central -->
+          <!-- Cámara Óptica -->
           <circle cx="${d.x}" cy="${d.y}" r="8" fill="${col}"/>
           <text x="${d.x}" y="${d.y + 3}" font-family="'Outfit', sans-serif" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">D</text>
           
-          <!-- Rótulo del detector -->
+          <!-- Rótulo del Detector -->
           <rect x="${d.x - 38}" y="${d.y + 24}" width="76" height="15" rx="3" fill="#ffffff" stroke="${col}" stroke-width="1"/>
           <text x="${d.x}" y="${d.y + 35}" font-family="monospace" font-size="8" font-weight="bold" fill="#0f172a" text-anchor="middle">H-${AppState.selectedFloor}0${d.r}</text>
         </g>
@@ -928,7 +1283,7 @@ function renderFloorBlueprint() {
   }
 
   // 4. Sirenas Estroboscópicas en Pasillo
-  if (AppState.filters.sirenas) {
+  if (AppState.filters.sirenas && floor.type === 'habitaciones') {
     const strobeCoords = [
       { s: 1, x: 260, y: 310 },
       { s: 2, x: 740, y: 310 }
@@ -944,10 +1299,8 @@ function renderFloorBlueprint() {
       svgContent += `
         <!-- Sirena Estrobo ${s.s} -->
         <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
-          <!-- Triángulo / Símbolo de Sirena NFPA -->
           <polygon points="${s.x-14},${s.y+12} ${s.x+14},${s.y+12} ${s.x},${s.y-14}" fill="#ffffff" stroke="${col}" stroke-width="3" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
           <circle cx="${s.x}" cy="${s.y+2}" r="5" fill="${col}"/>
-          <!-- Rótulo -->
           <text x="${s.x}" y="${s.y - 18}" font-family="'Outfit', sans-serif" font-size="8.5" font-weight="800" fill="${col}" text-anchor="middle">SIRENA</text>
         </g>
       `;
@@ -955,30 +1308,24 @@ function renderFloorBlueprint() {
   }
 
   // 5. Palancas / Estaciones Manuales de Emergencia en accesos
-  if (AppState.filters.palancas) {
-    const pullCoords = [
-      { p: 1, x: 105, y: 325 },
-      { p: 2, x: 895, y: 325 }
-    ];
-
-    pullCoords.forEach(p => {
-      const item = floor.items.find(i => i.id === `PAL-P${AppState.selectedFloor}-${p.p}`);
-      if (!item) return;
-
+  if (AppState.filters.palancas && floor.type === 'habitaciones') {
+    const item = floor.items.find(i => i.id === `PAL-P${AppState.selectedFloor}-01`);
+    if (item) {
       const isInst = item.status === 'installed';
       const col = isInst ? '#10b981' : '#f59e0b';
+      const px = 105;
+      const py = 325;
 
       svgContent += `
-        <!-- Palanca Manual ${p.p} -->
+        <!-- Palanca Manual Escalera 1 -->
         <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
-          <rect x="${p.x - 12}" y="${p.y - 12}" width="24" height="24" rx="4" fill="#ffffff" stroke="${col}" stroke-width="3" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
-          <rect x="${p.x - 7}" y="${p.y - 7}" width="14" height="14" rx="2" fill="${col}"/>
-          <text x="${p.x}" y="${p.y + 4}" font-family="'Outfit', sans-serif" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">M</text>
-          <!-- Rótulo -->
-          <text x="${p.x}" y="${p.y + 24}" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="${col}" text-anchor="middle">PALANCA</text>
+          <rect x="${px - 12}" y="${py - 12}" width="24" height="24" rx="4" fill="#ffffff" stroke="${col}" stroke-width="3" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+          <rect x="${px - 7}" y="${py - 7}" width="14" height="14" rx="2" fill="${col}"/>
+          <text x="${px}" y="${py + 4}" font-family="'Outfit', sans-serif" font-size="9" font-weight="900" fill="#ffffff" text-anchor="middle">M</text>
+          <text x="${px}" y="${py + 24}" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="${col}" text-anchor="middle">PALANCA</text>
         </g>
       `;
-    });
+    }
   }
 
   svg.innerHTML = svgContent;
@@ -993,8 +1340,8 @@ function applyBlueprintTransform() {
   }
 }
 
-// Arrastre interactivo del plano
-function initBlueprintPan() {
+// Arrastre interactivo y Rueda de ratón del plano
+function initBlueprintPanAndZoom() {
   const container = document.getElementById('blueprint-canvas-container');
   if (!container) return;
 
@@ -1003,9 +1350,9 @@ function initBlueprintPan() {
   let startY = 0;
 
   container.addEventListener('mousedown', (e) => {
-    // Si hace clic en un elemento interactivo, no activar pan
     if (e.target.closest('.svg-interactive-item')) return;
     isDragging = true;
+    container.classList.add('is-dragging');
     startX = e.clientX - AppState.panX;
     startY = e.clientY - AppState.panY;
   });
@@ -1019,7 +1366,16 @@ function initBlueprintPan() {
 
   window.addEventListener('mouseup', () => {
     isDragging = false;
+    container.classList.remove('is-dragging');
   });
+
+  // Zoom suave con rueda de ratón (Mouse Wheel)
+  container.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
+    AppState.zoomLevel = Math.min(Math.max(AppState.zoomLevel + delta, 0.55), 2.5);
+    applyBlueprintTransform();
+  }, { passive: false });
 }
 
 // Handler global expuesto para los elementos clicables del SVG
@@ -1034,7 +1390,7 @@ window.onSvgItemClick = function(itemId) {
 };
 
 // ==========================================================================
-// MODAL DE DETALLE Y REGISTRO DE INSTALACIÓN
+// MODAL DE DETALLE Y REGISTRO DE INSTALACIÓN (FICHA TÉCNICA Y FOTOS)
 // ==========================================================================
 function openItemModal(item) {
   AppState.selectedItemForModal = item;
@@ -1050,7 +1406,7 @@ function openItemModal(item) {
   const statusSelect = document.getElementById('modal-item-status');
   if (statusSelect) statusSelect.value = item.status;
 
-  // Fecha de Instalación (si no tiene, colocar fecha de hoy)
+  // Fecha de Instalación (si no tiene, colocar fecha actual)
   const today = new Date().toISOString().split('T')[0];
   const dateInput = document.getElementById('modal-item-date');
   if (dateInput) dateInput.value = item.installDate || today;
@@ -1059,11 +1415,11 @@ function openItemModal(item) {
   const techInput = document.getElementById('modal-item-tech');
   if (techInput) techInput.value = item.technician || 'Cuadrilla de Instalación GSIT';
 
-  // Notas
+  // Notas de campo
   const notesInput = document.getElementById('modal-item-notes');
   if (notesInput) notesInput.value = item.notes || '';
 
-  // Foto de evidencia
+  // Fotos de evidencia
   renderItemModalPhotos(item);
 
   document.getElementById('modal-item-detail')?.classList.add('active');
@@ -1078,10 +1434,20 @@ function renderItemModalPhotos(item) {
   const container = document.getElementById('modal-photo-preview-container');
   if (!container) return;
 
+  let photoSrc = item.photo;
+  if (!photoSrc) {
+    if (item.type === 'tuberia') photoSrc = 'assets/img/pipe_emt.svg';
+    else if (item.type === 'cableado') photoSrc = 'assets/img/cable_fire.svg';
+    else if (item.type === 'sirena') photoSrc = 'assets/img/horn_strobe.svg';
+    else if (item.type === 'palanca') photoSrc = 'assets/img/pull_station.svg';
+    else if (item.type === 'facp') photoSrc = 'assets/img/facp_panel.svg';
+    else photoSrc = 'assets/img/smoke_detector.svg';
+  }
+
   container.innerHTML = `
     <div class="photo-preview-card">
-      <img src="${item.photo || 'assets/img/smoke_detector.svg'}" alt="Foto de Evidencia">
-      <div class="photo-badge-label">Evidencia de Campo</div>
+      <img src="${photoSrc}" alt="Evidencia Técnica">
+      <div class="photo-badge-label">Evidencia de Instalación In Situ</div>
     </div>
   `;
 }
@@ -1095,7 +1461,7 @@ function handleUserPhotoUpload(e) {
     if (AppState.selectedItemForModal) {
       AppState.selectedItemForModal.photo = event.target.result;
       renderItemModalPhotos(AppState.selectedItemForModal);
-      showToast('Foto cargada correctamente');
+      showToast('Fotografía de evidencia adjuntada correctamente');
     }
   };
   reader.readAsDataURL(file);
@@ -1111,31 +1477,57 @@ function saveItemModalChanges() {
   const newNotes = document.getElementById('modal-item-notes').value;
 
   item.status = newStatus;
-  item.installDate = newDate;
+  item.installDate = (newStatus === 'installed') ? newDate : null;
   item.technician = newTech;
   item.notes = newNotes;
 
   saveDatabase();
   closeItemModal();
 
-  // Actualizar UI, Plano y Porcentajes en Vivo
+  // Recalcular métricas, redibujar plano y actualizar interfaz
   updateUI();
   renderFloorBlueprint();
   renderFloorItemsList();
 
-  showToast(`Elemento ${item.code} actualizado a [${newStatus.toUpperCase()}]`);
+  const metrics = calculateMetrics();
+  showToast(`Elemento ${item.code} actualizado a [${newStatus.toUpperCase()}] — Avance Global: ${metrics.globalPercentage}%`);
 }
 
 // ==========================================================================
-// MODAL Y REPORTE DE CORTE DE FACTURACIÓN
+// MODAL DE CORTE DE FACTURACIÓN Y ACTA FORMAL MEMBRETADA
 // ==========================================================================
+function switchBillingTab(tab) {
+  AppState.activeBillingTab = tab;
+
+  const tabBtnInteractive = document.getElementById('tab-btn-interactive');
+  const tabBtnCertificate = document.getElementById('tab-btn-certificate');
+  const viewInteractive = document.getElementById('billing-interactive-view');
+  const viewCertificate = document.getElementById('billing-printable-certificate');
+
+  if (tab === 'interactive') {
+    tabBtnInteractive?.classList.add('active');
+    tabBtnCertificate?.classList.remove('active');
+    if (viewInteractive) viewInteractive.style.display = 'block';
+    if (viewCertificate) viewCertificate.style.display = 'none';
+  } else {
+    tabBtnCertificate?.classList.add('active');
+    tabBtnInteractive?.classList.remove('active');
+    if (viewCertificate) viewCertificate.style.display = 'block';
+    if (viewInteractive) viewInteractive.style.display = 'none';
+  }
+}
+window.switchBillingTab = switchBillingTab;
+
 function openBillingModal() {
-  // Establecer fechas por defecto
   const today = new Date().toISOString().split('T')[0];
-  document.getElementById('billing-date-start').value = '2026-06-01';
-  document.getElementById('billing-date-end').value = today;
+  const startDateInput = document.getElementById('billing-date-start');
+  const endDateInput = document.getElementById('billing-date-end');
+
+  if (startDateInput && !startDateInput.value) startDateInput.value = '2026-05-01';
+  if (endDateInput && !endDateInput.value) endDateInput.value = today;
 
   renderBillingReport();
+  switchBillingTab('interactive');
   document.getElementById('modal-billing-cutoff')?.classList.add('active');
 }
 
@@ -1144,9 +1536,9 @@ function closeBillingModal() {
 }
 
 function renderBillingReport() {
-  const startDate = document.getElementById('billing-date-start').value;
-  const endDate = document.getElementById('billing-date-end').value;
-  const floorFilter = document.getElementById('billing-floor-scope').value; // 'all' o número
+  const startDate = document.getElementById('billing-date-start').value || '2026-05-01';
+  const endDate = document.getElementById('billing-date-end').value || new Date().toISOString().split('T')[0];
+  const floorFilter = document.getElementById('billing-floor-scope').value; // 'all' o número de piso
 
   let totalPipeMeters = 0;
   let totalCableMeters = 0;
@@ -1163,7 +1555,6 @@ function renderBillingReport() {
 
     floor.items.forEach(item => {
       if (item.status === 'installed' && item.installDate) {
-        // Comprobar filtro de fechas
         if (item.installDate >= startDate && item.installDate <= endDate) {
           const itemTotal = item.quantity * item.unitPrice;
           subtotalAmount += itemTotal;
@@ -1182,20 +1573,27 @@ function renderBillingReport() {
     });
   }
 
-  const ivaAmount = subtotalAmount * 0.19;
+  const ivaAmount = Math.round(subtotalAmount * 0.19);
   const grandTotal = subtotalAmount + ivaAmount;
 
-  // Actualizar tarjetas de resumen
-  document.getElementById('billing-summary-pipe').textContent = `${Math.round(totalPipeMeters).toLocaleString()} m`;
-  document.getElementById('billing-summary-cable').textContent = `${Math.round(totalCableMeters).toLocaleString()} m`;
-  document.getElementById('billing-summary-devices').textContent = `${totalDevicesCount} un`;
-  document.getElementById('billing-summary-total').textContent = `$ ${Math.round(grandTotal).toLocaleString('es-CO')}`;
+  // 1. Actualizar Tarjetas de Resumen en Vista Interactiva
+  const pipeSumEl = document.getElementById('billing-summary-pipe');
+  if (pipeSumEl) pipeSumEl.textContent = `${Math.round(totalPipeMeters).toLocaleString()} m`;
 
-  // Actualizar tabla detallada
+  const cableSumEl = document.getElementById('billing-summary-cable');
+  if (cableSumEl) cableSumEl.textContent = `${Math.round(totalCableMeters).toLocaleString()} m`;
+
+  const devSumEl = document.getElementById('billing-summary-devices');
+  if (devSumEl) devSumEl.textContent = `${Math.round(totalDevicesCount).toLocaleString()} un`;
+
+  const totalSumEl = document.getElementById('billing-summary-total');
+  if (totalSumEl) totalSumEl.textContent = `$ ${Math.round(grandTotal).toLocaleString('es-CO')}`;
+
+  // 2. Actualizar Tabla Interactiva
   const tbody = document.getElementById('billing-table-body');
   if (tbody) {
     if (matchedItems.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.5rem;">No se encontraron ítems instalados en el rango de fechas seleccionado.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.75rem;color:var(--text-muted);">No se encontraron ítems instalados certificados en el rango de fechas seleccionado.</td></tr>`;
     } else {
       tbody.innerHTML = matchedItems.map(item => `
         <tr>
@@ -1210,23 +1608,80 @@ function renderBillingReport() {
       `).join('');
     }
   }
+
+  // 3. Actualizar Acta Formal Membretada (Imprimible)
+  const certPeriodEl = document.getElementById('cert-period-range');
+  if (certPeriodEl) certPeriodEl.textContent = `${startDate} hasta ${endDate}`;
+
+  const certScopeEl = document.getElementById('cert-scope-floors');
+  if (certScopeEl) certScopeEl.textContent = floorFilter === 'all' ? 'Todos los Niveles de la Torre (Pisos 0 al 33)' : `Exclusivo Piso ${floorFilter}`;
+
+  const certDateEl = document.getElementById('cert-doc-date');
+  if (certDateEl) certDateEl.textContent = `Fecha de Liquidación: ${endDate}`;
+
+  const certPipeEl = document.getElementById('cert-sum-pipe');
+  if (certPipeEl) certPipeEl.textContent = `${Math.round(totalPipeMeters).toLocaleString()} m`;
+
+  const certCableEl = document.getElementById('cert-sum-cable');
+  if (certCableEl) certCableEl.textContent = `${Math.round(totalCableMeters).toLocaleString()} m`;
+
+  const certDevEl = document.getElementById('cert-sum-devices');
+  if (certDevEl) certDevEl.textContent = `${Math.round(totalDevicesCount).toLocaleString()} un`;
+
+  const certTotalEl = document.getElementById('cert-sum-total');
+  if (certTotalEl) certTotalEl.textContent = `$ ${Math.round(grandTotal).toLocaleString('es-CO')}`;
+
+  const certSubtotalEl = document.getElementById('cert-val-subtotal');
+  if (certSubtotalEl) certSubtotalEl.textContent = `$ ${Math.round(subtotalAmount).toLocaleString('es-CO')}`;
+
+  const certIvaEl = document.getElementById('cert-val-iva');
+  if (certIvaEl) certIvaEl.textContent = `$ ${Math.round(ivaAmount).toLocaleString('es-CO')}`;
+
+  const certGrandTotalEl = document.getElementById('cert-val-total');
+  if (certGrandTotalEl) certGrandTotalEl.textContent = `$ ${Math.round(grandTotal).toLocaleString('es-CO')} COP`;
+
+  const certTbody = document.getElementById('cert-items-table-body');
+  if (certTbody) {
+    if (matchedItems.length === 0) {
+      certTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:1.5rem;">Sin registros en el rango.</td></tr>`;
+    } else {
+      certTbody.innerHTML = matchedItems.map(item => `
+        <tr>
+          <td>${item.installDate}</td>
+          <td><strong>${item.code}</strong></td>
+          <td>${item.name} (${item.model})</td>
+          <td>Piso ${item.floor}</td>
+          <td>${item.quantity} ${item.unit}</td>
+          <td>$ ${item.unitPrice.toLocaleString('es-CO')}</td>
+          <td>$ ${item.itemTotal.toLocaleString('es-CO')}</td>
+        </tr>
+      `).join('');
+    }
+  }
 }
 
+// Descargar archivo CSV estructurado para Excel
 function exportBillingToCSV() {
-  const startDate = document.getElementById('billing-date-start').value;
-  const endDate = document.getElementById('billing-date-end').value;
+  const startDate = document.getElementById('billing-date-start').value || '2026-05-01';
+  const endDate = document.getElementById('billing-date-end').value || new Date().toISOString().split('T')[0];
+  const floorFilter = document.getElementById('billing-floor-scope').value;
 
-  let csv = 'FECHA,CODIGO,DESCRIPCION,PISO,CANTIDAD,UNIDAD,PRECIO_UNITARIO_COP,SUBTOTAL_COP,ESTADO\n';
+  let csv = '\uFEFFFECHA_INSTALACION,CODIGO,DESCRIPCION_TECNICA,PISO,ZONA,CANTIDAD,UNIDAD,PRECIO_UNITARIO_COP,SUBTOTAL_COP,ESTADO\n';
+
+  let totalItemsCount = 0;
 
   for (let f = 0; f <= 33; f++) {
+    if (floorFilter !== 'all' && parseInt(floorFilter, 10) !== f) continue;
+
     const floor = AppState.database.floors[f];
     if (!floor) continue;
 
     floor.items.forEach(item => {
       if (item.status === 'installed' && item.installDate) {
         if (item.installDate >= startDate && item.installDate <= endDate) {
+          totalItemsCount++;
           const itemTotal = item.quantity * item.unitPrice;
-          csv += `"${item.installDate}","${item.code}","${item.name}","Piso ${f}",${item.quantity},"${item.unit}",${item.unitPrice},${itemTotal},"Instalado Certificado"\n`;
+          csv += `"${item.installDate}","${item.code}","${item.name.replace(/"/g, '""')}","Piso ${f}","${item.zone.replace(/"/g, '""')}",${item.quantity},"${item.unit}",${item.unitPrice},${itemTotal},"Instalado & Verificado"\n`;
         }
       }
     });
@@ -1241,7 +1696,7 @@ function exportBillingToCSV() {
   a.click();
   document.body.removeChild(a);
 
-  showToast('Archivo CSV descargado para facturación');
+  showToast(`Archivo CSV exportado con éxito (${totalItemsCount} registros)`);
 }
 
 // Toast Notificación
@@ -1259,5 +1714,6 @@ function showToast(message) {
 
   setTimeout(() => {
     toast.classList.remove('active');
-  }, 3200);
+  }, 3400);
 }
+window.showToast = showToast;
