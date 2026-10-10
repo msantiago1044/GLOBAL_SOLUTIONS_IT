@@ -105,7 +105,7 @@
           <p class="section-subtitle">Gestión centralizada de redes de detección contra incendios Global Solutions IT</p>
         </div>
         <div>
-          <button class="btn btn-primary" onclick="openNewProjectModal()" id="btn-add-new-project-header" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(0, 119, 182, 0.25);">
+          <button class="btn btn-primary" onclick="openNewProjectModal()" id="btn-add-new-project-header" style="font-weight: 700; display: none; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(0, 119, 182, 0.25);">
             <span style="font-size: 1.15rem; line-height: 1;">➕</span> Nuevo Proyecto
           </button>
         </div>
@@ -181,7 +181,7 @@
         </div>
 
         <!-- Tarjeta Interactiva: Agregar Nuevo Proyecto -->
-        <div class="project-card-add" onclick="openNewProjectModal()" title="Crear un nuevo proyecto técnico">
+        <div class="project-card-add" onclick="openNewProjectModal()" style="display: none;" title="Crear un nuevo proyecto técnico">
           <div class="add-icon-circle">➕</div>
           <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--brand-blue-deep); margin-bottom: 0.4rem;">
             Crear Nuevo Proyecto

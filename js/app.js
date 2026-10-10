@@ -1060,9 +1060,12 @@ function updateAuthUI() {
   const projectsRoleBadge = document.getElementById('projects-role-badge');
   const itemsHelpTag = document.getElementById('items-help-tag');
 
-  const adminActive = isAdmin();
+  const btnAddProjHeader = document.getElementById('btn-add-new-project-header');
+  const cardAddProj = document.querySelector('.project-card-add');
 
   if (adminActive) {
+    if (btnAddProjHeader) btnAddProjHeader.style.display = 'inline-flex';
+    if (cardAddProj) cardAddProj.style.display = 'flex';
     if (profileMenu) profileMenu.style.display = 'flex';
     if (loginBtn) loginBtn.style.display = 'none';
     if (navRoleBadge) {
@@ -1082,6 +1085,8 @@ function updateAuthUI() {
       itemsHelpTag.onclick = () => showToast('Modo Administrador: Haz clic en cualquier elemento para modificar su instalación y fotos');
     }
   } else {
+    if (btnAddProjHeader) btnAddProjHeader.style.display = 'none';
+    if (cardAddProj) cardAddProj.style.display = 'none';
     if (profileMenu) profileMenu.style.display = 'none';
     if (loginBtn) loginBtn.style.display = 'inline-flex';
     if (navRoleBadge) {
@@ -2435,6 +2440,11 @@ window.showToast = showToast;
 // CONTROLADOR DE MODALES: CREACIÓN DE PROYECTO EN BLANCO
 // ==========================================================================
 function openNewProjectModal() {
+  if (!isAdmin()) {
+    showToast('Debes iniciar sesión como administrador para crear un nuevo proyecto');
+    openLoginModal();
+    return;
+  }
   const modal = document.getElementById('modal-new-project');
   if (modal) modal.classList.add('active');
   document.getElementById('new-proj-name')?.focus();

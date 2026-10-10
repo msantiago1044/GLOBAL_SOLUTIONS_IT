@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreateProjectPayloadSchema } from '@/src/schemas/project.schema';
 import { createProject } from '@/src/lib/projects-data';
+import { isAuthenticated } from '@/src/lib/auth';
 import { PlusCircle, X, AlertCircle, Building2 } from 'lucide-react';
 
 interface Props {
@@ -28,6 +29,12 @@ export default function NewProjectModal({ isOpen, onClose }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setErrors([]);
+
+    if (!isAuthenticated()) {
+      setErrors(['Debes iniciar sesión para poder crear un nuevo proyecto.']);
+      return;
+    }
+
     setLoading(true);
 
     const validation = CreateProjectPayloadSchema.safeParse({

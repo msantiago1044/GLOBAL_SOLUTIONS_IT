@@ -20,6 +20,10 @@ export function getSession(): UserSession | null {
   }
 }
 
+export function isAuthenticated(): boolean {
+  return getSession() !== null;
+}
+
 export function isAdmin(): boolean {
   const session = getSession();
   return session?.role === 'admin';
@@ -34,6 +38,7 @@ export function loginAsAdmin(username: string = 'admin'): UserSession {
   };
   if (typeof window !== 'undefined') {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    window.dispatchEvent(new Event('gsit_auth_change'));
   }
   return session;
 }
@@ -41,5 +46,6 @@ export function loginAsAdmin(username: string = 'admin'): UserSession {
 export function logout(): void {
   if (typeof window !== 'undefined') {
     localStorage.removeItem(STORAGE_KEY);
+    window.dispatchEvent(new Event('gsit_auth_change'));
   }
 }

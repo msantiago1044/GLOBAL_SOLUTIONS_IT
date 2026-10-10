@@ -7,7 +7,7 @@ import Footer from '@/components/Footer';
 import NewProjectModal from '@/components/dashboard/NewProjectModal';
 import { getProjects } from '@/src/lib/projects-data';
 import { Project } from '@/src/schemas/project.schema';
-import { isAdmin } from '@/src/lib/auth';
+import { isAdmin, isAuthenticated } from '@/src/lib/auth';
 import {
   Plus,
   ArrowRight,
@@ -25,10 +25,21 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [adminMode, setAdminMode] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setProjects(getProjects());
-    setAdminMode(isAdmin());
+    const syncAuth = () => {
+      setIsLoggedIn(isAuthenticated());
+      setAdminMode(isAdmin());
+    };
+    syncAuth();
+    window.addEventListener('gsit_auth_change', syncAuth);
+    window.addEventListener('storage', syncAuth);
+    return () => {
+      window.removeEventListener('gsit_auth_change', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, []);
 
   const filteredProjects = projects.filter(
@@ -62,15 +73,17 @@ export default function ProjectsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
-            >
-              <Plus className="w-4 h-4 text-brand-cyan" strokeWidth={2.5} />
-              <span>➕ Nuevo Proyecto</span>
-            </button>
-          </div>
+          {isLoggedIn && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
+              >
+                <Plus className="w-4 h-4 text-brand-cyan" strokeWidth={2.5} />
+                <span>Nuevo Proyecto</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Search Bar */}
@@ -174,27 +187,31 @@ export default function ProjectsPage() {
             );
           })}
 
-          {/* Quick Create Card */}
-          <div
-            onClick={() => setIsModalOpen(true)}
-            className="rounded-2xl border-2 border-dashed border-brand-primary/40 bg-white/70 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-primary hover:bg-brand-ice/20 transition-all min-h-[320px] group shadow-sm"
-          >
-            <div className="w-14 h-14 rounded-2xl bg-brand-ice border border-brand-cyan/40 flex items-center justify-center text-brand-deep group-hover:scale-110 transition-transform mb-3 shadow-sm">
-              <FolderPlus className="w-7 h-7 text-brand-accent" strokeWidth={2} />
+          {/* Quick Create Card (Solo visible para usuarios autenticados) */}
+          {isLoggedIn && (
+            <div
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-2xl border-2 border-dashed border-brand-primary/40 bg-white/70 p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-brand-primary hover:bg-brand-ice/20 transition-all min-h-[320px] group shadow-sm"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-brand-ice border border-brand-cyan/40 flex items-center justify-center text-brand-deep group-hover:scale-110 transition-transform mb-3 shadow-sm">
+                <FolderPlus className="w-7 h-7 text-brand-accent" strokeWidth={2} />
+              </div>
+              <h3 className="text-base font-extrabold text-brand-deep group-hover:text-brand-primary transition-colors">
+                Crear Nuevo Proyecto
+              </h3>
+              <p className="text-xs text-gsitText-secondary mt-1 max-w-xs leading-relaxed">
+                Inicia un proyecto en blanco con esquema editable para configurar equipos, tuberías y cableado.
+              </p>
             </div>
-            <h3 className="text-base font-extrabold text-brand-deep group-hover:text-brand-primary transition-colors">
-              ➕ Crear Nuevo Proyecto
-            </h3>
-            <p className="text-xs text-gsitText-secondary mt-1 max-w-xs leading-relaxed">
-              Inicia un proyecto en blanco con esquema editable para configurar equipos, tuberías y cableado.
-            </p>
-          </div>
+          )}
         </div>
       </main>
 
       <Footer />
 
-      <NewProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {isLoggedIn && (
+        <NewProjectModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      )}
     </div>
   );
 }
