@@ -104,11 +104,16 @@
           </div>
           <p class="section-subtitle">Gestión centralizada de redes de detección contra incendios Global Solutions IT</p>
         </div>
+        <div>
+          <button class="btn btn-primary" onclick="openNewProjectModal()" id="btn-add-new-project-header" style="font-weight: 700; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(0, 119, 182, 0.25);">
+            <span style="font-size: 1.15rem; line-height: 1;">➕</span> Nuevo Proyecto
+          </button>
+        </div>
       </div>
 
-      <div class="projects-grid">
-        <!-- Proyecto 1: Torre Titanium Sky -->
-        <div class="project-card featured" data-action="select-project">
+      <div class="projects-grid" id="projects-catalog-grid">
+        <!-- Proyecto 1: Torre Grand Titanium -->
+        <div class="project-card featured" id="card-proj-torre-titanium">
           <div class="featured-ribbon">En Obra</div>
           <div class="project-card-header">
             <span class="project-category-tag">Edificación Vertical</span>
@@ -122,10 +127,10 @@
           <div class="progress-block">
             <div class="progress-header">
               <span>Avance de Ejecución</span>
-              <span class="progress-pct global-progress-value">90.4%</span>
+              <span class="progress-pct" id="card-progress-titanium">90.4%</span>
             </div>
             <div class="progress-bar-track">
-              <div class="progress-bar-fill global-progress-fill" style="width: 90.4%;"></div>
+              <div class="progress-bar-fill" id="card-fill-titanium" style="width: 90.4%;"></div>
             </div>
           </div>
 
@@ -136,9 +141,57 @@
             <span class="pill-info">📷 Evidencias OK</span>
           </div>
 
-          <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="showView('execution')">
+          <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="switchProject('torre-titanium')">
             🔍 Ingresar al Estudio Técnico de Obra
           </button>
+        </div>
+
+        <!-- Proyecto 2: Estadio Metropolitano Roberto Meléndez -->
+        <div class="project-card featured" id="card-proj-estadio-metropolitano">
+          <div class="featured-ribbon" id="ribbon-estadio" style="background: #f59e0b;">🎨 En Diseño</div>
+          <div class="project-card-header">
+            <span class="project-category-tag" style="background: #fef3c7; color: #b45309;">Infraestructura Deportiva</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">6 Zonas Técnicas</span>
+          </div>
+          <h3 class="project-name">Estadio Metropolitano Roberto Meléndez</h3>
+          <p class="project-meta-desc">
+            Red integral de detección de incendios y notificación masiva NFPA 72. Cuarto de bombas, graderías occidental, oriental, norte, sur y túnel de jugadores.
+          </p>
+
+          <div class="progress-block">
+            <div class="progress-header">
+              <span>Avance de Ejecución</span>
+              <span class="progress-pct" id="card-progress-estadio">0.0%</span>
+            </div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="card-fill-estadio" style="width: 0%; background-color: #f59e0b;"></div>
+            </div>
+          </div>
+
+          <div class="project-info-pills">
+            <span class="pill-info">🏟️ 6 Zonas</span>
+            <span class="pill-info">📍 Barranquilla</span>
+            <span class="pill-info">📢 Notificación Masiva</span>
+            <span class="pill-info" id="pill-status-estadio">🛠️ Esquema Editable</span>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top: auto; width: 100%;" onclick="switchProject('estadio-metropolitano')">
+            🎨 Ingresar al Diseñador de Esquema
+          </button>
+        </div>
+
+        <!-- Tarjeta Interactiva: Agregar Nuevo Proyecto -->
+        <div class="project-card-add" onclick="openNewProjectModal()" title="Crear un nuevo proyecto técnico">
+          <div class="add-icon-circle">➕</div>
+          <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--brand-blue-deep); margin-bottom: 0.4rem;">
+            Crear Nuevo Proyecto
+          </h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); max-width: 320px; margin: 0 auto 1.2rem auto;">
+            Configura una nueva obra, edificación o instalación deportiva con esquema técnico interactivo NFPA 72.
+          </p>
+          <span class="btn btn-secondary btn-sm" style="font-weight: 700; pointer-events: none;">
+            Comenzar Configuración
+          </span>
         </div>
       </div>
     </div>
@@ -163,8 +216,8 @@
             <span style="font-size: 0.7rem; font-weight: 800; color: var(--brand-blue); text-transform: uppercase;">Proyecto en Ejecución</span>
             <span class="global-progress-value" style="font-size: 0.95rem; font-weight: 900; color: var(--status-installed);">90.4%</span>
           </div>
-          <h2 class="sidebar-project-title">Torre Titanium Sky</h2>
-          <p class="sidebar-client-name">Cliente: Constructora Bolívar / Inversiones Colpatria</p>
+          <h2 class="sidebar-project-title" id="sidebar-project-title">Torre Grand Titanium</h2>
+          <p class="sidebar-client-name" id="sidebar-client-name">Cliente: Constructora Bolívar / Inversiones Colpatria</p>
           <div class="sidebar-access-tag public" id="sidebar-access-tag">
             👁️ Modo Consulta Pública (Solo Lectura)
           </div>
@@ -191,11 +244,14 @@
           </div>
         </div>
 
-        <!-- Selector de Pisos (Pisos 0 a 33) -->
+        <!-- Panel de Gestión y Bloqueo de Esquema Técnico (cuando el proyecto es editable) -->
+        <div id="schema-management-container" style="padding: 0.85rem 1.25rem 0 1.25rem;"></div>
+
+        <!-- Selector de Pisos (Pisos / Zonas) -->
         <div class="floors-control-panel">
           <div class="panel-subheading">
-            <span>Selección de Piso (34 Niveles)</span>
-            <span style="font-size: 0.7rem; color: var(--brand-blue); font-weight: 700;">Torre 33 Pisos</span>
+            <span id="floors-panel-title">Selección de Piso (34 Niveles)</span>
+            <span id="floors-panel-badge" style="font-size: 0.7rem; color: var(--brand-blue); font-weight: 700;">Torre 33 Pisos</span>
           </div>
 
           <select id="floor-selector-dropdown" class="floor-select-dropdown">
@@ -728,6 +784,199 @@
         </button>
         <button type="button" class="btn btn-success" id="btn-export-billing-csv">
           📊 Descargar Excel / CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: CREAR NUEVO PROYECTO
+       ========================================================================== -->
+  <div class="modal-overlay" id="modal-new-project">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>➕</span> Configurar Nuevo Proyecto Técnico
+        </h3>
+        <button type="button" class="modal-close-btn" onclick="closeNewProjectModal()">✕</button>
+      </div>
+      <form id="form-new-project" onsubmit="handleCreateNewProject(event)">
+        <div class="modal-body">
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+            Crea una nueva obra o edificación en blanco para estructurar el esquema de tuberías, cables y equipos contra incendios conforme a NFPA 72.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="new-proj-name">Nombre del Proyecto *</label>
+            <input type="text" id="new-proj-name" class="form-input" required placeholder="Ej. Estadio Metropolitano Roberto Meléndez">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-proj-client">Cliente / Entidad Contratante *</label>
+            <input type="text" id="new-proj-client" class="form-input" required placeholder="Ej. Alcaldía Distrital de Barranquilla">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="new-proj-city">Ciudad / Ubicación *</label>
+              <input type="text" id="new-proj-city" class="form-input" required placeholder="Ej. Barranquilla, Atlántico">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="new-proj-floors">Niveles / Zonas Técnicas *</label>
+              <input type="number" id="new-proj-floors" class="form-input" min="1" max="50" value="6" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="new-proj-system">Sistema Técnico NFPA 72 *</label>
+            <input type="text" id="new-proj-system" class="form-input" required value="Sistema de Detección y Notificación Masiva NFPA 72 — Notifier ONYX">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeNewProjectModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">➕ Crear Proyecto en Blanco</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: AGREGAR ELEMENTO AL ESQUEMA TÉCNICO (MODO DISEÑO)
+       ========================================================================== -->
+  <div class="modal-overlay" id="modal-add-item-schema">
+    <div class="modal-container" style="max-width: 620px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="display: flex; align-items: center; gap: 0.5rem;">
+          <span>🛠️</span> Agregar Componente al Esquema Técnico
+        </h3>
+        <button type="button" class="modal-close-btn" onclick="closeAddItemSchemaModal()">✕</button>
+      </div>
+      <form id="form-add-item-schema" onsubmit="handleSaveItemToSchema(event)">
+        <div class="modal-body">
+          <div class="modal-role-banner admin" style="margin-bottom: 1rem;">
+            <div class="role-icon">📐</div>
+            <div>
+              <strong>Diseñador de Infraestructura Técnica</strong>
+              <p style="margin: 0;">Define especificaciones y metrado. El componente se integrará al plano técnico de la zona seleccionada.</p>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="schema-item-type">Tipo de Componente *</label>
+              <select id="schema-item-type" class="form-input" onchange="autoGenerateItemCode()" required>
+                <option value="tuberia">Tubería Conduit EMT 3/4"</option>
+                <option value="cableado">Cableado Blindado FPLR 2x16 AWG</option>
+                <option value="detector-autonomo">Detector de Humo Autónomo</option>
+                <option value="detector-doble">Detector Óptico / Fotoeléctrico Doble</option>
+                <option value="sirena">Sirena con Luz Estroboscópica</option>
+                <option value="palanca">Estación Manual / Palanca de Emergencia</option>
+                <option value="facp">Central de Control FACP Notifier</option>
+                <option value="cuadro-bomba">Controlador Cuarto de Bombas</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema-item-floor">Nivel / Zona del Proyecto *</label>
+              <select id="schema-item-floor" class="form-input" required>
+                <!-- Opciones inyectadas dinámicamente -->
+              </select>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="schema-item-code">Código Único de Identificación *</label>
+              <input type="text" id="schema-item-code" class="form-input" required placeholder="Ej. TUB-MET-Z01">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema-item-name">Nombre Descriptivo *</label>
+              <input type="text" id="schema-item-name" class="form-input" required placeholder="Ej. Tubería EMT Tramo Principal Anillo 1">
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="schema-item-model">Modelo / Especificación del Fabricante</label>
+              <input type="text" id="schema-item-model" class="form-input" value="Tubo EMT Galvanizado UL 797">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema-item-zone">Ubicación / Sector Físico *</label>
+              <input type="text" id="schema-item-zone" class="form-input" required placeholder="Ej. Pasillo Gradería Occidental Sector B">
+            </div>
+          </div>
+
+          <div class="form-grid-3" style="display: grid; grid-template-columns: 1fr 1fr 1.2fr; gap: 0.75rem;">
+            <div class="form-group">
+              <label class="form-label" for="schema-item-qty">Cantidad / Metros *</label>
+              <input type="number" id="schema-item-qty" class="form-input" step="0.5" min="0.5" value="18.5" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema-item-unit">Unidad *</label>
+              <select id="schema-item-unit" class="form-input">
+                <option value="Metros">Metros</option>
+                <option value="Unidad">Unidad</option>
+                <option value="Kit">Kit</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="schema-item-price">Precio Unitario ($ COP) *</label>
+              <input type="number" id="schema-item-price" class="form-input" step="100" min="0" value="28500" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="schema-item-notes">Notas Técnicas de Diseño</label>
+            <textarea id="schema-item-notes" class="form-input" rows="2" placeholder="Especificaciones de montaje, normatividad NFPA 72 o instrucciones de cuadrilla..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddItemSchemaModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">➕ Guardar en el Esquema</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: BLOQUEAR Y FINALIZAR ESQUEMA TÉCNICO
+       ========================================================================== -->
+  <div class="modal-overlay" id="modal-lock-schema">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header" style="border-bottom-color: #fde68a;">
+        <h3 class="modal-title" style="color: #b45309; display: flex; align-items: center; gap: 0.5rem;">
+          <span>🔒</span> Finalizar y Bloquear Esquema Técnico
+        </h3>
+        <button type="button" class="modal-close-btn" onclick="closeLockSchemaModal()">✕</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 1.5rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.75rem;">🛡️</div>
+        <h4 style="font-size: 1.2rem; font-weight: 800; color: var(--brand-blue-deep); margin-bottom: 0.5rem;" id="lock-modal-project-name">
+          Estadio Metropolitano Roberto Meléndez
+        </h4>
+        <p style="font-size: 0.88rem; color: #475569; line-height: 1.5; margin-bottom: 1.25rem;">
+          ¿Confirmas que el diseño de la red contra incendios está completamente estructurado?
+        </p>
+
+        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius-md); padding: 0.85rem; text-align: left; font-size: 0.8rem; color: #92400e; margin-bottom: 1.25rem;">
+          <p style="margin: 0 0 0.4rem 0;"><strong>⚠️ Advertencia de Bloqueo Oficial:</strong></p>
+          <ul style="margin: 0; padding-left: 1.2rem; line-height: 1.4;">
+            <li>El esquema de ingeniería quedará <strong>congelado</strong>.</li>
+            <li>Ya <strong>no se podrán añadir ni borrar</strong> tramos de tubería, cables ni sensores.</li>
+            <li>El proyecto pasará formalmente a fase de <strong>Ejecución en Obra</strong> (registro in-situ, evidencias fotográficas y facturación).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: center; gap: 0.75rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeLockSchemaModal()">
+          Seguir Editando
+        </button>
+        <button type="button" class="btn btn-warning" onclick="executeLockSchema()" style="background: #d97706; color: white; font-weight: 800;">
+          🔒 Sí, Bloquear Esquema Definitivamente
         </button>
       </div>
     </div>

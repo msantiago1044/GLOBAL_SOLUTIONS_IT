@@ -126,9 +126,173 @@
     }
   }
 
+  /**
+   * Inserta un nuevo elemento en el esquema técnico en Supabase
+   */
+  async function insertFloorItem(item, projectId, floorNumber) {
+    if (!supabaseClient || !isConnected) return null;
+
+    try {
+      let floorId = null;
+      const { data: floor } = await supabaseClient
+        .from('floors')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('floor_number', floorNumber)
+        .single();
+
+      if (floor) {
+        floorId = floor.id;
+      }
+
+      const payload = {
+        id: item.id,
+        floor_id: floorId,
+        project_id: projectId,
+        code: item.code,
+        type: item.type,
+        name: item.name,
+        model: item.model || 'Estándar NFPA 72',
+        zone: item.zone || 'Zona General',
+        status: item.status || 'pending',
+        quantity: item.quantity || 1,
+        unit: item.unit || 'Unidad',
+        unit_price: item.unitPrice || 0,
+        photo_url: item.photo || null,
+        notes: item.notes || null,
+        installed_at: item.installDate || null,
+        installer_team: item.technician || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabaseClient
+        .from('floor_items')
+        .upsert(payload)
+        .select();
+
+      if (error) {
+        console.warn(`[Supabase insertFloorItem Error]:`, error.message);
+        return null;
+      }
+
+      console.log(`☁️ [Supabase Insert OK] Elemento ${item.code} registrado.`);
+      return data;
+    } catch (err) {
+      console.warn('[Supabase Insert Exception]:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Elimina un elemento del esquema técnico en Supabase
+   */
+  async function deleteFloorItem(itemId) {
+    if (!supabaseClient || !isConnected) return null;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('floor_items')
+        .delete()
+        .eq('id', itemId)
+        .select();
+
+      if (error) {
+        console.warn(`[Supabase deleteFloorItem Error]:`, error.message);
+        return null;
+      }
+
+      console.log(`☁️ [Supabase Delete OK] Elemento ${itemId} eliminado.`);
+      return data;
+    } catch (err) {
+      console.warn('[Supabase Delete Exception]:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Bloquea definitivamente el esquema de un proyecto en Supabase
+   */
+  async function lockProject(projectId) {
+    if (!supabaseClient || !isConnected) return null;
+
+    try {
+      const { data, error } = await supabaseClient
+        .from('projects')
+        .update({
+          schema_status: 'locked',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', projectId)
+        .select();
+
+      if (error) {
+        console.warn(`[Supabase lockProject Error]:`, error.message);
+        return null;
+      }
+
+      console.log(`🔒 [Supabase Lock OK] Proyecto ${projectId} congelado en modo oficial.`);
+      return data;
+    } catch (err) {
+      console.warn('[Supabase Lock Exception]:', err);
+      return null;
+    }
+  }
+
+  /**
+   * Registra un nuevo proyecto y sus zonas en Supabase
+   */
+  async function createProject(projectData, zones = []) {
+    if (!supabaseClient || !isConnected) return null;
+
+    try {
+      const { data: proj, error: projErr } = await supabaseClient
+        .from('projects')
+        .upsert({
+          id: projectData.id,
+          name: projectData.name,
+          client: projectData.client,
+          address: projectData.address || '',
+          contractor: projectData.contractor || 'Global Solutions IT S.A.S.',
+          interventoria: projectData.interventoria || 'Interventoría Oficial',
+          system_type: projectData.systemType || 'Sistema NFPA 72',
+          total_floors: projectData.totalFloors || zones.length,
+          global_progress: 0,
+          schema_status: 'editable',
+          updated_at: new Date().toISOString()
+        })
+        .select();
+
+      if (projErr) {
+        console.warn('[Supabase createProject Error]:', projErr.message);
+      }
+
+      for (const z of zones) {
+        await supabaseClient
+          .from('floors')
+          .upsert({
+            project_id: projectData.id,
+            floor_number: z.floorNumber,
+            name: z.name,
+            floor_type: z.type || 'oficinas',
+            progress_percentage: 0
+          });
+      }
+
+      return proj;
+    } catch (err) {
+      console.warn('[Supabase createProject Exception]:', err);
+      return null;
+    }
+  }
+
   window.GSITSupabase = {
     init: initClient,
     syncItem: syncItemUpdate,
+    insertFloorItem: insertFloorItem,
+    deleteFloorItem: deleteFloorItem,
+    lockProject: lockProject,
+    createProject: createProject,
     fetchFloorItems: fetchRemoteFloorItems,
     subscribe: subscribeToProjectChanges,
     isReady: () => isConnected && supabaseClient !== null

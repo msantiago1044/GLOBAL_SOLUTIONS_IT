@@ -25,7 +25,8 @@ const AppState = {
     facp: true
   },
   selectedItemForModal: null,
-  database: null
+  database: null,
+  projectsData: {}
 };
 
 // Verificación de Rol y Permisos de Acceso
@@ -48,6 +49,7 @@ function generateInitialDatabase() {
       interventoria: 'Consorcio Interventorías Civiles & Eléctricas S.A.S.',
       systemType: 'Sistema Direccionable Inteligente NFPA 72 — Notifier ONYX NFS2-3030',
       totalFloors: 34, // Pisos 0 al 33 (Sótano + 33 pisos de torre)
+      schemaStatus: 'locked',
       status: 'En Ejecución Activa',
       startDate: '2026-04-15',
       targetDate: '2026-11-30',
@@ -536,27 +538,139 @@ function generateInitialDatabase() {
 }
 
 // ==========================================================================
-// PERSISTENCIA Y CARGA DE LA BASE DE DATOS LOCAL
+// MODELO DE DATOS EN BLANCO: ESTADIO METROPOLITANO ROBERTO MELÉNDEZ
+// ==========================================================================
+function generateEstadioDatabase() {
+  return {
+    project: {
+      id: 'estadio-metropolitano',
+      name: 'Estadio Metropolitano Roberto Meléndez',
+      client: 'Alcaldía Distrital de Barranquilla / Secretaría de Deportes',
+      address: 'Calle 45 # 1-100, Barranquilla, Atlántico',
+      contractor: 'Global Solutions IT S.A.S. (NIT 901.458.921-3)',
+      interventoria: 'Interventoría de Infraestructura Deportiva S.A.S.',
+      systemType: 'Sistema de Notificación Masiva y Redes Contra Incendios NFPA 72',
+      totalFloors: 6,
+      schemaStatus: 'editable',
+      status: 'En Diseño Técnico',
+      startDate: '2026-10-10',
+      targetDate: '2027-04-30',
+      baseline: {
+        globalPercentage: 0.0,
+        totalPipeMeters: 0,
+        installedPipeMeters: 0,
+        totalCableMeters: 0,
+        installedCableMeters: 0,
+        totalDevices: 0,
+        installedDevices: 0
+      }
+    },
+    floors: {
+      0: {
+        floorNumber: 0,
+        name: 'Nivel 0 - Sótano / Cuarto de Bombas y Subestación',
+        type: 'sotano',
+        items: []
+      },
+      1: {
+        floorNumber: 1,
+        name: 'Nivel 1 - Gradería Occidental & Sala de Control Principal',
+        type: 'cerebro',
+        items: []
+      },
+      2: {
+        floorNumber: 2,
+        name: 'Nivel 2 - Gradería Oriental',
+        type: 'oficinas',
+        items: []
+      },
+      3: {
+        floorNumber: 3,
+        name: 'Nivel 3 - Gradería Norte',
+        type: 'oficinas',
+        items: []
+      },
+      4: {
+        floorNumber: 4,
+        name: 'Nivel 4 - Gradería Sur',
+        type: 'oficinas',
+        items: []
+      },
+      5: {
+        floorNumber: 5,
+        name: 'Nivel 5 - Túnel de Jugadores, Camerinos & Prensa',
+        type: 'oficinas',
+        items: []
+      }
+    }
+  };
+}
+
+// ==========================================================================
+// PERSISTENCIA Y CARGA DE LA BASE DE DATOS LOCAL MULTIPROYECTO
 // ==========================================================================
 function loadDatabase() {
-  const stored = localStorage.getItem('gsit_database_v2');
-  if (stored) {
+  AppState.projectsData = {};
+  const storedProjects = localStorage.getItem('gsit_projects_catalog_v1');
+  if (storedProjects) {
     try {
-      AppState.database = JSON.parse(stored);
-      setupSupabaseRealtime();
-      return;
+      AppState.projectsData = JSON.parse(storedProjects);
     } catch (e) {
-      console.warn('Error leyendo base local, regenerando...', e);
+      console.warn('Error leyendo catálogo de proyectos, regenerando...', e);
     }
   }
-  AppState.database = generateInitialDatabase();
+
+  // Asegurar existencia y bloqueo de Torre Grand Titanium
+  if (!AppState.projectsData['torre-titanium']) {
+    const storedOld = localStorage.getItem('gsit_database_v2');
+    if (storedOld) {
+      try {
+        AppState.projectsData['torre-titanium'] = JSON.parse(storedOld);
+      } catch (e) {
+        AppState.projectsData['torre-titanium'] = generateInitialDatabase();
+      }
+    } else {
+      AppState.projectsData['torre-titanium'] = generateInitialDatabase();
+    }
+  }
+  if (!AppState.projectsData['torre-titanium'].project.schemaStatus) {
+    AppState.projectsData['torre-titanium'].project.schemaStatus = 'locked';
+  }
+
+  // Asegurar existencia inicial en blanco de Estadio Metropolitano
+  if (!AppState.projectsData['estadio-metropolitano']) {
+    AppState.projectsData['estadio-metropolitano'] = generateEstadioDatabase();
+  }
+
+  // Asignar proyecto activo
+  if (!AppState.projectsData[AppState.currentProject]) {
+    AppState.currentProject = 'torre-titanium';
+  }
+
+  AppState.database = AppState.projectsData[AppState.currentProject];
   saveDatabase();
   setupSupabaseRealtime();
 }
 
+function saveDatabase() {
+  if (AppState.projectsData && AppState.currentProject && AppState.database) {
+    AppState.projectsData[AppState.currentProject] = AppState.database;
+    localStorage.setItem('gsit_projects_catalog_v1', JSON.stringify(AppState.projectsData));
+    if (AppState.currentProject === 'torre-titanium') {
+      localStorage.setItem('gsit_database_v2', JSON.stringify(AppState.database));
+    }
+  }
+}
+
+let activeRealtimeCleanup = null;
 function setupSupabaseRealtime() {
+  if (typeof activeRealtimeCleanup === 'function') {
+    activeRealtimeCleanup();
+    activeRealtimeCleanup = null;
+  }
+
   if (window.GSITSupabase && typeof window.GSITSupabase.subscribe === 'function') {
-    window.GSITSupabase.subscribe(AppState.currentProject, (remoteItem) => {
+    activeRealtimeCleanup = window.GSITSupabase.subscribe(AppState.currentProject, (remoteItem) => {
       if (!remoteItem || !AppState.database || !AppState.database.floors) return;
       for (const f in AppState.database.floors) {
         const floor = AppState.database.floors[f];
@@ -581,9 +695,67 @@ function setupSupabaseRealtime() {
   }
 }
 
-function saveDatabase() {
-  localStorage.setItem('gsit_database_v2', JSON.stringify(AppState.database));
+// Cambiar de proyecto en la plataforma
+function switchProject(projectId) {
+  if (!AppState.projectsData) AppState.projectsData = {};
+  if (!AppState.projectsData[projectId]) {
+    if (projectId === 'estadio-metropolitano') {
+      AppState.projectsData['estadio-metropolitano'] = generateEstadioDatabase();
+    } else {
+      console.warn(`Proyecto ${projectId} no encontrado`);
+      return;
+    }
+  }
+
+  AppState.currentProject = projectId;
+  AppState.database = AppState.projectsData[projectId];
+
+  // Seleccionar piso por defecto (el más alto del proyecto)
+  const floorKeys = Object.keys(AppState.database.floors).map(Number).sort((a, b) => b - a);
+  AppState.selectedFloor = floorKeys.length > 0 ? floorKeys[0] : 0;
+  AppState.zoomLevel = 1;
+  AppState.panX = 0;
+  AppState.panY = 0;
+
+  // Actualizar textos informativos en el sidebar de ejecución
+  const titleEl = document.getElementById('sidebar-project-title');
+  if (titleEl) titleEl.textContent = AppState.database.project.name;
+
+  const clientEl = document.getElementById('sidebar-client-name');
+  if (clientEl) clientEl.textContent = `Cliente: ${AppState.database.project.client}`;
+
+  const accessTag = document.getElementById('sidebar-access-tag');
+  if (accessTag) {
+    if (AppState.database.project.schemaStatus === 'editable') {
+      accessTag.className = 'sidebar-access-tag';
+      accessTag.style.backgroundColor = '#fffbeb';
+      accessTag.style.color = '#b45309';
+      accessTag.style.border = '1px solid #fde68a';
+      accessTag.textContent = '🛠️ Modo Diseñador (Esquema Editable)';
+    } else {
+      accessTag.className = 'sidebar-access-tag public';
+      accessTag.style.backgroundColor = '';
+      accessTag.style.color = '';
+      accessTag.style.border = '';
+      accessTag.textContent = isAdmin() ? '🛡️ Modo Edición (Administrador)' : '👁️ Modo Consulta Pública (Solo Lectura)';
+    }
+  }
+
+  // Refrescar Realtime de Supabase para el nuevo proyecto
+  setupSupabaseRealtime();
+
+  // Cambiar vista a ejecución
+  showView('execution');
+
+  // Renderizar componentes
+  updateUI();
+  renderSchemaManagementPanel();
+  renderFloorBlueprint();
+  renderFloorItemsList();
+
+  showToast(`📂 Proyecto activo: ${AppState.database.project.name}`);
 }
+window.switchProject = switchProject;
 
 // ==========================================================================
 // MOTOR DE CÁLCULO DE MÉTRICAS (PROGRESO GLOBAL, PISOS Y MATERIALES)
@@ -598,9 +770,55 @@ function calculateMetrics() {
       if (item.status === 'installed') floorInstalled++;
     });
   }
-  const floorPercentage = floorTotal > 0 ? Math.round((floorInstalled / floorTotal) * 100) : 100;
+  const floorPercentage = floorTotal > 0 ? Math.round((floorInstalled / floorTotal) * 100) : (floorTotal === 0 ? 0 : 100);
 
-  // Cálculo de avance dinámico sobre la línea base del contrato
+  // Para proyectos nuevos o Estadio Metropolitano, calcular directamente sobre sus elementos
+  if (AppState.currentProject !== 'torre-titanium') {
+    let totalItems = 0;
+    let installedItems = 0;
+    let totalPipe = 0;
+    let installedPipe = 0;
+    let totalCable = 0;
+    let installedCable = 0;
+    let totalDev = 0;
+    let installedDev = 0;
+
+    for (const f in AppState.database.floors) {
+      const fl = AppState.database.floors[f];
+      fl.items.forEach(it => {
+        totalItems++;
+        const isInst = it.status === 'installed';
+        if (isInst) installedItems++;
+
+        if (it.type === 'tuberia') {
+          totalPipe += it.quantity;
+          if (isInst) installedPipe += it.quantity;
+        } else if (it.type === 'cableado') {
+          totalCable += it.quantity;
+          if (isInst) installedCable += it.quantity;
+        } else {
+          totalDev += it.quantity;
+          if (isInst) installedDev += it.quantity;
+        }
+      });
+    }
+
+    const dynamicGlobal = totalItems > 0 ? ((installedItems / totalItems) * 100).toFixed(1) : '0.0';
+    return {
+      globalPercentage: dynamicGlobal,
+      installedPipeMeters: Math.round(installedPipe),
+      totalPipeMeters: Math.round(totalPipe),
+      installedCableMeters: Math.round(installedCable),
+      totalCableMeters: Math.round(totalCable),
+      installedDevices: Math.round(installedDev),
+      totalDevices: Math.round(totalDev),
+      floorPercentage,
+      floorTotal,
+      floorInstalled
+    };
+  }
+
+  // Cálculo de avance dinámico sobre la línea base del contrato para Torre Titanium
   // Piso 33 inicial: 18 instalados de 23 = 78.3% (~78%)
   // Piso 32 inicial: 19 de 23 = 82.6% (~83%)
   // Piso 31 inicial: 20 de 23 = 87.0% (~87%)
@@ -960,60 +1178,112 @@ function updateUI() {
     }
   }
 
-  // Refrescar selector desplegable de pisos y scroller de chips
+  // Refrescar selector desplegable de pisos, scroller de chips y panel de esquema
   renderFloorDropdown();
   renderFloorChips();
+  renderSchemaManagementPanel();
 }
 
-// Renderizar el selector desplegable con todos los 34 niveles (0 al 33)
+// Renderizar el panel de gestión del esquema técnico en el sidebar
+function renderSchemaManagementPanel() {
+  const container = document.getElementById('schema-management-container');
+  if (!container || !AppState.database || !AppState.database.project) return;
+
+  const isEditable = AppState.database.project.schemaStatus === 'editable';
+
+  if (isEditable) {
+    container.innerHTML = `
+      <div class="schema-designer-banner">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem;">
+          <span class="badge-status-editable">🛠️ Modo Diseñador Activo</span>
+          <span style="font-size: 0.72rem; color: #92400e; font-weight: 700;">NFPA 72</span>
+        </div>
+        <p style="font-size: 0.78rem; color: #78350f; line-height: 1.35; margin: 0 0 0.65rem 0;">
+          Proyecto en blanco editable. Agrega tuberías EMT, cables FPLR y sensores. Al finalizar el diseño, bloquea el esquema para pasar a ejecución oficial.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 0.45rem;">
+          <button type="button" class="btn btn-primary btn-sm" onclick="openAddItemSchemaModal()" style="width: 100%; font-size: 0.76rem; padding: 0.4rem 0.6rem; font-weight: 700;">
+            ➕ Agregar Componente al Esquema
+          </button>
+          <button type="button" class="btn btn-warning btn-sm" onclick="confirmLockSchema()" style="width: 100%; font-size: 0.74rem; padding: 0.35rem 0.6rem; background: #d97706; color: white; font-weight: 700;">
+            🔒 Finalizar y Bloquear Esquema
+          </button>
+        </div>
+      </div>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="schema-locked-banner">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="badge-status-locked">🔒 Esquema Oficial Bloqueado</span>
+          <span style="font-size: 0.7rem; color: #065f46; font-weight: 700;">Certificado</span>
+        </div>
+        <p style="font-size: 0.75rem; color: #166534; line-height: 1.3; margin: 0.3rem 0 0 0;">
+          El diseño de ingeniería está congelado. Fase de ejecución y actas de cobro oficial NFPA 72 activas.
+        </p>
+      </div>
+    `;
+  }
+}
+window.renderSchemaManagementPanel = renderSchemaManagementPanel;
+
+// Renderizar el selector desplegable con todos los niveles del proyecto activo
 function renderFloorDropdown() {
   const dropdown = document.getElementById('floor-selector-dropdown');
-  if (!dropdown) return;
+  if (!dropdown || !AppState.database || !AppState.database.floors) return;
 
   const currentVal = AppState.selectedFloor;
   let html = '';
 
-  for (let f = 33; f >= 0; f--) {
+  const floorKeys = Object.keys(AppState.database.floors).map(Number).sort((a, b) => b - a);
+
+  for (const f of floorKeys) {
     const floor = AppState.database.floors[f];
     if (!floor) continue;
 
     let installed = 0;
     floor.items.forEach(i => { if (i.status === 'installed') installed++; });
-    const pct = Math.round((installed / floor.items.length) * 100);
+    const pct = floor.items.length > 0 ? Math.round((installed / floor.items.length) * 100) : 0;
 
-    let label = '';
-    if (f === 33) label = `Piso 33 - Ático / Penthouse (${pct}% Ejecutado)`;
-    else if (f === 1) label = `Piso 1 - CEREBRO FACP / Sala de Control (100% OK)`;
-    else if (f === 0) label = `Piso 0 - Sótano & Bombas de Incendio (100% OK)`;
-    else if (f >= 2 && f <= 6) label = `Piso ${f} - Oficinas Corporativas (${pct}% OK)`;
-    else label = `Piso ${f} - Habitaciones Residenciales (${pct}% ${pct === 100 ? 'OK' : 'En Obra'})`;
-
+    let label = `${floor.name} (${pct}% ${pct === 100 && floor.items.length > 0 ? 'OK' : (floor.items.length === 0 ? 'En Blanco' : 'En Obra')})`;
     html += `<option value="${f}" ${f === currentVal ? 'selected' : ''}>${label}</option>`;
   }
 
   dropdown.innerHTML = html;
+
+  // Actualizar subtítulos del panel de pisos
+  const floorsPanelTitle = document.getElementById('floors-panel-title');
+  if (floorsPanelTitle) {
+    floorsPanelTitle.textContent = `Selección de Zona (${floorKeys.length} Niveles)`;
+  }
+  const floorsPanelBadge = document.getElementById('floors-panel-badge');
+  if (floorsPanelBadge) {
+    floorsPanelBadge.textContent = AppState.currentProject === 'torre-titanium' ? 'Torre 33 Pisos' : 'Estadio 6 Zonas';
+  }
 }
 
 // Renderizar la barra horizontal scroller de chips de pisos
 function renderFloorChips() {
   const container = document.getElementById('floor-chips-scroller');
-  if (!container) return;
+  if (!container || !AppState.database || !AppState.database.floors) return;
 
   container.innerHTML = '';
-  // De piso 33 a piso 0 descendente
-  for (let f = 33; f >= 0; f--) {
+  const floorKeys = Object.keys(AppState.database.floors).map(Number).sort((a, b) => b - a);
+
+  for (const f of floorKeys) {
     const floor = AppState.database.floors[f];
     if (!floor) continue;
 
     let installed = 0;
     floor.items.forEach(i => { if (i.status === 'installed') installed++; });
-    const pct = Math.round((installed / floor.items.length) * 100);
+    const pct = floor.items.length > 0 ? Math.round((installed / floor.items.length) * 100) : 0;
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = `floor-chip ${f === AppState.selectedFloor ? 'active' : ''} ${f === 1 ? 'brain' : ''}`;
+    btn.className = `floor-chip ${f === AppState.selectedFloor ? 'active' : ''} ${floor.type === 'cerebro' ? 'brain' : ''}`;
     btn.dataset.floor = f;
-    btn.innerHTML = `${f === 1 ? '🧠 ' : ''}<strong>P${f}</strong> <span style="font-size:0.68rem;opacity:0.85;">${pct}%</span>`;
+    const shortName = floor.name.includes('-') ? floor.name.split('-')[0].trim() : `P${f}`;
+    btn.innerHTML = `${floor.type === 'cerebro' ? '🧠 ' : ''}<strong>${shortName}</strong> <span style="font-size:0.68rem;opacity:0.85;">${pct}%</span>`;
     btn.addEventListener('click', () => selectFloor(f));
     container.appendChild(btn);
   }
@@ -1022,12 +1292,26 @@ function renderFloorChips() {
 // Renderizar la lista de elementos en el sidebar izquierdo
 function renderFloorItemsList() {
   const container = document.getElementById('current-floor-items-container');
-  if (!container) return;
+  if (!container || !AppState.database || !AppState.database.floors) return;
 
   const currentFloor = AppState.database.floors[AppState.selectedFloor];
   if (!currentFloor) return;
 
   container.innerHTML = '';
+  const isEditable = AppState.database.project.schemaStatus === 'editable';
+
+  if (!currentFloor.items || currentFloor.items.length === 0) {
+    container.innerHTML = `
+      <div style="text-align: center; padding: 1.5rem 0.5rem; color: var(--text-muted); font-size: 0.8rem; background: var(--bg-subtle); border-radius: var(--radius-md); border: 1px dashed var(--border-medium); margin-top: 0.5rem;">
+        <div style="font-size: 2rem; margin-bottom: 0.35rem;">📐</div>
+        <p style="margin: 0 0 0.35rem 0; font-weight: 800; color: var(--brand-blue-deep);">Sin componentes asignados</p>
+        <p style="margin: 0; line-height: 1.4; font-size: 0.74rem;">
+          ${isEditable ? 'Utiliza el botón de arriba para agregar tramos de tubería, cableado o equipos a este nivel.' : 'No hay componentes registrados en este nivel.'}
+        </p>
+      </div>
+    `;
+    return;
+  }
 
   currentFloor.items.forEach(item => {
     const isInst = item.status === 'installed';
@@ -1038,13 +1322,256 @@ function renderFloorItemsList() {
         <span class="item-code">${item.code}</span>
         <span class="item-desc">${item.name}</span>
       </div>
-      <span class="status-badge ${isInst ? 'installed' : 'pending'}">
-        ${isInst ? 'Instalado' : 'Pendiente'}
-      </span>
+      <div style="display: flex; align-items: center; gap: 0.45rem;">
+        <span class="status-badge ${isInst ? 'installed' : 'pending'}">
+          ${isInst ? 'Instalado' : 'Pendiente'}
+        </span>
+        ${isEditable ? `
+          <button type="button" class="item-delete-btn" title="Eliminar del esquema" onclick="event.stopPropagation(); deleteItemFromSchema('${item.id}')">
+            🗑️
+          </button>
+        ` : ''}
+      </div>
     `;
     card.addEventListener('click', () => openItemModal(item));
     container.appendChild(card);
   });
+}
+
+// ==========================================================================
+// RENDERIZADO DEL PLANO: ESTADIO METROPOLITANO ROBERTO MELÉNDEZ
+// ==========================================================================
+function renderEstadioBlueprint(floor) {
+  let svgContent = `
+    <defs>
+      <pattern id="stadium-grid" width="20" height="20" patternUnits="userSpace">
+        <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#f1f5f9" stroke-width="1"/>
+      </pattern>
+      <filter id="glowGreen" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#10b981" flood-opacity="0.8"/>
+      </filter>
+      <filter id="glowAmber" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#f59e0b" flood-opacity="0.8"/>
+      </filter>
+      <filter id="glowCyan" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#0284c7" flood-opacity="0.9"/>
+      </filter>
+    </defs>
+    <!-- Fondo y grilla técnica -->
+    <rect width="1000" height="650" fill="#ffffff" rx="12"/>
+    <rect width="1000" height="650" fill="url(#stadium-grid)" rx="12"/>
+
+    <!-- Anillo Perimetral Exterior del Estadio Metropolitano -->
+    <rect x="35" y="25" width="930" height="600" rx="35" fill="#f8fafc" stroke="#1e293b" stroke-width="4"/>
+    <ellipse cx="500" cy="325" rx="440" ry="275" fill="#f1f5f9" stroke="#334155" stroke-width="3"/>
+    <ellipse cx="500" cy="325" rx="385" ry="225" fill="#e2e8f0" stroke="#64748b" stroke-width="2" stroke-dasharray="8 6"/>
+    <ellipse cx="500" cy="325" rx="335" ry="185" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+
+    <!-- Pista Atlética Roja / Terracota -->
+    <ellipse cx="500" cy="325" rx="295" ry="155" fill="#c2410c" opacity="0.85" stroke="#ffffff" stroke-width="2"/>
+    <ellipse cx="500" cy="325" rx="280" ry="142" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-dasharray="6 4" opacity="0.7"/>
+
+    <!-- Cancha de Fútbol Profesional -->
+    <rect x="250" y="210" width="500" height="230" rx="4" fill="#15803d" stroke="#ffffff" stroke-width="3"/>
+    <!-- Bandas de corte de césped -->
+    <rect x="250" y="210" width="50" height="230" fill="#166534" opacity="0.25"/>
+    <rect x="350" y="210" width="50" height="230" fill="#166534" opacity="0.25"/>
+    <rect x="450" y="210" width="50" height="230" fill="#166534" opacity="0.25"/>
+    <rect x="550" y="210" width="50" height="230" fill="#166534" opacity="0.25"/>
+    <rect x="650" y="210" width="50" height="230" fill="#166534" opacity="0.25"/>
+    <!-- Líneas de juego -->
+    <line x1="500" y1="210" x2="500" y2="440" stroke="#ffffff" stroke-width="2.5"/>
+    <circle cx="500" cy="325" r="45" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <circle cx="500" cy="325" r="3.5" fill="#ffffff"/>
+    <rect x="250" y="250" width="75" height="150" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <rect x="250" y="285" width="28" height="80" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <rect x="236" y="295" width="14" height="60" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <rect x="675" y="250" width="75" height="150" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <rect x="722" y="285" width="28" height="80" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <rect x="750" y="295" width="14" height="60" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="500" y="322" font-family="'Outfit', sans-serif" font-size="12" font-weight="900" fill="#ffffff" opacity="0.65" text-anchor="middle" letter-spacing="3">ESTADIO METROPOLITANO ROBERTO MELÉNDEZ</text>
+    <text x="500" y="340" font-family="'Inter', sans-serif" font-size="9" font-weight="700" fill="#ffffff" opacity="0.5" text-anchor="middle">INGENIERÍA CONTRA INCENDIOS NFPA 72</text>
+  `;
+
+  // Resaltado de Sectores según la zona activa
+  const fNum = floor.floorNumber;
+
+  // Gradería Occidental (Nivel 1)
+  const isOcc = fNum === 1;
+  svgContent += `
+    <rect x="70" y="160" width="130" height="330" rx="8" fill="${isOcc ? 'rgba(2, 132, 199, 0.18)' : '#ffffff'}" stroke="${isOcc ? '#0284c7' : '#cbd5e1'}" stroke-width="${isOcc ? 3.5 : 1.5}" ${isOcc ? 'filter="url(#glowCyan)"' : ''}/>
+    <text x="135" y="185" font-family="'Outfit', sans-serif" font-size="11" font-weight="800" fill="#0369a1" text-anchor="middle">GRADERÍA OCCIDENTAL</text>
+    <text x="135" y="200" font-family="'Inter', sans-serif" font-size="8.5" font-weight="600" fill="#64748b" text-anchor="middle">PALCOS & SALA DE CONTROL</text>
+  `;
+
+  // Gradería Oriental (Nivel 2)
+  const isOri = fNum === 2;
+  svgContent += `
+    <rect x="800" y="160" width="130" height="330" rx="8" fill="${isOri ? 'rgba(2, 132, 199, 0.18)' : '#ffffff'}" stroke="${isOri ? '#0284c7' : '#cbd5e1'}" stroke-width="${isOri ? 3.5 : 1.5}" ${isOri ? 'filter="url(#glowCyan)"' : ''}/>
+    <text x="865" y="185" font-family="'Outfit', sans-serif" font-size="11" font-weight="800" fill="#0369a1" text-anchor="middle">GRADERÍA ORIENTAL</text>
+    <text x="865" y="200" font-family="'Inter', sans-serif" font-size="8.5" font-weight="600" fill="#64748b" text-anchor="middle">TRIBUNAS ORIENTALES</text>
+  `;
+
+  // Gradería Norte (Nivel 3)
+  const isNor = fNum === 3;
+  svgContent += `
+    <rect x="250" y="55" width="500" height="95" rx="8" fill="${isNor ? 'rgba(2, 132, 199, 0.18)' : '#ffffff'}" stroke="${isNor ? '#0284c7' : '#cbd5e1'}" stroke-width="${isNor ? 3.5 : 1.5}" ${isNor ? 'filter="url(#glowCyan)"' : ''}/>
+    <text x="500" y="85" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#0369a1" text-anchor="middle">GRADERÍA NORTE</text>
+    <text x="500" y="100" font-family="'Inter', sans-serif" font-size="9" font-weight="600" fill="#64748b" text-anchor="middle">ACCESOS NORTE & EVACUACIÓN</text>
+  `;
+
+  // Gradería Sur (Nivel 4)
+  const isSur = fNum === 4;
+  svgContent += `
+    <rect x="250" y="500" width="500" height="95" rx="8" fill="${isSur ? 'rgba(2, 132, 199, 0.18)' : '#ffffff'}" stroke="${isSur ? '#0284c7' : '#cbd5e1'}" stroke-width="${isSur ? 3.5 : 1.5}" ${isSur ? 'filter="url(#glowCyan)"' : ''}/>
+    <text x="500" y="530" font-family="'Outfit', sans-serif" font-size="12" font-weight="800" fill="#0369a1" text-anchor="middle">GRADERÍA SUR</text>
+    <text x="500" y="545" font-family="'Inter', sans-serif" font-size="9" font-weight="600" fill="#64748b" text-anchor="middle">EVACUACIÓN SUR & LOGÍSTICA</text>
+  `;
+
+  // Sótano / Bombas (Nivel 0)
+  const isSot = fNum === 0;
+  svgContent += `
+    <rect x="60" y="510" width="170" height="95" rx="6" fill="${isSot ? '#fef2f2' : '#ffffff'}" stroke="${isSot ? '#dc2626' : '#cbd5e1'}" stroke-width="${isSot ? 3 : 1.5}"/>
+    <text x="145" y="535" font-family="'Outfit', sans-serif" font-size="10" font-weight="800" fill="#991b1b" text-anchor="middle">CUARTO DE BOMBAS & SUBESTACIÓN</text>
+    <circle cx="110" cy="565" r="16" fill="#ef4444" stroke="#991b1b" stroke-width="2"/>
+    <text x="110" y="569" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">B1</text>
+    <circle cx="170" cy="565" r="12" fill="#f97316" stroke="#c2410c" stroke-width="2"/>
+    <text x="170" y="569" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">JOK</text>
+  `;
+
+  // Túnel & Prensa (Nivel 5)
+  const isTun = fNum === 5;
+  svgContent += `
+    <rect x="180" y="295" width="85" height="60" rx="4" fill="${isTun ? '#fef3c7' : '#ffffff'}" stroke="${isTun ? '#d97706' : '#cbd5e1'}" stroke-width="${isTun ? 3 : 1.5}"/>
+    <text x="222" y="322" font-family="'Outfit', sans-serif" font-size="9" font-weight="800" fill="#b45309" text-anchor="middle">TÚNEL</text>
+    <text x="222" y="336" font-family="'Inter', sans-serif" font-size="7.5" font-weight="600" fill="#92400e" text-anchor="middle">JUGADORES</text>
+  `;
+
+  // Rótulo Flotante Superior
+  svgContent += `
+    <rect x="680" y="35" width="270" height="34" rx="6" fill="#0f172a" opacity="0.92"/>
+    <text x="815" y="56" font-family="'Outfit', sans-serif" font-size="11" font-weight="800" fill="#38bdf8" text-anchor="middle">ZONA: ${floor.name.split('-')[0].trim().toUpperCase()}</text>
+  `;
+
+  // --------------------------------------------------------------------------
+  // COMPONENTES ASIGNADOS AL NIVEL
+  // --------------------------------------------------------------------------
+  if (!floor.items || floor.items.length === 0) {
+    // Marca de agua técnica cuando el plano está en blanco
+    svgContent += `
+      <g>
+        <rect x="230" y="235" width="540" height="180" rx="12" fill="rgba(15, 23, 42, 0.88)" stroke="#38bdf8" stroke-width="2" stroke-dasharray="8 6"/>
+        <text x="500" y="275" font-family="'Outfit', sans-serif" font-size="18" font-weight="900" fill="#38bdf8" text-anchor="middle">📐 ESQUEMA TÉCNICO EN BLANCO</text>
+        <text x="500" y="302" font-family="'Inter', sans-serif" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">${floor.name}</text>
+        <text x="500" y="332" font-family="'Inter', sans-serif" font-size="11" fill="#cbd5e1" text-anchor="middle">No hay tuberías, cables ni dispositivos asignados a este nivel aún.</text>
+        <text x="500" y="358" font-family="'Inter', sans-serif" font-size="11" font-weight="700" fill="#fcd34d" text-anchor="middle">👉 Haz clic en "➕ Agregar Componente al Esquema" para comenzar el trazado NFPA 72.</text>
+      </g>
+    `;
+  } else {
+    // Trazar componentes interactivos según su tipo y posición
+    floor.items.forEach((item, idx) => {
+      const isInst = item.status === 'installed';
+      const col = isInst ? '#10b981' : (item.type === 'tuberia' ? '#2563eb' : (item.type === 'cableado' ? '#dc2626' : '#f59e0b'));
+
+      // Coordenadas calculadas según el sector del piso
+      let baseX = 500;
+      let baseY = 325;
+
+      if (fNum === 1) { // Occidental
+        baseX = 135;
+        baseY = 220 + (idx * 38) % 240;
+      } else if (fNum === 2) { // Oriental
+        baseX = 865;
+        baseY = 220 + (idx * 38) % 240;
+      } else if (fNum === 3) { // Norte
+        baseX = 300 + (idx * 55) % 400;
+        baseY = 100;
+      } else if (fNum === 4) { // Sur
+        baseX = 300 + (idx * 55) % 400;
+        baseY = 545;
+      } else if (fNum === 0) { // Sótano
+        baseX = 110 + (idx * 40) % 180;
+        baseY = 560;
+      } else { // Túnel
+        baseX = 220 + (idx * 35) % 120;
+        baseY = 325;
+      }
+
+      // 1. Tubería EMT
+      if (item.type === 'tuberia' && AppState.filters.tuberia) {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <line x1="${baseX - 35}" y1="${baseY}" x2="${baseX + 35}" y2="${baseY}" stroke="${col}" stroke-width="7" stroke-linecap="round"/>
+            <line x1="${baseX - 35}" y1="${baseY}" x2="${baseX + 35}" y2="${baseY}" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            <rect x="${baseX - 39}" y="${baseY - 4}" width="8" height="8" rx="2" fill="${col}" stroke="#1e293b"/>
+            <rect x="${baseX + 31}" y="${baseY - 4}" width="8" height="8" rx="2" fill="${col}" stroke="#1e293b"/>
+            <rect x="${baseX - 25}" y="${baseY - 18}" width="50" height="13" rx="3" fill="#ffffff" stroke="${col}" stroke-width="1"/>
+            <text x="${baseX}" y="${baseY - 9}" font-family="monospace" font-size="7.5" font-weight="bold" fill="${col}" text-anchor="middle">${item.code}</text>
+          </g>
+        `;
+      }
+      // 2. Cableado FPLR
+      else if (item.type === 'cableado' && AppState.filters.cableado) {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <line x1="${baseX - 35}" y1="${baseY + 12}" x2="${baseX + 35}" y2="${baseY + 12}" stroke="${col}" stroke-width="4" stroke-dasharray="${isInst ? 'none' : '5 3'}" stroke-linecap="round"/>
+            <circle cx="${baseX}" cy="${baseY + 12}" r="4.5" fill="${col}" stroke="#ffffff" stroke-width="1"/>
+            <text x="${baseX}" y="${baseY + 25}" font-family="monospace" font-size="7" font-weight="bold" fill="${col}" text-anchor="middle">${item.code}</text>
+          </g>
+        `;
+      }
+      // 3. Detectores
+      else if ((item.type === 'detector-autonomo' || item.type === 'detector-doble') && AppState.filters.detectores) {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <circle cx="${baseX}" cy="${baseY}" r="28" fill="${col}" opacity="0.15"/>
+            <circle cx="${baseX}" cy="${baseY}" r="15" fill="#ffffff" stroke="${col}" stroke-width="2.5" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+            <circle cx="${baseX}" cy="${baseY}" r="6" fill="${col}"/>
+            <text x="${baseX}" y="${baseY + 3}" font-family="'Outfit', sans-serif" font-size="7" font-weight="900" fill="#ffffff" text-anchor="middle">D</text>
+            <rect x="${baseX - 25}" y="${baseY + 18}" width="50" height="13" rx="3" fill="#ffffff" stroke="${col}" stroke-width="1"/>
+            <text x="${baseX}" y="${baseY + 27}" font-family="monospace" font-size="7" font-weight="bold" fill="#0f172a" text-anchor="middle">${item.code}</text>
+          </g>
+        `;
+      }
+      // 4. Sirena
+      else if (item.type === 'sirena' && AppState.filters.sirenas) {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <polygon points="${baseX-12},${baseY+10} ${baseX+12},${baseY+10} ${baseX},${baseY-12}" fill="#ffffff" stroke="${col}" stroke-width="2.5" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+            <circle cx="${baseX}" cy="${baseY+2}" r="4" fill="${col}"/>
+            <text x="${baseX}" y="${baseY - 14}" font-family="'Outfit', sans-serif" font-size="8" font-weight="800" fill="${col}" text-anchor="middle">SIRENA</text>
+          </g>
+        `;
+      }
+      // 5. Palanca
+      else if (item.type === 'palanca' && AppState.filters.palancas) {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <rect x="${baseX - 11}" y="${baseY - 11}" width="22" height="22" rx="3" fill="#ffffff" stroke="${col}" stroke-width="2.5" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+            <rect x="${baseX - 6}" y="${baseY - 6}" width="12" height="12" rx="2" fill="${col}"/>
+            <text x="${baseX}" y="${baseY + 3}" font-family="'Outfit', sans-serif" font-size="8" font-weight="900" fill="#ffffff" text-anchor="middle">M</text>
+            <text x="${baseX}" y="${baseY + 22}" font-family="'Outfit', sans-serif" font-size="7.5" font-weight="bold" fill="${col}" text-anchor="middle">PALANCA</text>
+          </g>
+        `;
+      }
+      // 6. FACP o Central de Bombas
+      else if (item.type === 'facp' || item.type === 'cuadro-bomba') {
+        svgContent += `
+          <g class="svg-interactive-item" onclick="window.onSvgItemClick('${item.id}')">
+            <rect x="${baseX - 25}" y="${baseY - 30}" width="50" height="60" rx="4" fill="#991b1b" stroke="${col}" stroke-width="3" filter="${isInst ? 'url(#glowGreen)' : 'url(#glowAmber)'}"/>
+            <rect x="${baseX - 18}" y="${baseY - 22}" width="36" height="18" rx="2" fill="#0284c7"/>
+            <text x="${baseX}" y="${baseY - 10}" font-family="monospace" font-size="7" font-weight="bold" fill="#ffffff" text-anchor="middle">FACP</text>
+            <circle cx="${baseX - 10}" cy="${baseY + 12}" r="3" fill="#10b981"/>
+            <circle cx="${baseX}" cy="${baseY + 12}" r="3" fill="#f59e0b"/>
+            <circle cx="${baseX + 10}" cy="${baseY + 12}" r="3" fill="#ef4444"/>
+            <text x="${baseX}" y="${baseY + 40}" font-family="'Outfit', sans-serif" font-size="8" font-weight="bold" fill="${col}" text-anchor="middle">${item.code}</text>
+          </g>
+        `;
+      }
+    });
+  }
+
+  return svgContent;
 }
 
 // ==========================================================================
@@ -1061,6 +1588,18 @@ function renderFloorBlueprint() {
 
   const floor = AppState.database.floors[AppState.selectedFloor];
   if (!floor) return;
+
+  // Si el proyecto activo es Estadio Metropolitano, usar su renderizador especializado
+  if (AppState.currentProject === 'estadio-metropolitano') {
+    const estadioSvg = renderEstadioBlueprint(floor);
+    container.innerHTML = `
+      <svg id="blueprint-main-svg" class="blueprint-svg" viewBox="0 0 1000 650" width="1000" height="650" xmlns="http://www.w3.org/2000/svg">
+        ${estadioSvg}
+      </svg>
+    `;
+    applyBlueprintTransform();
+    return;
+  }
 
   let svgContent = '';
 
@@ -1844,8 +2383,8 @@ function exportBillingToCSV() {
 
   let totalItemsCount = 0;
 
-  for (let f = 0; f <= 33; f++) {
-    if (floorFilter !== 'all' && parseInt(floorFilter, 10) !== f) continue;
+  for (const f in AppState.database.floors) {
+    if (floorFilter !== 'all' && String(floorFilter) !== String(f)) continue;
 
     const floor = AppState.database.floors[f];
     if (!floor) continue;
@@ -1891,3 +2430,374 @@ function showToast(message) {
   }, 3400);
 }
 window.showToast = showToast;
+
+// ==========================================================================
+// CONTROLADOR DE MODALES: CREACIÓN DE PROYECTO EN BLANCO
+// ==========================================================================
+function openNewProjectModal() {
+  const modal = document.getElementById('modal-new-project');
+  if (modal) modal.classList.add('active');
+  document.getElementById('new-proj-name')?.focus();
+}
+window.openNewProjectModal = openNewProjectModal;
+
+function closeNewProjectModal() {
+  const modal = document.getElementById('modal-new-project');
+  if (modal) modal.classList.remove('active');
+}
+window.closeNewProjectModal = closeNewProjectModal;
+
+async function handleCreateNewProject(event) {
+  event.preventDefault();
+  const name = document.getElementById('new-proj-name').value.trim();
+  const client = document.getElementById('new-proj-client').value.trim();
+  const city = document.getElementById('new-proj-city').value.trim();
+  const floorsCount = parseInt(document.getElementById('new-proj-floors').value, 10) || 6;
+  const system = document.getElementById('new-proj-system').value.trim();
+
+  const projId = 'proj-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const newProject = {
+    project: {
+      id: projId,
+      name: name,
+      client: client,
+      address: city,
+      contractor: 'Global Solutions IT S.A.S. (NIT 901.458.921-3)',
+      interventoria: 'Interventoría Autorizada S.A.S.',
+      systemType: system,
+      totalFloors: floorsCount,
+      schemaStatus: 'editable',
+      status: 'En Diseño Técnico',
+      startDate: new Date().toISOString().split('T')[0],
+      targetDate: '2027-06-30',
+      baseline: {
+        globalPercentage: 0.0,
+        totalPipeMeters: 0,
+        installedPipeMeters: 0,
+        totalCableMeters: 0,
+        installedCableMeters: 0,
+        totalDevices: 0,
+        installedDevices: 0
+      }
+    },
+    floors: {}
+  };
+
+  const zonesList = [];
+  for (let z = 0; z < floorsCount; z++) {
+    const zoneName = z === 0 ? 'Nivel 0 - Sótano / Cuarto Técnico' : `Nivel ${z} - Sector Técnico ${z}`;
+    const zoneType = z === 0 ? 'sotano' : (z === 1 ? 'cerebro' : 'oficinas');
+    newProject.floors[z] = {
+      floorNumber: z,
+      name: zoneName,
+      type: zoneType,
+      items: []
+    };
+    zonesList.push({ floorNumber: z, name: zoneName, type: zoneType });
+  }
+
+  if (!AppState.projectsData) AppState.projectsData = {};
+  AppState.projectsData[projId] = newProject;
+  saveDatabase();
+
+  // Sincronizar hacia Supabase si está disponible
+  if (window.GSITSupabase && typeof window.GSITSupabase.createProject === 'function') {
+    window.GSITSupabase.createProject(newProject.project, zonesList);
+  }
+
+  closeNewProjectModal();
+  switchProject(projId);
+  showToast(`✨ Proyecto "${name}" creado exitosamente en modo editable.`);
+}
+window.handleCreateNewProject = handleCreateNewProject;
+
+// ==========================================================================
+// CONTROLADOR DE MODALES: AGREGAR ELEMENTO AL ESQUEMA TÉCNICO
+// ==========================================================================
+function openAddItemSchemaModal() {
+  if (AppState.database?.project?.schemaStatus !== 'editable') {
+    showToast('⚠️ El esquema técnico está bloqueado y no admite modificaciones.');
+    return;
+  }
+
+  const selectFloor = document.getElementById('schema-item-floor');
+  if (selectFloor && AppState.database && AppState.database.floors) {
+    selectFloor.innerHTML = '';
+    const floorKeys = Object.keys(AppState.database.floors).map(Number).sort((a, b) => a - b);
+    floorKeys.forEach(f => {
+      const fl = AppState.database.floors[f];
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = fl.name;
+      if (f === AppState.selectedFloor) opt.selected = true;
+      selectFloor.appendChild(opt);
+    });
+  }
+
+  autoGenerateItemCode();
+
+  const modal = document.getElementById('modal-add-item-schema');
+  if (modal) modal.classList.add('active');
+}
+window.openAddItemSchemaModal = openAddItemSchemaModal;
+
+function closeAddItemSchemaModal() {
+  const modal = document.getElementById('modal-add-item-schema');
+  if (modal) modal.classList.remove('active');
+}
+window.closeAddItemSchemaModal = closeAddItemSchemaModal;
+
+function autoGenerateItemCode() {
+  const typeSelect = document.getElementById('schema-item-type');
+  const codeInput = document.getElementById('schema-item-code');
+  const nameInput = document.getElementById('schema-item-name');
+  const modelInput = document.getElementById('schema-item-model');
+  const zoneInput = document.getElementById('schema-item-zone');
+  const unitSelect = document.getElementById('schema-item-unit');
+  const priceInput = document.getElementById('schema-item-price');
+  const qtyInput = document.getElementById('schema-item-qty');
+  if (!typeSelect || !codeInput) return;
+
+  const floorNum = document.getElementById('schema-item-floor')?.value || AppState.selectedFloor;
+  const currentFloor = AppState.database?.floors[floorNum];
+  const itemsCount = currentFloor?.items?.length || 0;
+  const seq = itemsCount + 1;
+
+  const type = typeSelect.value;
+  let prefix = 'DEV';
+  let defaultName = 'Componente Técnico';
+  let defaultModel = 'Certificado UL / FM';
+  let defaultUnit = 'Unidad';
+  let defaultPrice = 180000;
+  let defaultQty = 1;
+  let defaultZone = currentFloor ? currentFloor.name.split('-')[0].trim() : `Zona ${floorNum}`;
+
+  if (type === 'tuberia') {
+    prefix = 'TUB';
+    defaultName = `Tubería Conduit EMT 3/4" Tramo ${seq}`;
+    defaultModel = 'Tubo EMT Galvanizado UL 797';
+    defaultUnit = 'Metros';
+    defaultPrice = 28500;
+    defaultQty = 18.5;
+  } else if (type === 'cableado') {
+    prefix = 'CAB';
+    defaultName = `Cable Blindado FPLR 2x16 AWG Tramo ${seq}`;
+    defaultModel = 'Cable FPLR Rojo UL 1424 Contra Incendio';
+    defaultUnit = 'Metros';
+    defaultPrice = 19800;
+    defaultQty = 25.0;
+  } else if (type === 'detector-autonomo') {
+    prefix = 'DET';
+    defaultName = `Detector Autónomo de Humo ${seq}`;
+    defaultModel = 'Notifier FSP-851 Fotoeléctrico Direccionable';
+    defaultUnit = 'Unidad';
+    defaultPrice = 245000;
+    defaultQty = 1;
+  } else if (type === 'detector-doble') {
+    prefix = 'DET-D';
+    defaultName = `Detector Óptico Doble ${seq}`;
+    defaultModel = 'Notifier FSD-751P Fotoeléctrico / Térmico';
+    defaultUnit = 'Unidad';
+    defaultPrice = 295000;
+    defaultQty = 1;
+  } else if (type === 'sirena') {
+    prefix = 'SIR';
+    defaultName = `Sirena con Luz Estroboscópica ${seq}`;
+    defaultModel = 'System Sensor P2RL SpectrAlert Advance';
+    defaultUnit = 'Unidad';
+    defaultPrice = 280000;
+    defaultQty = 1;
+  } else if (type === 'palanca') {
+    prefix = 'PAL';
+    defaultName = `Estación Manual de Emergencia ${seq}`;
+    defaultModel = 'Notifier NBG-12LX Doble Acción';
+    defaultUnit = 'Unidad';
+    defaultPrice = 220000;
+    defaultQty = 1;
+  } else if (type === 'facp') {
+    prefix = 'FACP';
+    defaultName = `Central de Alarma Contra Incendios FACP Notifier`;
+    defaultModel = 'Notifier ONYX NFS2-3030 Direccionable';
+    defaultUnit = 'Unidad';
+    defaultPrice = 45000000;
+    defaultQty = 1;
+  } else if (type === 'cuadro-bomba') {
+    prefix = 'CTRL-BOMB';
+    defaultName = `Controlador Tablero de Bombas de Incendio`;
+    defaultModel = 'Firetrol FTA1100 Diésel / Eléctrico';
+    defaultUnit = 'Unidad';
+    defaultPrice = 18500000;
+    defaultQty = 1;
+  }
+
+  const projCode = AppState.currentProject === 'estadio-metropolitano' ? 'MET' : 'PRJ';
+  codeInput.value = `${prefix}-${projCode}-Z0${floorNum}-${seq}`;
+  if (nameInput) nameInput.value = defaultName;
+  if (modelInput) modelInput.value = defaultModel;
+  if (zoneInput && !zoneInput.value) zoneInput.value = defaultZone;
+  if (unitSelect) unitSelect.value = defaultUnit;
+  if (priceInput) priceInput.value = defaultPrice;
+  if (qtyInput) qtyInput.value = defaultQty;
+}
+window.autoGenerateItemCode = autoGenerateItemCode;
+
+async function handleSaveItemToSchema(event) {
+  event.preventDefault();
+  if (AppState.database?.project?.schemaStatus !== 'editable') {
+    showToast('⚠️ No se pueden agregar componentes: el esquema técnico está bloqueado.');
+    closeAddItemSchemaModal();
+    return;
+  }
+
+  const floorNum = parseInt(document.getElementById('schema-item-floor').value, 10);
+  const type = document.getElementById('schema-item-type').value;
+  const code = document.getElementById('schema-item-code').value.trim();
+  const name = document.getElementById('schema-item-name').value.trim();
+  const model = document.getElementById('schema-item-model').value.trim();
+  const zone = document.getElementById('schema-item-zone').value.trim();
+  const qty = parseFloat(document.getElementById('schema-item-qty').value) || 1;
+  const unit = document.getElementById('schema-item-unit').value;
+  const price = parseFloat(document.getElementById('schema-item-price').value) || 0;
+  const notes = document.getElementById('schema-item-notes').value.trim();
+
+  const currentFloor = AppState.database.floors[floorNum];
+  if (!currentFloor) {
+    showToast('⚠️ Piso o zona no encontrado');
+    return;
+  }
+
+  let photo = 'assets/img/pipe_emt.svg';
+  if (type === 'cableado') photo = 'assets/img/cable_fire.svg';
+  else if (type.includes('detector')) photo = 'assets/img/smoke_detector.svg';
+  else if (type === 'sirena') photo = 'assets/img/horn_strobe.svg';
+  else if (type === 'palanca') photo = 'assets/img/pull_station.svg';
+  else if (type === 'facp') photo = 'assets/img/facp_panel.svg';
+
+  const newItem = {
+    id: `${code}-${Date.now().toString().slice(-4)}`,
+    code: code,
+    type: type,
+    name: name,
+    model: model,
+    zone: zone,
+    status: 'pending',
+    quantity: qty,
+    unit: unit,
+    unitPrice: price,
+    photo: photo,
+    notes: notes || 'Elemento estructurado en el diseñador de esquemas NFPA 72.'
+  };
+
+  currentFloor.items.push(newItem);
+  saveDatabase();
+
+  // Sincronizar inserción en Supabase
+  if (window.GSITSupabase && typeof window.GSITSupabase.insertFloorItem === 'function') {
+    window.GSITSupabase.insertFloorItem(newItem, AppState.currentProject, floorNum);
+  }
+
+  closeAddItemSchemaModal();
+  selectFloor(floorNum);
+  updateUI();
+  showToast(`✅ ${newItem.code} agregado al esquema técnico`);
+}
+window.handleSaveItemToSchema = handleSaveItemToSchema;
+
+async function deleteItemFromSchema(itemId) {
+  if (AppState.database?.project?.schemaStatus !== 'editable') {
+    showToast('⚠️ El esquema está bloqueado. No se pueden eliminar elementos.');
+    return;
+  }
+
+  const currentFloor = AppState.database.floors[AppState.selectedFloor];
+  if (!currentFloor) return;
+
+  const itemIndex = currentFloor.items.findIndex(i => i.id === itemId);
+  if (itemIndex === -1) return;
+
+  const item = currentFloor.items[itemIndex];
+  const confirmed = window.confirm(`¿Deseas eliminar el componente ${item.code} (${item.name}) del esquema?`);
+  if (!confirmed) return;
+
+  currentFloor.items.splice(itemIndex, 1);
+  saveDatabase();
+
+  // Sincronizar eliminación en Supabase
+  if (window.GSITSupabase && typeof window.GSITSupabase.deleteFloorItem === 'function') {
+    window.GSITSupabase.deleteFloorItem(itemId);
+  }
+
+  updateUI();
+  renderFloorBlueprint();
+  renderFloorItemsList();
+  showToast(`🗑️ Componente ${item.code} eliminado del esquema.`);
+}
+window.deleteItemFromSchema = deleteItemFromSchema;
+
+// ==========================================================================
+// CONTROLADOR DE MODALES: BLOQUEAR Y FINALIZAR ESQUEMA TÉCNICO
+// ==========================================================================
+function confirmLockSchema() {
+  const modal = document.getElementById('modal-lock-schema');
+  const nameEl = document.getElementById('lock-modal-project-name');
+  if (nameEl && AppState.database?.project) {
+    nameEl.textContent = AppState.database.project.name;
+  }
+  if (modal) modal.classList.add('active');
+}
+window.confirmLockSchema = confirmLockSchema;
+
+function closeLockSchemaModal() {
+  const modal = document.getElementById('modal-lock-schema');
+  if (modal) modal.classList.remove('active');
+}
+window.closeLockSchemaModal = closeLockSchemaModal;
+
+async function executeLockSchema() {
+  if (!AppState.database?.project) return;
+
+  AppState.database.project.schemaStatus = 'locked';
+  if (AppState.projectsData && AppState.projectsData[AppState.currentProject]) {
+    AppState.projectsData[AppState.currentProject].project.schemaStatus = 'locked';
+  }
+  saveDatabase();
+
+  // Actualizar estado de bloqueo en Supabase
+  if (window.GSITSupabase && typeof window.GSITSupabase.lockProject === 'function') {
+    window.GSITSupabase.lockProject(AppState.currentProject);
+  }
+
+  // Actualizar distintivos en la tarjeta del proyecto en el portafolio
+  if (AppState.currentProject === 'estadio-metropolitano') {
+    const ribbonEstadio = document.getElementById('ribbon-estadio');
+    if (ribbonEstadio) {
+      ribbonEstadio.textContent = '🏗️ En Obra / Bloqueado';
+      ribbonEstadio.style.background = '#10b981';
+    }
+    const pillEstadio = document.getElementById('pill-status-estadio');
+    if (pillEstadio) {
+      pillEstadio.textContent = '🔒 Esquema Bloqueado';
+    }
+  }
+
+  // Actualizar tag de acceso en sidebar
+  const accessTag = document.getElementById('sidebar-access-tag');
+  if (accessTag) {
+    accessTag.className = 'sidebar-access-tag public';
+    accessTag.style.backgroundColor = '';
+    accessTag.style.color = '';
+    accessTag.style.border = '';
+    accessTag.textContent = isAdmin() ? '🛡️ Modo Edición (Administrador)' : '👁️ Modo Consulta Pública (Solo Lectura)';
+  }
+
+  closeLockSchemaModal();
+  updateUI();
+  renderSchemaManagementPanel();
+  renderFloorItemsList();
+  renderFloorBlueprint();
+
+  showToast('🔒 ¡Esquema Técnico Bloqueado Definitivamente! El diseño ha quedado congelado para ejecución.');
+}
+window.executeLockSchema = executeLockSchema;
+

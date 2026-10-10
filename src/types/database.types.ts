@@ -39,6 +39,7 @@ export interface Database {
           system_type: string;
           total_floors: number;
           global_progress: number;
+          schema_status?: 'editable' | 'locked';
           created_at: string;
           updated_at: string;
         };
@@ -52,6 +53,7 @@ export interface Database {
           system_type: string;
           total_floors?: number;
           global_progress?: number;
+          schema_status?: 'editable' | 'locked';
           created_at?: string;
           updated_at?: string;
         };
@@ -65,6 +67,7 @@ export interface Database {
           system_type?: string;
           total_floors?: number;
           global_progress?: number;
+          schema_status?: 'editable' | 'locked';
           updated_at?: string;
         };
         Relationships: [];
