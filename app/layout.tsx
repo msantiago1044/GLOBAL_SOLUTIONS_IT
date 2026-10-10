@@ -2,10 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Global Solutions IT — Redes, Seguridad Electrónica & NFPA 72',
-  description: 'Plataforma Corporativa de Gestión Técnica y Ejecución de Obras en Redes, Detección y Notificación de Incendios NFPA 72',
+  title: 'Global Solutions IT | Plataforma de Gestión y Ejecución de Obras',
+  description: 'Gestión centralizada de redes de detección y alarma contra incendios NFPA 72 — Global Solutions IT S.A.S.',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
+    apple: '/logo.png',
   },
 };
 
@@ -15,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className="dark">
-      <body className="min-h-screen bg-industrial-950 text-industrial-100 antialiased selection:bg-radar-500 selection:text-industrial-950">
+    <html lang="es">
+      <body className="min-h-screen bg-surface-main text-gsitText-main antialiased selection:bg-brand-ice selection:text-brand-deep">
         {children}
       </body>
     </html>

@@ -10,34 +10,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        industrial: {
-          950: '#15181D', // Ultra dark background
-          900: '#1E2229', // Master Charcoal
-          850: '#242932', // Surface Elevated
-          800: '#2A303C', // Technical Graphite / Border
-          700: '#3D4556', // Muted slate border
-          600: '#64748B', // Muted text
-          500: '#94A3B8', // Regular body text
-          400: '#CBD5E1', // Highlighted text
-          100: '#F1F5F9', // Pure light
+        brand: {
+          deep: '#004b87',       // Azul Corporativo Profundo GSIT
+          navy: '#073b64',       // Navy Oscuro
+          primary: '#0077b6',    // Azul GSIT Primario
+          light: '#0096c7',      // Azul Claro
+          cyan: '#00b4d8',       // Cyan Eléctrico
+          ice: '#e0f2fe',        // Fondo Cyan Hielo
+          accent: '#0284c7',     // Acento Subtítulo & Botones
+          hover: '#003865',      // Hover Botón Principal
         },
-        radar: {
-          50: '#FFFBEB',
-          100: '#FEF3C7',
-          400: '#F5B038',
-          500: '#EAA023', // Geophysics Radar Amber
-          600: '#C78414',
-          700: '#9E640B',
+        network: {
+          pipe: '#2563eb',       // Tubería Conduit EMT (Azul técnico)
+          cable: '#dc2626',      // Cable FPLR Incendio (Rojo fuego)
+          detector: '#0d9488',   // Detectores de Humo (Teal)
+          strobe: '#e11d48',     // Sirenas Estroboscópicas (Rojo intenso)
+          panel: '#7c2d12',      // Central FACP (Borgoña)
+        },
+        surface: {
+          main: '#f8fafc',       // Fondo de Aplicación Limpio
+          card: '#ffffff',       // Superficie de Tarjetas Blanco Puro
+          subtle: '#f1f5f9',     // Fondos Secundarios / Badges
+          hover: '#e2e8f0',      // Hover State
+          border: '#e2e8f0',     // Bordes Suaves
+          borderStrong: '#cbd5e1', // Bordes Técnicos
+        },
+        gsitText: {
+          main: '#0f172a',       // Texto Principal Oscuro
+          secondary: '#475569',  // Texto Secundario
+          muted: '#64748b',      // Texto Atenuado
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Menlo', 'Consolas', 'monospace'],
+        sans: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
       },
       boxShadow: {
-        'industrial-sm': '0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3)',
-        'industrial-md': '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4)',
-        'industrial-glow': '0 0 15px rgba(234, 160, 35, 0.25)',
+        'gsit-sm': '0 1px 3px rgba(0, 75, 135, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04)',
+        'gsit-md': '0 4px 6px -1px rgba(0, 75, 135, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+        'gsit-lg': '0 10px 15px -3px rgba(0, 75, 135, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05)',
       },
     },
   },

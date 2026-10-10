@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { ShieldCheck, Camera, CheckCircle2, AlertTriangle, UserCheck, Calendar } from 'lucide-react';
+import { ShieldCheck, Camera, UserCheck, Calendar } from 'lucide-react';
 
 interface Props {
   project: Project;
@@ -91,22 +91,22 @@ export default function InspectionsTab({ project, items }: Props) {
   return (
     <div className="space-y-6">
       {/* Header and Add Button */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-industrial-800 bg-industrial-900 shadow-industrial-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border border-surface-border bg-white shadow-sm">
         <div>
-          <h3 className="text-sm font-bold text-white tracking-wide flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={1.75} />
+          <h3 className="text-sm font-black text-brand-deep tracking-wide flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" strokeWidth={2} />
             Auditoría In-Situ &amp; Evidencias de Campo
           </h3>
-          <p className="text-xs text-industrial-400 font-mono mt-0.5">
-            Registro fotográfico y actas de verificación técnica bajo NFPA 72 y RETIE
+          <p className="text-xs text-gsitText-secondary mt-0.5">
+            Registro de actas de verificación técnica bajo NFPA 72 y RETIE
           </p>
         </div>
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold text-xs font-mono transition-colors self-start sm:self-auto"
+          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs transition-all shadow-sm self-start sm:self-auto"
         >
-          <Camera className="w-4 h-4" strokeWidth={2} />
+          <Camera className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
           <span>{showForm ? 'Cerrar Formulario' : '➕ Registrar Inspección'}</span>
         </button>
       </div>
@@ -115,19 +115,19 @@ export default function InspectionsTab({ project, items }: Props) {
       {showForm && (
         <form
           onSubmit={handleAddInspection}
-          className="rounded-xl border border-radar-500/40 bg-industrial-900 p-5 shadow-industrial-md space-y-4 animate-in fade-in duration-200 text-xs font-mono"
+          className="rounded-2xl border-2 border-brand-primary/40 bg-white p-6 shadow-gsit-md space-y-4 animate-in fade-in duration-200 text-xs font-mono"
         >
-          <div className="flex items-center justify-between border-b border-industrial-800 pb-2">
-            <h4 className="font-bold text-radar-500 uppercase">Nueva Acta de Inspección</h4>
+          <div className="flex items-center justify-between border-b border-surface-border pb-2">
+            <h4 className="font-bold text-brand-deep uppercase">Nueva Acta de Inspección</h4>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="block text-industrial-400 mb-1">Elemento Inspeccionado *</label>
+              <label className="block text-gsitText-secondary mb-1 font-bold">Elemento Inspeccionado *</label>
               <select
                 value={formData.itemCode}
                 onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
-                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+                className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
               >
                 {items.map((i) => (
                   <option key={i.id} value={i.code}>
@@ -138,22 +138,22 @@ export default function InspectionsTab({ project, items }: Props) {
             </div>
 
             <div>
-              <label className="block text-industrial-400 mb-1">Auditor / Inspector *</label>
+              <label className="block text-gsitText-secondary mb-1 font-bold">Auditor / Inspector *</label>
               <input
                 type="text"
                 required
                 value={formData.inspector}
                 onChange={(e) => setFormData({ ...formData, inspector: e.target.value })}
-                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+                className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block text-industrial-400 mb-1">Dictamen Técnico *</label>
+              <label className="block text-gsitText-secondary mb-1 font-bold">Dictamen Técnico *</label>
               <select
                 value={formData.result}
                 onChange={(e) => setFormData({ ...formData, result: e.target.value as any })}
-                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+                className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
               >
                 <option value="conforme">Conforme (Aprobado NFPA 72)</option>
                 <option value="observacion">Con Observaciones Menores</option>
@@ -163,14 +163,14 @@ export default function InspectionsTab({ project, items }: Props) {
           </div>
 
           <div>
-            <label className="block text-industrial-400 mb-1">Observaciones Técnicas y Cumplimiento *</label>
+            <label className="block text-gsitText-secondary mb-1 font-bold">Observaciones Técnicas *</label>
             <textarea
               required
               rows={3}
-              placeholder="Detalla pruebas de continuidad, apriete de conexiones, calibración o verificación visual..."
+              placeholder="Detalla pruebas de continuidad, apriete de conexiones o calibración..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+              className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
             />
           </div>
 
@@ -178,13 +178,13 @@ export default function InspectionsTab({ project, items }: Props) {
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              className="px-3 py-1.5 rounded border border-industrial-800 text-industrial-400 hover:text-white"
+              className="px-4 py-2 rounded-xl border border-surface-borderStrong text-gsitText-secondary hover:bg-surface-subtle"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 rounded bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold"
+              className="px-5 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold"
             >
               Guardar Inspección
             </button>
@@ -197,38 +197,38 @@ export default function InspectionsTab({ project, items }: Props) {
         {inspections.map((insp) => (
           <div
             key={insp.id}
-            className="rounded-xl border border-industrial-800 bg-industrial-900 p-4 shadow-industrial-sm space-y-3 hover:border-industrial-700 transition-colors"
+            className="rounded-2xl border border-surface-border bg-white p-5 shadow-sm space-y-3 hover:border-brand-primary/40 transition-colors"
           >
-            <div className="flex items-start justify-between gap-2 border-b border-industrial-850 pb-2">
+            <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2">
               <div>
-                <span className="font-mono text-xs font-bold text-radar-500">{insp.itemCode}</span>
-                <h4 className="text-xs font-bold text-white mt-0.5">{insp.itemName}</h4>
-                <p className="text-[11px] font-mono text-industrial-400">{insp.zone}</p>
+                <span className="font-mono text-xs font-bold text-brand-primary">{insp.itemCode}</span>
+                <h4 className="text-xs font-bold text-brand-deep mt-0.5">{insp.itemName}</h4>
+                <p className="text-[11px] font-mono text-gsitText-muted">{insp.zone}</p>
               </div>
               <span
-                className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase ${
+                className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase border ${
                   insp.result === 'conforme'
-                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     : insp.result === 'observacion'
-                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                    ? 'bg-amber-50 text-amber-700 border-amber-200'
+                    : 'bg-red-50 text-red-700 border-red-200'
                 }`}
               >
                 {insp.result}
               </span>
             </div>
 
-            <p className="text-xs text-industrial-300 leading-relaxed font-mono">
+            <p className="text-xs text-gsitText-secondary leading-relaxed">
               "{insp.notes}"
             </p>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-industrial-500 pt-2 border-t border-industrial-850">
+            <div className="flex items-center justify-between text-[11px] font-mono text-gsitText-muted pt-2 border-t border-surface-border">
               <div className="flex items-center gap-1.5">
-                <UserCheck className="w-3.5 h-3.5 text-industrial-400" strokeWidth={1.75} />
+                <UserCheck className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
                 <span>{insp.inspector}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-industrial-400" strokeWidth={1.75} />
+                <Calendar className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
                 <span>{insp.date}</span>
               </div>
             </div>

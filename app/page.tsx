@@ -5,234 +5,263 @@ import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import {
-  ShieldCheck,
-  Radio,
   Flame,
   Wrench,
   FileCheck2,
   ArrowRight,
   Layers,
-  Activity,
-  Cpu,
-  Lock,
+  ShieldCheck,
   Building2,
+  MapPin,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col bg-industrial-950 text-industrial-100">
+    <div className="min-h-screen flex flex-col bg-surface-main text-gsitText-main">
       <Navbar />
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden py-20 lg:py-28 border-b border-industrial-850 bg-blueprint-radar">
+        <section className="relative overflow-hidden py-16 lg:py-24 border-b border-surface-border bg-gradient-to-b from-white to-surface-main">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="max-w-3xl space-y-6">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-radar-500/10 border border-radar-500/30 text-radar-500 text-xs font-mono font-semibold">
-                <span className="w-2 h-2 rounded-full bg-radar-500 animate-pulse"></span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-ice border border-brand-cyan/40 text-brand-deep text-xs font-mono font-bold shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-brand-accent animate-pulse"></span>
                 <span>Ingeniería en Redes &middot; NFPA 72 &middot; RETIE &middot; NTC 2050</span>
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight">
-                Plataforma de Control &amp; Ejecución de Obras en <span className="text-radar-500">Redes y Seguridad</span>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-brand-deep leading-tight">
+                Control Operativo &amp; Ejecución de Obras en <span className="text-brand-accent">Redes de Seguridad</span>
               </h1>
 
               {/* Description */}
-              <p className="text-base sm:text-lg text-industrial-400 font-mono leading-relaxed">
-                Gestión técnica integral para proyectos de detección y alarma de incendios, canalizaciones conduit EMT/IMC y cableado estructurado. Diseñado para integrarse a la suite de ingeniería de <strong>PROCIMEC</strong>.
+              <p className="text-base sm:text-lg text-gsitText-secondary leading-relaxed">
+                Plataforma técnica especializada de <strong>Global Solutions IT S.A.S.</strong> para el control, metrado y certificación in-situ de redes de detección de incendios, canalizaciones conduit EMT/IMC y cableado estructurado.
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-4">
+              <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/projects"
-                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold text-sm tracking-wide transition-all shadow-industrial-glow"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg bg-brand-deep hover:bg-brand-hover text-white font-bold text-sm tracking-wide transition-all shadow-gsit-md"
                 >
                   <Layers className="w-4 h-4" strokeWidth={2} />
-                  <span>Explorar Proyectos en Obra</span>
+                  <span>Explorar Portafolio de Proyectos</span>
                   <ArrowRight className="w-4 h-4 ml-1" strokeWidth={2} />
                 </Link>
 
                 <Link
                   href="/login"
-                  className="flex items-center gap-2 px-5 py-3 rounded-lg bg-industrial-900 hover:bg-industrial-850 border border-industrial-800 hover:border-radar-500/40 text-sm font-semibold text-white transition-colors"
+                  className="flex items-center gap-2 px-5 py-3 rounded-lg bg-white hover:bg-surface-subtle border border-surface-borderStrong text-sm font-bold text-brand-deep transition-colors shadow-sm"
                 >
-                  <ShieldCheck className="w-4 h-4 text-radar-500" strokeWidth={1.75} />
+                  <ShieldCheck className="w-4 h-4 text-brand-accent" strokeWidth={2} />
                   <span>Portal Administrativo</span>
                 </Link>
               </div>
             </div>
           </div>
-
-          {/* Background ambient gradient */}
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-96 h-96 bg-radar-500/10 blur-[120px] rounded-full pointer-events-none"></div>
         </section>
 
-        {/* Technical Capabilities Grid */}
-        <section className="py-16 border-b border-industrial-850 bg-industrial-900/40">
+        {/* Technical Capabilities */}
+        <section className="py-14 border-b border-surface-border bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center max-w-2xl mx-auto mb-12">
-              <h2 className="text-xs font-mono font-bold uppercase text-radar-500 tracking-widest">
-                Especialidades de Red
+            <div className="text-center max-w-2xl mx-auto mb-10">
+              <h2 className="text-xs font-mono font-bold uppercase text-brand-accent tracking-widest">
+                Especialidades de Ingeniería
               </h2>
-              <p className="text-2xl font-bold text-white mt-1">
-                Ingeniería de Precisión en Cada Metro Instalado
+              <p className="text-2xl font-bold text-brand-deep mt-1">
+                Garantía y Precisión Técnica en Cada Tramo
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Feature 1 */}
-              <div className="rounded-xl border border-industrial-800 bg-industrial-900 p-6 shadow-industrial-sm space-y-3 hover:border-radar-500/40 transition-colors">
-                <div className="w-12 h-12 rounded-lg bg-radar-500/10 border border-radar-500/30 flex items-center justify-center text-radar-500">
-                  <Flame className="w-6 h-6" strokeWidth={1.75} />
+              <div className="rounded-xl border border-surface-border bg-surface-main p-6 shadow-sm space-y-3 hover:border-brand-primary transition-all">
+                <div className="w-12 h-12 rounded-lg bg-brand-ice border border-brand-cyan/40 flex items-center justify-center text-brand-deep shadow-sm">
+                  <Flame className="w-6 h-6 text-network-cable" strokeWidth={2} />
                 </div>
-                <h3 className="text-base font-bold text-white">Detección Inteligente NFPA 72</h3>
-                <p className="text-xs text-industrial-400 font-mono leading-relaxed">
-                  Planos de direccionamiento de sensores fotoeléctricos, térmicos, estaciones manuales y lazos SLC Clase A con aislamiento de falla.
+                <h3 className="text-base font-bold text-brand-deep">Detección Temprana NFPA 72</h3>
+                <p className="text-xs text-gsitText-secondary leading-relaxed">
+                  Lazos SLC direccionables Clase A, detectores fotoeléctricos inteligentes, haz proyectado (beam) y estaciones manuales con mapeo en tiempo real.
                 </p>
               </div>
 
               {/* Feature 2 */}
-              <div className="rounded-xl border border-industrial-800 bg-industrial-900 p-6 shadow-industrial-sm space-y-3 hover:border-radar-500/40 transition-colors">
-                <div className="w-12 h-12 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-                  <Wrench className="w-6 h-6" strokeWidth={1.75} />
+              <div className="rounded-xl border border-surface-border bg-surface-main p-6 shadow-sm space-y-3 hover:border-brand-primary transition-all">
+                <div className="w-12 h-12 rounded-lg bg-brand-ice border border-brand-cyan/40 flex items-center justify-center text-brand-deep shadow-sm">
+                  <Wrench className="w-6 h-6 text-network-pipe" strokeWidth={2} />
                 </div>
-                <h3 className="text-base font-bold text-white">Canalización &amp; Tubería Conduit</h3>
-                <p className="text-xs text-industrial-400 font-mono leading-relaxed">
-                  Cálculo de ocupación y metrado en tuberías EMT / IMC de 3/4" y 1", soportería antisísmica y uniones herméticas a intemperie.
+                <h3 className="text-base font-bold text-brand-deep">Canalizaciones Conduit EMT</h3>
+                <p className="text-xs text-gsitText-secondary leading-relaxed">
+                  Tubería metálica eléctrica de 3/4" y 1" galvanizada en caliente, soportería antisísmica con abrazaderas unistrut y cajas de paso NEMA.
                 </p>
               </div>
 
               {/* Feature 3 */}
-              <div className="rounded-xl border border-industrial-800 bg-industrial-900 p-6 shadow-industrial-sm space-y-3 hover:border-radar-500/40 transition-colors">
-                <div className="w-12 h-12 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-                  <FileCheck2 className="w-6 h-6" strokeWidth={1.75} />
+              <div className="rounded-xl border border-surface-border bg-surface-main p-6 shadow-sm space-y-3 hover:border-brand-primary transition-all">
+                <div className="w-12 h-12 rounded-lg bg-brand-ice border border-brand-cyan/40 flex items-center justify-center text-brand-deep shadow-sm">
+                  <FileCheck2 className="w-6 h-6 text-emerald-600" strokeWidth={2} />
                 </div>
-                <h3 className="text-base font-bold text-white">Metrado &amp; Cortes Oficiales</h3>
-                <p className="text-xs text-industrial-400 font-mono leading-relaxed">
-                  Generación de actas legales de avance para interventoría, valorizaciones en pesos colombianos y congelamiento formal de esquemas.
+                <h3 className="text-base font-bold text-brand-deep">Metrado &amp; Actas Oficiales</h3>
+                <p className="text-xs text-gsitText-secondary leading-relaxed">
+                  Control financiero de avance en obra, actas de corte suscritas con interventoría técnica y congelamiento formal de planos para ejecución.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Featured Projects Showcase */}
-        <section className="py-16">
+        {/* Featured Projects Showcase (Matching media_1791659190816.png Card Style) */}
+        <section className="py-14 bg-surface-main">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
-                <h2 className="text-xs font-mono font-bold uppercase text-radar-500 tracking-widest">
-                  Obras en Curso
+                <h2 className="text-xs font-mono font-bold uppercase text-brand-accent tracking-widest">
+                  Obras en Ejecución
                 </h2>
-                <p className="text-2xl font-bold text-white mt-1">
-                  Proyectos en Ejecución &amp; Diseño
+                <p className="text-2xl font-bold text-brand-deep mt-1">
+                  Portafolio de Proyectos Activos
                 </p>
               </div>
               <Link
                 href="/projects"
-                className="text-xs font-mono text-radar-500 hover:text-radar-400 flex items-center gap-1 font-semibold"
+                className="text-xs font-bold text-brand-primary hover:text-brand-deep flex items-center gap-1 transition-colors"
               >
                 <span>Ver Portafolio Completo</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Card: Estadio Metropolitano */}
-              <div className="rounded-xl border border-radar-500/30 bg-industrial-900 p-6 shadow-industrial-md flex flex-col justify-between hover:border-radar-500 transition-colors">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Card 1: Torre Titanium */}
+              <div className="relative rounded-2xl border-2 border-brand-primary bg-white p-6 shadow-gsit-md flex flex-col justify-between overflow-hidden">
+                {/* Diagonal Ribbon EN OBRA */}
+                <div className="absolute top-4 -right-12 bg-brand-deep text-white text-[10px] font-extrabold uppercase py-1 px-12 rotate-45 shadow-sm tracking-wider">
+                  EN OBRA
+                </div>
+
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-radar-500/20 text-radar-500 font-bold uppercase border border-radar-500/30">
-                        Borrador &middot; Esquema Editable
-                      </span>
-                      <h3 className="text-xl font-bold text-white mt-2">
-                        Estadio Metropolitano Roberto Meléndez
-                      </h3>
-                      <p className="text-xs text-industrial-400 font-mono mt-0.5">
-                        Barranquilla, Atlántico &middot; 6 Zonas Deportivas
-                      </p>
+                  {/* Category Pill */}
+                  <div>
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-brand-ice text-brand-deep uppercase tracking-wide">
+                      EDIFICACIÓN VERTICAL
+                    </span>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div>
+                    <h3 className="text-2xl font-black text-brand-deep tracking-tight">
+                      Torre Titanium Plaza
+                    </h3>
+                    <p className="text-xs text-gsitText-secondary mt-1 leading-relaxed">
+                      Instalación integral de sistema de detección y alarma contra incendios NFPA 72. Riser troncal, cuarto de control en Piso 1, oficinas y parqueaderos.
+                    </p>
+                  </div>
+
+                  {/* Progress Bar with Green Metric */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-gsitText-secondary">Avance de Ejecución</span>
+                      <span className="font-black text-emerald-600 text-sm">58.0%</span>
+                    </div>
+                    <div className="w-full bg-surface-subtle h-2.5 rounded-full overflow-hidden border border-surface-border">
+                      <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: '58%' }}></div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-industrial-300 font-mono leading-relaxed">
-                    Proyecto deportivo de gran escala. Cuenta con un dashboard de diseño interactivo para configurar detectores de haz proyectado (beam), tubería conduit perimetral y lazos de voceo masivo.
-                  </p>
-
-                  <div className="grid grid-cols-3 gap-2 pt-2 text-xs font-mono">
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">ESTADO:</span>
-                      <span className="text-radar-500 font-bold">Configurable</span>
-                    </div>
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">SISTEMA:</span>
-                      <span className="text-white font-bold">Haz &middot; Haz BEAM</span>
-                    </div>
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">AVANCE:</span>
-                      <span className="text-white font-bold">0% Inicial</span>
-                    </div>
+                  {/* Metadata Chips */}
+                  <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gsitText-secondary pt-2">
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-brand-primary" /> 15 Niveles
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-red-500" /> Bogotá D.C.
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border">
+                      Notifier NFS2-3030
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border flex items-center gap-1 text-emerald-700">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Esquema Bloqueado
+                    </span>
                   </div>
                 </div>
 
-                <div className="pt-6 mt-4 border-t border-industrial-800 flex items-center justify-between">
+                {/* Big Action Button */}
+                <div className="pt-6 mt-4 border-t border-surface-border">
                   <Link
-                    href="/projects/estadio-metropolitano"
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold text-xs font-mono transition-colors shadow-industrial-sm"
+                    href="/projects/torre-titanium"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
                   >
-                    <span>Abrir Dashboard y Configurar Esquema</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span>Ingresar al Estudio Técnico de Obra</span>
+                    <ArrowRight className="w-4 h-4 text-brand-cyan" />
                   </Link>
                 </div>
               </div>
 
-              {/* Card: Torre Titanium Plaza */}
-              <div className="rounded-xl border border-industrial-800 bg-industrial-900 p-6 shadow-industrial-md flex flex-col justify-between hover:border-industrial-700 transition-colors">
+              {/* Card 2: Estadio Metropolitano */}
+              <div className="relative rounded-2xl border-2 border-brand-accent bg-white p-6 shadow-gsit-md flex flex-col justify-between overflow-hidden">
+                {/* Diagonal Ribbon EN DISEÑO */}
+                <div className="absolute top-4 -right-12 bg-brand-accent text-white text-[10px] font-extrabold uppercase py-1 px-12 rotate-45 shadow-sm tracking-wider">
+                  EN DISEÑO
+                </div>
+
                 <div className="space-y-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold uppercase border border-emerald-500/30">
-                        En Obra &middot; Esquema Bloqueado
-                      </span>
-                      <h3 className="text-xl font-bold text-white mt-2">
-                        Torre Titanium Plaza
-                      </h3>
-                      <p className="text-xs text-industrial-400 font-mono mt-0.5">
-                        Bogotá D.C. &middot; 15 Niveles Corporativos
-                      </p>
+                  {/* Category Pill */}
+                  <div>
+                    <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-brand-ice text-brand-deep uppercase tracking-wide">
+                      COMPLEJO DEPORTIVO
+                    </span>
+                  </div>
+
+                  {/* Title & Description */}
+                  <div>
+                    <h3 className="text-2xl font-black text-brand-deep tracking-tight">
+                      Estadio Metropolitano Roberto Meléndez
+                    </h3>
+                    <p className="text-xs text-gsitText-secondary mt-1 leading-relaxed">
+                      Detección temprana por haz proyectado (beam) y canalizaciones conduit en graderías Occidental, Oriental, Norte, Sur, palcos VIP y cuarto de bombas RCI.
+                    </p>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="font-bold text-gsitText-secondary">Avance de Ejecución</span>
+                      <span className="font-black text-brand-accent text-sm">0.0% (Configurable)</span>
+                    </div>
+                    <div className="w-full bg-surface-subtle h-2.5 rounded-full overflow-hidden border border-surface-border">
+                      <div className="bg-brand-accent h-full rounded-full transition-all duration-500" style={{ width: '8%' }}></div>
                     </div>
                   </div>
 
-                  <p className="text-xs text-industrial-300 font-mono leading-relaxed">
-                    Edificio de oficinas de alta densidad con lazo SLC redundante Notifier NFS2-3030 Clase A. Esquema técnico congelado y certificado para corte de obra con interventoría.
-                  </p>
-
-                  <div className="grid grid-cols-3 gap-2 pt-2 text-xs font-mono">
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">AVANCE:</span>
-                      <span className="text-emerald-400 font-bold">58% Físico</span>
-                    </div>
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">SISTEMA:</span>
-                      <span className="text-white font-bold">SLC Clase A</span>
-                    </div>
-                    <div className="p-2.5 rounded bg-industrial-950 border border-industrial-800">
-                      <span className="text-industrial-500 block text-[10px]">TUBERÍA:</span>
-                      <span className="text-white font-bold">340 m EMT</span>
-                    </div>
+                  {/* Metadata Chips */}
+                  <div className="flex flex-wrap gap-2 text-[11px] font-medium text-gsitText-secondary pt-2">
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border flex items-center gap-1">
+                      <Building2 className="w-3 h-3 text-brand-primary" /> 6 Zonas Deportivas
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-red-500" /> Barranquilla, Atlántico
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-surface-subtle border border-surface-border">
+                      Haz BEAM &middot; Clase B
+                    </span>
+                    <span className="px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
+                      Esquema Editable
+                    </span>
                   </div>
                 </div>
 
-                <div className="pt-6 mt-4 border-t border-industrial-800 flex items-center justify-between">
+                {/* Big Action Button */}
+                <div className="pt-6 mt-4 border-t border-surface-border">
                   <Link
-                    href="/projects/torre-titanium"
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-industrial-850 hover:bg-industrial-800 border border-industrial-700 text-white font-semibold text-xs font-mono transition-colors"
+                    href="/projects/estadio-metropolitano"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-accent hover:bg-brand-primary text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
                   >
-                    <span>Ver Dashboard de Control</span>
-                    <ArrowRight className="w-4 h-4 text-radar-500" />
+                    <span>Abrir Dashboard y Configurar Esquema</span>
+                    <ArrowRight className="w-4 h-4 text-brand-ice" />
                   </Link>
                 </div>
               </div>

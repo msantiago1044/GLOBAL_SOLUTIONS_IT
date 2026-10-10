@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ShieldCheck, HardHat, LogOut, LogIn, Database, Layers, Radio } from 'lucide-react';
+import { Folder, LogOut, LogIn, Database, ShieldCheck } from 'lucide-react';
 import { getSession, logout } from '@/src/lib/auth';
 
 export default function Navbar() {
@@ -29,72 +29,71 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-industrial-900/90 backdrop-blur-md border-b border-industrial-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
+    <header className="sticky top-0 z-50 w-full bg-white/95 backdrop-blur-md border-b border-surface-border shadow-gsit-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-2 flex items-center justify-between">
+        {/* Brand & Official Logo */}
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-lg bg-industrial-850 border border-radar-500/40 flex items-center justify-center text-radar-500 shadow-industrial-sm group-hover:border-radar-500 transition-colors">
-            <Radio className="w-5 h-5 text-radar-500 animate-pulse" strokeWidth={1.75} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-wider text-white">GLOBAL SOLUTIONS</span>
-              <span className="text-xs px-1.5 py-0.5 rounded bg-radar-500/10 text-radar-500 font-mono font-semibold border border-radar-500/20">IT</span>
-            </div>
-            <p className="text-[10px] text-industrial-500 font-mono tracking-tight uppercase">Sistemas Contra Incendio &middot; NFPA 72</p>
+          <img
+            src="/logo.png"
+            alt="Logo Global Solutions IT"
+            className="h-11 w-auto object-contain transition-transform group-hover:scale-105"
+          />
+          <div className="flex flex-col justify-center">
+            <span className="font-extrabold text-base sm:text-lg tracking-tight text-brand-deep leading-tight">
+              Global Solutions IT
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-brand-accent font-mono font-bold tracking-widest uppercase leading-tight">
+              CONTROL OPERATIVO &amp; OBRAS
+            </span>
           </div>
         </Link>
 
-        {/* Center Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link
-            href="/"
-            className={`text-sm font-medium transition-colors ${
-              pathname === '/' ? 'text-radar-500' : 'text-industrial-400 hover:text-white'
-            }`}
-          >
-            Inicio
-          </Link>
-          <Link
-            href="/projects"
-            className={`text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              pathname.startsWith('/projects') ? 'text-radar-500' : 'text-industrial-400 hover:text-white'
-            }`}
-          >
-            <Layers className="w-4 h-4" strokeWidth={1.75} />
-            Portafolio de Proyectos
-          </Link>
-        </nav>
-
-        {/* Right Actions & Auth Status */}
-        <div className="flex items-center gap-3">
-          {/* Supabase status indicator */}
-          <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-industrial-850 border border-industrial-800 text-xs font-mono text-industrial-400">
-            <Database className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.75} />
+        {/* Right Navigation & Session Actions */}
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* Cloud DB Status */}
+          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-subtle border border-surface-border text-xs font-mono text-gsitText-secondary">
+            <Database className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span>Cloud DB</span>
           </div>
 
+          {/* Proyectos Button */}
+          <Link
+            href="/projects"
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border ${
+              pathname.startsWith('/projects')
+                ? 'bg-brand-ice text-brand-deep border-brand-light font-bold shadow-sm'
+                : 'bg-white hover:bg-surface-subtle text-gsitText-secondary hover:text-brand-deep border-surface-border'
+            }`}
+          >
+            <Folder className="w-4 h-4 text-amber-500" strokeWidth={2} />
+            <span>Proyectos</span>
+          </Link>
+
+          {/* Admin Session controls */}
           {isAdminUser ? (
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-radar-500/10 border border-radar-500/30 text-radar-500 text-xs font-mono">
-                <ShieldCheck className="w-3.5 h-3.5" strokeWidth={1.75} />
-                <span className="font-semibold uppercase">{username || 'Admin'}</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-ice border border-brand-light text-brand-deep text-xs font-semibold shadow-sm">
+                <span className="w-5 h-5 rounded-full bg-brand-deep text-white flex items-center justify-center text-[10px] font-bold">
+                  AD
+                </span>
+                <span className="hidden sm:inline">Admin GSIT</span>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-md hover:bg-industrial-800 text-industrial-400 hover:text-red-400 transition-colors"
+                className="px-2.5 py-1 rounded-full border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-colors flex items-center gap-1"
                 title="Cerrar sesión"
               >
-                <LogOut className="w-4 h-4" strokeWidth={1.75} />
+                <LogOut className="w-3.5 h-3.5" strokeWidth={2} />
+                <span className="hidden sm:inline">Salir</span>
               </button>
             </div>
           ) : (
             <Link
               href="/login"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-industrial-850 hover:bg-industrial-800 border border-industrial-800 hover:border-radar-500/40 text-xs font-medium text-white transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-deep hover:bg-brand-hover text-white text-xs font-semibold transition-colors shadow-gsit-sm"
             >
-              <LogIn className="w-3.5 h-3.5 text-radar-500" strokeWidth={1.75} />
+              <LogIn className="w-3.5 h-3.5 text-brand-cyan" strokeWidth={2} />
               <span>Admin Login</span>
             </Link>
           )}
