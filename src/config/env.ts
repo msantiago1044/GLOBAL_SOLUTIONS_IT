@@ -23,6 +23,10 @@ export const serverEnvSchema = clientEnvSchema.extend({
     .string()
     .url('SUPABASE_JWKS_URL debe ser una URL válida')
     .optional(),
+  DATABASE_URL: z
+    .string()
+    .url('DATABASE_URL debe ser una URL de conexión válida')
+    .optional(),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -61,6 +65,7 @@ export function validateServerEnv(): ServerEnv {
       process.env.SUPABASE_PUBLISHABLE_KEY,
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     SUPABASE_JWKS_URL: process.env.SUPABASE_JWKS_URL,
+    DATABASE_URL: process.env.DATABASE_URL,
   };
 
   const result = serverEnvSchema.safeParse(env);
