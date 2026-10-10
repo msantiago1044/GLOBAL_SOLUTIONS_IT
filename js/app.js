@@ -543,6 +543,7 @@ function loadDatabase() {
   if (stored) {
     try {
       AppState.database = JSON.parse(stored);
+      setupSupabaseRealtime();
       return;
     } catch (e) {
       console.warn('Error leyendo base local, regenerando...', e);
@@ -550,6 +551,34 @@ function loadDatabase() {
   }
   AppState.database = generateInitialDatabase();
   saveDatabase();
+  setupSupabaseRealtime();
+}
+
+function setupSupabaseRealtime() {
+  if (window.GSITSupabase && typeof window.GSITSupabase.subscribe === 'function') {
+    window.GSITSupabase.subscribe(AppState.currentProject, (remoteItem) => {
+      if (!remoteItem || !AppState.database || !AppState.database.floors) return;
+      for (const f in AppState.database.floors) {
+        const floor = AppState.database.floors[f];
+        const localItem = floor.items.find(i => i.id === remoteItem.id);
+        if (localItem) {
+          localItem.status = remoteItem.status;
+          if (remoteItem.notes) localItem.notes = remoteItem.notes;
+          if (remoteItem.photo_url) localItem.photo = remoteItem.photo_url;
+          if (remoteItem.installed_at) localItem.installDate = remoteItem.installed_at;
+          if (remoteItem.installer_team) localItem.technician = remoteItem.installer_team;
+          saveDatabase();
+          if (typeof updateUI === 'function') updateUI();
+          if (typeof renderFloorBlueprint === 'function') renderFloorBlueprint();
+          if (typeof renderFloorItemsList === 'function') renderFloorItemsList();
+          if (typeof showToast === 'function') {
+            showToast(`⚡ Actualización en vivo: ${localItem.code} [${remoteItem.status.toUpperCase()}]`);
+          }
+          break;
+        }
+      }
+    });
+  }
 }
 
 function saveDatabase() {
@@ -1623,6 +1652,11 @@ function saveItemModalChanges() {
 
   saveDatabase();
   closeItemModal();
+
+  // Sincronización en tiempo real hacia Supabase
+  if (window.GSITSupabase && typeof window.GSITSupabase.syncItem === 'function') {
+    window.GSITSupabase.syncItem(item);
+  }
 
   // Recalcular métricas, redibujar plano y actualizar interfaz
   updateUI();
