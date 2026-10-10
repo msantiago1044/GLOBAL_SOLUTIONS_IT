@@ -67,6 +67,7 @@ export interface Database {
           global_progress?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       floors: {
         Row: {
@@ -98,6 +99,7 @@ export interface Database {
           progress_percentage?: number;
           updated_at?: string;
         };
+        Relationships: [];
       };
       floor_items: {
         Row: {
@@ -159,6 +161,7 @@ export interface Database {
           installer_team?: string | null;
           updated_at?: string;
         };
+        Relationships: [];
       };
       installation_evidences: {
         Row: {
@@ -184,7 +187,22 @@ export interface Database {
           captured_by?: string;
           observations?: string | null;
         };
+        Relationships: [];
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      item_type_enum: ItemType;
+      item_status_enum: ItemStatus;
+      floor_type_enum: FloorType;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }

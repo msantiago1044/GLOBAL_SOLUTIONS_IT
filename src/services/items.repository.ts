@@ -1,10 +1,13 @@
 import { getSupabaseClient } from '../lib/supabase';
+import { Database } from '../types/database.types';
 import {
   FloorItem,
   FloorItemSchema,
   UpdateItemStatusPayload,
   UpdateItemStatusSchema,
 } from '../schemas/floor-item.schema';
+
+type FloorItemUpdate = Database['public']['Tables']['floor_items']['Update'];
 
 export class ItemsRepository {
   private supabase = getSupabaseClient();
@@ -76,8 +79,7 @@ export class ItemsRepository {
     // 1. Validar payload de entrada con Zod
     const validatedPayload = UpdateItemStatusSchema.parse(payload);
 
-    // 2. Ejecutar actualización en Supabase
-    const updateData: Record<string, string | null | undefined> = {
+    const updateData: FloorItemUpdate = {
       status: validatedPayload.status,
       updated_at: new Date().toISOString(),
     };
