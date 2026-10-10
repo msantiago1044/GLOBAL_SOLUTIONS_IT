@@ -9,4 +9,8 @@ node_modules/
 .env.production
 .env.development
 !.env.example
+# Next.js build
+.next/
+out/
+*.tsbuildinfo
 scripts/

@@ -1,0 +1,240 @@
+'use client';
+
+import React, { useState } from 'react';
+import { Project } from '@/src/schemas/project.schema';
+import { FloorItem } from '@/src/schemas/floor-item.schema';
+import { ShieldCheck, Camera, CheckCircle2, AlertTriangle, UserCheck, Calendar } from 'lucide-react';
+
+interface Props {
+  project: Project;
+  items: FloorItem[];
+}
+
+interface InspectionRecord {
+  id: string;
+  itemCode: string;
+  itemName: string;
+  zone: string;
+  inspector: string;
+  date: string;
+  result: 'conforme' | 'observacion' | 'no-conforme';
+  notes: string;
+}
+
+const DEFAULT_INSPECTIONS: InspectionRecord[] = [
+  {
+    id: 'insp-1',
+    itemCode: 'FACP-01',
+    itemName: 'Panel Principal de Alarma Contra Incendio',
+    zone: 'Piso 1 — Lobby Principal & FACP',
+    inspector: 'Ing. Carlos Mendoza (Interventoría)',
+    date: '2026-03-20',
+    result: 'conforme',
+    notes: 'Prueba de lazo SLC y transferencia a batería de respaldo 24V superada satisfactoriamente bajo NFPA 72 Cap. 14.',
+  },
+  {
+    id: 'insp-2',
+    itemCode: 'DET-SMK-01',
+    itemName: 'Detector Fotoeléctrico Direccionable Inteligente',
+    zone: 'Piso 3 — Oficinas Corporativas',
+    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
+    date: '2026-03-24',
+    result: 'conforme',
+    notes: 'Verificación de dirección 101 en panel y destello de LED indicador.',
+  },
+  {
+    id: 'insp-3',
+    itemCode: 'TUB-EMT-34',
+    itemName: 'Tubería Metálica Eléctrica Conduit EMT 3/4"',
+    zone: 'Piso 2 — Auditorio & Mezzanine',
+    inspector: 'Ing. Carlos Mendoza (Interventoría)',
+    date: '2026-03-25',
+    result: 'observacion',
+    notes: 'Ajustar abrazadera en curva previa a caja de paso 4x4. Corregido en obra.',
+  },
+];
+
+export default function InspectionsTab({ project, items }: Props) {
+  const [inspections, setInspections] = useState<InspectionRecord[]>(DEFAULT_INSPECTIONS);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    itemCode: items[0]?.code || '',
+    inspector: 'Ing. Auditor NFPA 72',
+    result: 'conforme' as const,
+    notes: '',
+  });
+
+  const handleAddInspection = (e: React.FormEvent) => {
+    e.preventDefault();
+    const targetItem = items.find((i) => i.code === formData.itemCode) || items[0];
+    const newRecord: InspectionRecord = {
+      id: `insp-${Date.now()}`,
+      itemCode: formData.itemCode,
+      itemName: targetItem ? targetItem.name : 'Elemento de Red',
+      zone: targetItem ? targetItem.zone : 'Zona General',
+      inspector: formData.inspector,
+      date: new Date().toISOString().split('T')[0] || '2026-10-10',
+      result: formData.result,
+      notes: formData.notes,
+    };
+
+    setInspections([newRecord, ...inspections]);
+    setShowForm(false);
+    setFormData({
+      itemCode: items[0]?.code || '',
+      inspector: 'Ing. Auditor NFPA 72',
+      result: 'conforme',
+      notes: '',
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header and Add Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-industrial-800 bg-industrial-900 shadow-industrial-sm">
+        <div>
+          <h3 className="text-sm font-bold text-white tracking-wide flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-emerald-400" strokeWidth={1.75} />
+            Auditoría In-Situ &amp; Evidencias de Campo
+          </h3>
+          <p className="text-xs text-industrial-400 font-mono mt-0.5">
+            Registro fotográfico y actas de verificación técnica bajo NFPA 72 y RETIE
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold text-xs font-mono transition-colors self-start sm:self-auto"
+        >
+          <Camera className="w-4 h-4" strokeWidth={2} />
+          <span>{showForm ? 'Cerrar Formulario' : '➕ Registrar Inspección'}</span>
+        </button>
+      </div>
+
+      {/* Add Inspection Form */}
+      {showForm && (
+        <form
+          onSubmit={handleAddInspection}
+          className="rounded-xl border border-radar-500/40 bg-industrial-900 p-5 shadow-industrial-md space-y-4 animate-in fade-in duration-200 text-xs font-mono"
+        >
+          <div className="flex items-center justify-between border-b border-industrial-800 pb-2">
+            <h4 className="font-bold text-radar-500 uppercase">Nueva Acta de Inspección</h4>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-industrial-400 mb-1">Elemento Inspeccionado *</label>
+              <select
+                value={formData.itemCode}
+                onChange={(e) => setFormData({ ...formData, itemCode: e.target.value })}
+                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+              >
+                {items.map((i) => (
+                  <option key={i.id} value={i.code}>
+                    {i.code} — {i.name} ({i.zone})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-industrial-400 mb-1">Auditor / Inspector *</label>
+              <input
+                type="text"
+                required
+                value={formData.inspector}
+                onChange={(e) => setFormData({ ...formData, inspector: e.target.value })}
+                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block text-industrial-400 mb-1">Dictamen Técnico *</label>
+              <select
+                value={formData.result}
+                onChange={(e) => setFormData({ ...formData, result: e.target.value as any })}
+                className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+              >
+                <option value="conforme">Conforme (Aprobado NFPA 72)</option>
+                <option value="observacion">Con Observaciones Menores</option>
+                <option value="no-conforme">No Conforme (Rechazado)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-industrial-400 mb-1">Observaciones Técnicas y Cumplimiento *</label>
+            <textarea
+              required
+              rows={3}
+              placeholder="Detalla pruebas de continuidad, apriete de conexiones, calibración o verificación visual..."
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="w-full rounded border border-industrial-800 bg-industrial-950 px-2.5 py-1.5 text-white focus:border-radar-500 focus:outline-none"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="px-3 py-1.5 rounded border border-industrial-800 text-industrial-400 hover:text-white"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-1.5 rounded bg-radar-500 hover:bg-radar-400 text-industrial-950 font-bold"
+            >
+              Guardar Inspección
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Inspections Timeline Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {inspections.map((insp) => (
+          <div
+            key={insp.id}
+            className="rounded-xl border border-industrial-800 bg-industrial-900 p-4 shadow-industrial-sm space-y-3 hover:border-industrial-700 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-2 border-b border-industrial-850 pb-2">
+              <div>
+                <span className="font-mono text-xs font-bold text-radar-500">{insp.itemCode}</span>
+                <h4 className="text-xs font-bold text-white mt-0.5">{insp.itemName}</h4>
+                <p className="text-[11px] font-mono text-industrial-400">{insp.zone}</p>
+              </div>
+              <span
+                className={`text-[10px] px-2 py-0.5 rounded font-mono font-semibold uppercase ${
+                  insp.result === 'conforme'
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : insp.result === 'observacion'
+                    ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                    : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                }`}
+              >
+                {insp.result}
+              </span>
+            </div>
+
+            <p className="text-xs text-industrial-300 leading-relaxed font-mono">
+              "{insp.notes}"
+            </p>
+
+            <div className="flex items-center justify-between text-[11px] font-mono text-industrial-500 pt-2 border-t border-industrial-850">
+              <div className="flex items-center gap-1.5">
+                <UserCheck className="w-3.5 h-3.5 text-industrial-400" strokeWidth={1.75} />
+                <span>{insp.inspector}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-industrial-400" strokeWidth={1.75} />
+                <span>{insp.date}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
