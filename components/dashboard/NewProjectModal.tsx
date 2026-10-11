@@ -80,7 +80,7 @@ export default function NewProjectModal({ isOpen, onClose }: Props) {
           <div>
             <h3 className="text-lg font-black text-brand-deep tracking-tight">Crear Nuevo Proyecto Técnico</h3>
             <p className="text-xs text-gsitText-secondary">
-              Inicia un proyecto en blanco con esquema editable de equipos, tuberías y cableado.
+              Inicia un proyecto en blanco para configurar equipos, tuberías y cableado.
             </p>
           </div>
         </div>
@@ -180,8 +180,7 @@ export default function NewProjectModal({ isOpen, onClose }: Props) {
           </div>
 
           <div className="rounded-xl bg-brand-ice/60 border border-brand-light p-3 text-brand-deep text-[11px] leading-relaxed">
-            <span className="font-bold">&bull; Estado Inicial:</span> Se creará en modo{' '}
-            <strong className="underline">Esquema Editable</strong>. Podrás agregar tuberías, cables y equipos libremente hasta que decidas bloquear el esquema definitivo.
+            <span className="font-bold">&bull; Configuración Inicial:</span> Podrás agregar tuberías, cables y equipos conforme avance el desarrollo de la obra.
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-surface-border">

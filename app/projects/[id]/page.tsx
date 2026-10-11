@@ -31,7 +31,6 @@ import {
   FileText,
   Settings,
   Lock,
-  Unlock,
   AlertCircle,
   Building2,
 } from 'lucide-react';
@@ -131,34 +130,11 @@ export default function ProjectDashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-black text-brand-deep tracking-tight">
                 {project.name}
               </h1>
-              {isLoggedIn && (
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border ${
-                      isLocked
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-brand-ice text-brand-deep border-brand-light'
-                    }`}
-                  >
-                    {isLocked ? (
-                      <>
-                        <Lock className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
-                        <span>Esquema Bloqueado (Oficial)</span>
-                      </>
-                    ) : (
-                      <>
-                        <Unlock className="w-3.5 h-3.5 text-brand-accent" strokeWidth={2} />
-                        <span>Esquema Editable (Borrador)</span>
-                      </>
-                    )}
-                  </span>
-                  {isAdminUser && (
-                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span>Modo Edición Admin</span>
-                    </span>
-                  )}
-                </div>
+              {isLoggedIn && isAdminUser && (
+                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Modo Edición Admin</span>
+                </span>
               )}
             </div>
 

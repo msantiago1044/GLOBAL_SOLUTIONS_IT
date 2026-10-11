@@ -12,8 +12,6 @@ import {
   Plus,
   ArrowRight,
   Building2,
-  Lock,
-  Unlock,
   Search,
   MapPin,
   CheckCircle2,
@@ -160,17 +158,6 @@ export default function ProjectsPage() {
                     <span className="px-2 py-0.5 rounded bg-surface-subtle border border-surface-border">
                       {proj.systemType.split('-')[0]}
                     </span>
-                    {isLocked ? (
-                      <span className="px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex items-center gap-1 bg-emerald-50 text-emerald-700 border-emerald-200">
-                        <Lock className="w-3 h-3 text-emerald-600" />
-                        <span>Esquema Bloqueado</span>
-                      </span>
-                    ) : adminMode ? (
-                      <span className="px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex items-center gap-1 bg-brand-ice text-brand-deep border-brand-light">
-                        <Unlock className="w-3 h-3 text-brand-accent" />
-                        <span>Esquema Editable</span>
-                      </span>
-                    ) : null}
                   </div>
                 </div>
 
@@ -201,7 +188,7 @@ export default function ProjectsPage() {
                 Crear Nuevo Proyecto
               </h3>
               <p className="text-xs text-gsitText-secondary mt-1 max-w-xs leading-relaxed">
-                Inicia un proyecto en blanco con esquema editable para configurar equipos, tuberías y cableado.
+                Inicia un proyecto en blanco para configurar equipos, tuberías y cableado.
               </p>
             </div>
           )}

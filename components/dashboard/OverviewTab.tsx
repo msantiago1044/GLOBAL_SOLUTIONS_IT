@@ -213,12 +213,6 @@ export default function OverviewTab({ project, floors, items }: Props) {
 
             <div className="pt-2 border-t border-surface-border text-[11px] text-gsitText-secondary">
               <div className="flex justify-between py-1">
-                <span>Estado del Esquema:</span>
-                <span className={`font-bold uppercase ${project.schemaStatus === 'locked' ? 'text-emerald-700' : 'text-brand-deep'}`}>
-                  {project.schemaStatus === 'locked' ? '🔒 Bloqueado' : '📝 Editable'}
-                </span>
-              </div>
-              <div className="flex justify-between py-1">
                 <span>Interventoría:</span>
                 <span className="text-brand-deep font-semibold">{project.interventoria}</span>
               </div>
