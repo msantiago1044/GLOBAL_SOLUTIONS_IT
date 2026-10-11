@@ -160,16 +160,17 @@ export default function ProjectsPage() {
                     <span className="px-2 py-0.5 rounded bg-surface-subtle border border-surface-border">
                       {proj.systemType.split('-')[0]}
                     </span>
-                    <span
-                      className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex items-center gap-1 ${
-                        isLocked
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                          : 'bg-amber-50 text-amber-800 border-amber-200'
-                      }`}
-                    >
-                      {isLocked ? <Lock className="w-3 h-3 text-emerald-600" /> : <Unlock className="w-3 h-3 text-amber-600" />}
-                      <span>{isLocked ? 'Esquema Bloqueado' : 'Esquema Editable'}</span>
-                    </span>
+                    {isLocked ? (
+                      <span className="px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex items-center gap-1 bg-emerald-50 text-emerald-700 border-emerald-200">
+                        <Lock className="w-3 h-3 text-emerald-600" />
+                        <span>Esquema Bloqueado</span>
+                      </span>
+                    ) : adminMode ? (
+                      <span className="px-2 py-0.5 rounded border text-[10px] font-bold uppercase flex items-center gap-1 bg-brand-ice text-brand-deep border-brand-light">
+                        <Unlock className="w-3 h-3 text-brand-accent" />
+                        <span>Esquema Editable</span>
+                      </span>
+                    ) : null}
                   </div>
                 </div>
 

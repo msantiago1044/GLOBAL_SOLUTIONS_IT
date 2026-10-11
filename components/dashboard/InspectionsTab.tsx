@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { ShieldCheck, Camera, UserCheck, Calendar, Lock } from 'lucide-react';
+import { ShieldCheck, Camera, UserCheck, Calendar } from 'lucide-react';
 
 interface Props {
   project: Project;
@@ -104,7 +104,7 @@ export default function InspectionsTab({ project, items, canEdit = false }: Prop
           </p>
         </div>
 
-        {canEdit ? (
+        {canEdit && (
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs transition-all shadow-sm self-start sm:self-auto"
@@ -112,11 +112,6 @@ export default function InspectionsTab({ project, items, canEdit = false }: Prop
             <Camera className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
             <span>{showForm ? 'Cerrar Formulario' : '➕ Registrar Inspección'}</span>
           </button>
-        ) : (
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-subtle border border-surface-border text-xs font-mono text-gsitText-muted self-start sm:self-auto">
-            <Lock className="w-3.5 h-3.5 text-gsitText-muted" strokeWidth={2} />
-            <span>Solo Lectura (Admin requerido)</span>
-          </div>
         )}
       </div>
 

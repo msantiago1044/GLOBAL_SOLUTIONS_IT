@@ -62,8 +62,12 @@ export default function ProjectDashboardPage() {
   useEffect(() => {
     loadData();
     const syncAuth = () => {
-      setIsLoggedIn(isAuthenticated());
+      const auth = isAuthenticated();
+      setIsLoggedIn(auth);
       setIsAdminUser(isAdmin());
+      if (!auth) {
+        setActiveTab((prev) => (prev === 'settings' ? 'overview' : prev));
+      }
     };
     syncAuth();
     window.addEventListener('gsit_auth_change', syncAuth);
@@ -127,21 +131,7 @@ export default function ProjectDashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-black text-brand-deep tracking-tight">
                 {project.name}
               </h1>
-              {!isLoggedIn ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border bg-amber-50 text-amber-800 border-amber-200">
-                    <Lock className="w-3.5 h-3.5 text-amber-600" strokeWidth={2} />
-                    <span>Modo Solo Lectura</span>
-                  </span>
-                  <Link
-                    href="/login"
-                    className="text-[10px] font-mono font-semibold text-brand-primary hover:text-brand-deep hover:underline flex items-center gap-1"
-                  >
-                    <span>Inicia sesión para editar</span>
-                    <span>&rarr;</span>
-                  </Link>
-                </div>
-              ) : (
+              {isLoggedIn && (
                 <div className="flex items-center gap-2">
                   <span
                     className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border ${
@@ -268,17 +258,19 @@ export default function ProjectDashboardPage() {
             <span>Corte de Facturación</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border ${
-              activeTab === 'settings'
-                ? 'bg-brand-deep text-white font-bold border-brand-deep shadow-sm'
-                : 'bg-white hover:bg-surface-subtle text-gsitText-secondary hover:text-brand-deep border-surface-border'
-            }`}
-          >
-            <Settings className="w-4 h-4" strokeWidth={2} />
-            <span>Configuración del Proyecto</span>
-          </button>
+          {isLoggedIn && (
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl whitespace-nowrap transition-all border ${
+                activeTab === 'settings'
+                  ? 'bg-brand-deep text-white font-bold border-brand-deep shadow-sm'
+                  : 'bg-white hover:bg-surface-subtle text-gsitText-secondary hover:text-brand-deep border-surface-border'
+              }`}
+            >
+              <Settings className="w-4 h-4" strokeWidth={2} />
+              <span>Configuración del Proyecto</span>
+            </button>
+          )}
         </div>
 
         {/* Tab Content Display */}
@@ -310,7 +302,7 @@ export default function ProjectDashboardPage() {
             <BillingTab project={project} items={items} />
           )}
 
-          {activeTab === 'settings' && (
+          {activeTab === 'settings' && isLoggedIn && (
             <SettingsTab project={project} canEdit={isLoggedIn} onRefresh={loadData} />
           )}
         </div>

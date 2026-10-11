@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import { updateItemStatus } from '@/src/lib/projects-data';
-import { Search, Lock } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 interface Props {
   project: Project;
@@ -40,20 +39,6 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
 
   return (
     <div className="space-y-6">
-      {!canEdit && (
-        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-mono text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>Modo Solo Lectura: Inicia sesión como administrador para actualizar el avance e instalación de componentes en obra.</span>
-          </div>
-          <Link
-            href="/login"
-            className="px-3 py-1.5 rounded-lg bg-brand-deep hover:bg-brand-hover text-white text-[11px] font-bold shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto shadow-sm"
-          >
-            <span>Iniciar Sesión</span>
-          </Link>
-        </div>
-      )}
       {/* Search and Filters Bar */}
       <div className="rounded-2xl border border-surface-border bg-white p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Search Input */}
@@ -110,13 +95,13 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                 <th className="px-4 py-3">Valor Unitario</th>
                 <th className="px-4 py-3">Valor Total</th>
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-right">Actualizar Estado</th>
+                {canEdit && <th className="px-4 py-3 text-right">Actualizar Estado</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border text-gsitText-secondary">
               {filteredItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-8 text-center text-gsitText-muted">
+                  <td colSpan={canEdit ? 8 : 7} className="px-4 py-8 text-center text-gsitText-muted">
                     No se encontraron elementos con los filtros seleccionados.
                   </td>
                 </tr>
@@ -155,8 +140,8 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      {canEdit ? (
+                    {canEdit && (
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
                         <div className="inline-flex items-center gap-1">
                           <button
                             onClick={() => handleStatusChange(item.id, 'pending')}
@@ -192,16 +177,8 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                             Inspeccionado
                           </button>
                         </div>
-                      ) : (
-                        <span
-                          className="inline-flex items-center gap-1 text-[10px] font-mono text-gsitText-muted px-2 py-1 rounded-md bg-surface-subtle border border-surface-border"
-                          title="Inicia sesión como administrador para actualizar el avance"
-                        >
-                          <Lock className="w-3 h-3 text-gsitText-muted" />
-                          <span>Solo Lectura</span>
-                        </span>
-                      )}
-                    </td>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

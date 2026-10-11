@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorZone, addItem, removeItem } from '@/src/lib/projects-data';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import EstadioBlueprint from '@/components/blueprints/EstadioBlueprint';
 import TitaniumBlueprint from '@/components/blueprints/TitaniumBlueprint';
-import { Lock, Unlock, Plus, Trash2, Wrench, LogIn } from 'lucide-react';
+import { Lock, Unlock, Plus, Trash2, Wrench } from 'lucide-react';
 
 interface Props {
   project: Project;
@@ -98,89 +97,71 @@ export default function BlueprintTab({
 
   return (
     <div className="space-y-6">
-      {/* Top Banner: Schema Status & Actions */}
-      <div className={`p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm ${
-        !canEdit
-          ? 'bg-amber-50/50 border-amber-200'
-          : canModifySchema
-          ? 'bg-brand-ice/50 border-brand-light'
-          : 'bg-white border-surface-border'
-      }`}>
-        <div className="flex items-start sm:items-center gap-3">
-          <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
-            !canEdit
-              ? 'bg-amber-100 text-amber-800 border border-amber-300'
-              : canModifySchema
-              ? 'bg-brand-deep text-white'
-              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-          }`}>
-            {!canEdit ? (
-              <Lock className="w-5 h-5 text-amber-700" strokeWidth={2} />
-            ) : canModifySchema ? (
-              <Unlock className="w-5 h-5 text-brand-cyan" strokeWidth={2} />
-            ) : (
-              <Lock className="w-5 h-5 text-emerald-600" strokeWidth={2} />
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-extrabold text-brand-deep tracking-tight">
-                {!canEdit
-                  ? 'Modo: Solo Lectura (Sin Sesión)'
-                  : canModifySchema
-                  ? 'Modo: Esquema Técnico Editable'
-                  : 'Esquema Técnico Bloqueado y Certificado'}
-              </h3>
-              <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${
-                !canEdit
-                  ? 'bg-amber-100 text-amber-900 border-amber-300'
-                  : canModifySchema
-                  ? 'bg-brand-ice text-brand-deep border-brand-light'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              }`}>
-                {!canEdit ? 'Solo Lectura' : canModifySchema ? 'Borrador Activo' : 'Congelado para Obra'}
-              </span>
+      {/* Top Banner: Schema Status & Actions (Solo para usuarios autenticados) */}
+      {canEdit && (
+        <div className={`p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm ${
+          canModifySchema
+            ? 'bg-brand-ice/50 border-brand-light'
+            : 'bg-white border-surface-border'
+        }`}>
+          <div className="flex items-start sm:items-center gap-3">
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
+              canModifySchema
+                ? 'bg-brand-deep text-white'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            }`}>
+              {canModifySchema ? (
+                <Unlock className="w-5 h-5 text-brand-cyan" strokeWidth={2} />
+              ) : (
+                <Lock className="w-5 h-5 text-emerald-600" strokeWidth={2} />
+              )}
             </div>
-            <p className="text-xs text-gsitText-secondary mt-0.5">
-              {!canEdit
-                ? 'Estás visualizando el esquema técnico en modo solo lectura. Debes iniciar sesión como administrador para agregar o eliminar elementos y bloquear el esquema.'
-                : canModifySchema
-                ? 'Puedes añadir tuberías, cables y equipos libremente. Cuando termines el diseño, bloquéalo para iniciar obra.'
-                : 'El diseño ha sido congelado. No se pueden agregar ni borrar elementos; solo registrar su avance e inspección.'}
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-extrabold text-brand-deep tracking-tight">
+                  {canModifySchema
+                    ? 'Modo: Esquema Técnico Editable'
+                    : 'Esquema Técnico Bloqueado y Certificado'}
+                </h3>
+                <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${
+                  canModifySchema
+                    ? 'bg-brand-ice text-brand-deep border-brand-light'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                }`}>
+                  {canModifySchema ? 'Borrador Activo' : 'Congelado para Obra'}
+                </span>
+              </div>
+              <p className="text-xs text-gsitText-secondary mt-0.5">
+                {canModifySchema
+                  ? 'Puedes añadir tuberías, cables y equipos libremente. Cuando termines el diseño, bloquéalo para iniciar obra.'
+                  : 'El diseño ha sido congelado. No se pueden agregar ni borrar elementos; solo registrar su avance e inspección.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            {canModifySchema ? (
+              <>
+                <button
+                  onClick={() => setShowAddForm(!showAddForm)}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-surface-subtle border border-surface-borderStrong text-xs font-bold text-brand-deep transition-all shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-brand-primary" strokeWidth={2.5} />
+                  <span>{showAddForm ? 'Cerrar Formulario' : '➕ Añadir Elemento'}</span>
+                </button>
+                <button
+                  onClick={onOpenLockModal}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs tracking-wide transition-all shadow-sm"
+                >
+                  <Lock className="w-4 h-4" strokeWidth={2} />
+                  <span>Bloquear Esquema</span>
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center gap-3 self-end md:self-auto">
-          {!canEdit ? (
-            <Link
-              href="/login"
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-sm"
-            >
-              <LogIn className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
-              <span>Iniciar Sesión para Editar</span>
-            </Link>
-          ) : canModifySchema ? (
-            <>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white hover:bg-surface-subtle border border-surface-borderStrong text-xs font-bold text-brand-deep transition-all shadow-sm"
-              >
-                <Plus className="w-4 h-4 text-brand-primary" strokeWidth={2.5} />
-                <span>{showAddForm ? 'Cerrar Formulario' : '➕ Añadir Elemento'}</span>
-              </button>
-              <button
-                onClick={onOpenLockModal}
-                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs tracking-wide transition-all shadow-sm"
-              >
-                <Lock className="w-4 h-4" strokeWidth={2} />
-                <span>Bloquear Esquema</span>
-              </button>
-            </>
-          ) : null}
-        </div>
-      </div>
+      )}
 
       {/* Add Item Form (When Editable and Authenticated) */}
       {canModifySchema && showAddForm && (
@@ -347,9 +328,11 @@ export default function BlueprintTab({
             <Wrench className="w-4 h-4 text-brand-primary" strokeWidth={2} />
             Componentes del Esquema en {currentFloor?.name} ({floorItems.length})
           </h4>
-          <span className="text-xs font-mono text-gsitText-muted">
-            {canModifySchema ? 'Modo Edición Habilitado' : 'Solo Lectura'}
-          </span>
+          {canModifySchema && (
+            <span className="text-xs font-mono text-gsitText-muted">
+              Modo Edición Habilitado
+            </span>
+          )}
         </div>
 
         {floorItems.length === 0 ? (

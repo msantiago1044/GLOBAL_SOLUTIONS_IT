@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { Project } from '@/src/schemas/project.schema';
 import { updateProject } from '@/src/lib/projects-data';
-import { Settings, Save, Sliders, CheckCircle, Lock } from 'lucide-react';
+import { Settings, Save, Sliders, CheckCircle } from 'lucide-react';
 
 interface Props {
   project: Project;
@@ -32,6 +31,10 @@ export default function SettingsTab({ project, canEdit = false, onRefresh }: Pro
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
+  if (!canEdit) {
+    return null;
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!canEdit) return;
@@ -50,22 +53,6 @@ export default function SettingsTab({ project, canEdit = false, onRefresh }: Pro
 
   return (
     <div className="space-y-6">
-      {!canEdit && (
-        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs font-mono text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-          <div className="flex items-center gap-2">
-            <Lock className="w-4 h-4 text-amber-700 shrink-0" />
-            <span>
-              <strong>Modo Solo Lectura:</strong> Debes iniciar sesión como Administrador para modificar los parámetros y módulos de este proyecto.
-            </span>
-          </div>
-          <Link
-            href="/login"
-            className="px-3 py-1.5 rounded-lg bg-brand-deep hover:bg-brand-hover text-white text-xs font-bold shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto shadow-sm"
-          >
-            <span>Iniciar Sesión</span>
-          </Link>
-        </div>
-      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Project Metadata Card */}
         <div className="rounded-2xl border border-surface-border bg-white p-6 shadow-sm space-y-4">
@@ -223,20 +210,13 @@ export default function SettingsTab({ project, canEdit = false, onRefresh }: Pro
               Configuración guardada exitosamente.
             </span>
           )}
-          {canEdit ? (
-            <button
-              type="submit"
-              className="ml-auto flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
-            >
-              <Save className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
-              <span>Guardar Cambios</span>
-            </button>
-          ) : (
-            <div className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl bg-surface-subtle border border-surface-border text-xs font-mono text-gsitText-muted">
-              <Lock className="w-4 h-4 text-gsitText-muted" strokeWidth={2} />
-              <span>Edición deshabilitada para visitantes</span>
-            </div>
-          )}
+          <button
+            type="submit"
+            className="ml-auto flex items-center gap-2 px-6 py-2.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
+          >
+            <Save className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
+            <span>Guardar Cambios</span>
+          </button>
         </div>
       </form>
     </div>
