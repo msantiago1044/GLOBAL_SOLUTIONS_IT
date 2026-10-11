@@ -107,7 +107,6 @@ export default function OverviewTab({ project, floors, items }: Props) {
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-gsitText-secondary">
             <span>Ejecutado: <strong className="text-emerald-600">{totalBudget > 0 ? Math.round((executedBudget / totalBudget) * 100) : 0}%</strong></span>
-            <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">Certificable</span>
           </div>
         </div>
       </div>
@@ -143,9 +142,6 @@ export default function OverviewTab({ project, floors, items }: Props) {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-bold text-brand-deep font-mono">{fl.name}</span>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-brand-ice text-brand-deep font-mono uppercase font-bold">
-                        {fl.type}
-                      </span>
                     </div>
                     <p className="text-[11px] text-gsitText-secondary font-mono">
                       {zoneTotal} elementos asignados &bull; {zoneDone} instalados

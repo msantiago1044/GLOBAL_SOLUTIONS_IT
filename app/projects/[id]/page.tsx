@@ -130,12 +130,6 @@ export default function ProjectDashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-black text-brand-deep tracking-tight">
                 {project.name}
               </h1>
-              {isLoggedIn && isAdminUser && (
-                <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Modo Edición Admin</span>
-                </span>
-              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gsitText-secondary">

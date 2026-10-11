@@ -99,26 +99,21 @@ export default function BlueprintTab({
     <div className="space-y-6">
       {/* Herramientas de edición para usuarios autenticados */}
       {canEdit && canModifySchema && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-surface-border shadow-sm">
-          <div className="text-xs text-gsitText-secondary">
-            Herramientas técnicas para configuración y trazo de componentes en plano.
-          </div>
-          <div className="flex items-center gap-3 self-end sm:self-auto">
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white text-xs font-bold transition-all shadow-sm"
-            >
-              <Plus className="w-4 h-4 text-brand-cyan" strokeWidth={2.5} />
-              <span>{showAddForm ? 'Cerrar Formulario' : '➕ Añadir Elemento'}</span>
-            </button>
-            <button
-              onClick={onOpenLockModal}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
-            >
-              <Lock className="w-4 h-4 text-slate-500" strokeWidth={2} />
-              <span>Finalizar Diseño</span>
-            </button>
-          </div>
+        <div className="flex items-center justify-end gap-3">
+          <button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white text-xs font-bold transition-all shadow-sm"
+          >
+            <Plus className="w-4 h-4 text-brand-cyan" strokeWidth={2.5} />
+            <span>{showAddForm ? 'Cerrar Formulario' : '➕ Añadir Elemento'}</span>
+          </button>
+          <button
+            onClick={onOpenLockModal}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all"
+          >
+            <Lock className="w-4 h-4 text-slate-500" strokeWidth={2} />
+            <span>Finalizar Diseño</span>
+          </button>
         </div>
       )}
 

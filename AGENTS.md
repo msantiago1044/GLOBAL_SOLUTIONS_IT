@@ -12,3 +12,8 @@
 
 ## Flujo de Entrega y Git
 - SIEMPRE hacer commit y push a la rama remota al finalizar cualquier tarea o cambio validado, sin requerir confirmación interactiva adicional del usuario.
+
+## Reglas de Diseño y Contenido de UI (Cero Spam)
+- PROHIBIDO incluir textos spam, explicaciones obvias o redundantes en la interfaz.
+- No colocar cintas/ribbons ("EN OBRA", "EN DISEÑO"), etiquetas innecesarias ("EDIFICACIÓN VERTICAL", "COMPLEJO DEPORTIVO") ni badges de estado ("Esquema Bloqueado", "Esquema Editable", "Modo Solo Lectura").
+- La interfaz debe ser limpia, minimalista y profesional: si algo se sobreentiende por el contexto, no agregar texto explicativo.

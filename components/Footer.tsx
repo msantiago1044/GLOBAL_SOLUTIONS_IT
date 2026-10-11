@@ -1,11 +1,11 @@
 import React from 'react';
-import { Shield, Cpu, Activity } from 'lucide-react';
+import { Shield, Cpu } from 'lucide-react';
 
 export default function Footer() {
   return (
     <footer className="w-full bg-white border-t border-surface-border text-gsitText-muted text-xs py-8 no-print mt-auto shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5">
               <img src="/logo.png" alt="Logo Global Solutions IT" className="h-8 w-auto object-contain" />
@@ -43,31 +43,6 @@ export default function Footer() {
               <li>&bull; Cableado FPLR Blindado Clase A/B</li>
               <li>&bull; Interventoría y Actas de Metrado Oficial</li>
             </ul>
-          </div>
-
-          <div>
-            <h4 className="text-brand-deep font-bold mb-3 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-              <Activity className="w-4 h-4 text-emerald-600" strokeWidth={2} />
-              Estado del Sistema
-            </h4>
-            <div className="space-y-2 font-mono text-[11px]">
-              <div className="flex items-center justify-between text-gsitText-secondary">
-                <span>Arquitectura:</span>
-                <span className="font-semibold text-brand-deep">Next.js 14 App Router</span>
-              </div>
-              <div className="flex items-center justify-between text-gsitText-secondary">
-                <span>Identidad de Marca:</span>
-                <span className="font-semibold text-brand-primary">Global Solutions IT</span>
-              </div>
-              <div className="flex items-center justify-between text-gsitText-secondary">
-                <span>Database Sync:</span>
-                <span className="font-semibold text-emerald-600">Supabase PostgreSQL</span>
-              </div>
-              <div className="flex items-center justify-between text-gsitText-secondary">
-                <span>Certificación:</span>
-                <span className="font-semibold text-brand-deep">NFPA 72 &amp; RETIE</span>
-              </div>
-            </div>
           </div>
         </div>
 
