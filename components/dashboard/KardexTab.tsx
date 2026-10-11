@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import { updateItemStatus } from '@/src/lib/projects-data';
-import { Search } from 'lucide-react';
+import { Search, Lock } from 'lucide-react';
 
 interface Props {
   project: Project;
   items: FloorItem[];
+  canEdit?: boolean;
   onRefresh: () => void;
 }
 
-export default function KardexTab({ project, items, onRefresh }: Props) {
+export default function KardexTab({ project, items, canEdit = false, onRefresh }: Props) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'installed' | 'inspected'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -31,12 +33,27 @@ export default function KardexTab({ project, items, onRefresh }: Props) {
   });
 
   const handleStatusChange = (itemId: string, newStatus: 'pending' | 'installed' | 'inspected') => {
+    if (!canEdit) return;
     updateItemStatus(project.id, itemId, newStatus);
     onRefresh();
   };
 
   return (
     <div className="space-y-6">
+      {!canEdit && (
+        <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs font-mono text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+          <div className="flex items-center gap-2">
+            <Lock className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>Modo Solo Lectura: Inicia sesión como administrador para actualizar el avance e instalación de componentes en obra.</span>
+          </div>
+          <Link
+            href="/login"
+            className="px-3 py-1.5 rounded-lg bg-brand-deep hover:bg-brand-hover text-white text-[11px] font-bold shrink-0 inline-flex items-center gap-1.5 self-start sm:self-auto shadow-sm"
+          >
+            <span>Iniciar Sesión</span>
+          </Link>
+        </div>
+      )}
       {/* Search and Filters Bar */}
       <div className="rounded-2xl border border-surface-border bg-white p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
         {/* Search Input */}
@@ -139,41 +156,51 @@ export default function KardexTab({ project, items, onRefresh }: Props) {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <div className="inline-flex items-center gap-1">
-                        <button
-                          onClick={() => handleStatusChange(item.id, 'pending')}
-                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
-                            item.status === 'pending'
-                              ? 'bg-amber-100 text-amber-800 border-amber-300'
-                              : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
-                          }`}
-                          title="Marcar como Planificado"
+                      {canEdit ? (
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            onClick={() => handleStatusChange(item.id, 'pending')}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
+                              item.status === 'pending'
+                                ? 'bg-amber-100 text-amber-800 border-amber-300'
+                                : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
+                            }`}
+                            title="Marcar como Planificado"
+                          >
+                            Plan
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(item.id, 'installed')}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
+                              item.status === 'installed'
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                                : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
+                            }`}
+                            title="Marcar como Instalado"
+                          >
+                            Instalado
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(item.id, 'inspected')}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
+                              item.status === 'inspected'
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                                : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
+                            }`}
+                            title="Marcar como Comisionado / Inspeccionado"
+                          >
+                            Inspeccionado
+                          </button>
+                        </div>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-mono text-gsitText-muted px-2 py-1 rounded-md bg-surface-subtle border border-surface-border"
+                          title="Inicia sesión como administrador para actualizar el avance"
                         >
-                          Plan
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(item.id, 'installed')}
-                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
-                            item.status === 'installed'
-                              ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
-                              : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
-                          }`}
-                          title="Marcar como Instalado"
-                        >
-                          Instalado
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(item.id, 'inspected')}
-                          className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-colors border ${
-                            item.status === 'inspected'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                              : 'bg-white hover:bg-surface-subtle text-gsitText-muted border-surface-border'
-                          }`}
-                          title="Marcar como Comisionado / Inspeccionado"
-                        >
-                          Inspeccionado
-                        </button>
-                      </div>
+                          <Lock className="w-3 h-3 text-gsitText-muted" />
+                          <span>Solo Lectura</span>
+                        </span>
+                      )}
                     </td>
                   </tr>
                 ))

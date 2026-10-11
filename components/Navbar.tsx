@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Folder, LogOut, LogIn, Database, ShieldCheck } from 'lucide-react';
+import { Folder, LogOut, LogIn, ShieldCheck } from 'lucide-react';
 import { getSession, logout } from '@/src/lib/auth';
 
 export default function Navbar() {
@@ -50,13 +50,6 @@ export default function Navbar() {
 
         {/* Right Navigation & Session Actions */}
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Cloud DB Status */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-subtle border border-surface-border text-xs font-mono text-gsitText-secondary">
-            <Database className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Cloud DB</span>
-          </div>
-
           {/* Proyectos Button */}
           <Link
             href="/projects"

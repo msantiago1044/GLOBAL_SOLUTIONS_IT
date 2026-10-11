@@ -21,6 +21,7 @@ import {
 } from '@/src/lib/projects-data';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
+import { isAdmin, isAuthenticated } from '@/src/lib/auth';
 import {
   ArrowLeft,
   Gauge,
@@ -45,6 +46,8 @@ export default function ProjectDashboardPage() {
   const [items, setItems] = useState<FloorItem[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'blueprint' | 'kardex' | 'inspections' | 'billing' | 'settings'>('overview');
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
   const loadData = () => {
     if (!projectId) return;
@@ -58,6 +61,17 @@ export default function ProjectDashboardPage() {
 
   useEffect(() => {
     loadData();
+    const syncAuth = () => {
+      setIsLoggedIn(isAuthenticated());
+      setIsAdminUser(isAdmin());
+    };
+    syncAuth();
+    window.addEventListener('gsit_auth_change', syncAuth);
+    window.addEventListener('storage', syncAuth);
+    return () => {
+      window.removeEventListener('gsit_auth_change', syncAuth);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, [projectId]);
 
   if (!project) {
@@ -84,6 +98,7 @@ export default function ProjectDashboardPage() {
   }
 
   const handleConfirmLock = () => {
+    if (!isLoggedIn) return;
     lockProjectSchema(project.id);
     loadData();
   };
@@ -112,25 +127,49 @@ export default function ProjectDashboardPage() {
               <h1 className="text-2xl sm:text-3xl font-black text-brand-deep tracking-tight">
                 {project.name}
               </h1>
-              <span
-                className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border ${
-                  isLocked
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : 'bg-brand-ice text-brand-deep border-brand-light'
-                }`}
-              >
-                {isLocked ? (
-                  <>
-                    <Lock className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
-                    <span>Esquema Bloqueado (Oficial)</span>
-                  </>
-                ) : (
-                  <>
-                    <Unlock className="w-3.5 h-3.5 text-brand-accent" strokeWidth={2} />
-                    <span>Esquema Editable (Borrador)</span>
-                  </>
-                )}
-              </span>
+              {!isLoggedIn ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border bg-amber-50 text-amber-800 border-amber-200">
+                    <Lock className="w-3.5 h-3.5 text-amber-600" strokeWidth={2} />
+                    <span>Modo Solo Lectura</span>
+                  </span>
+                  <Link
+                    href="/login"
+                    className="text-[10px] font-mono font-semibold text-brand-primary hover:text-brand-deep hover:underline flex items-center gap-1"
+                  >
+                    <span>Inicia sesión para editar</span>
+                    <span>&rarr;</span>
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase flex items-center gap-1.5 border ${
+                      isLocked
+                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        : 'bg-brand-ice text-brand-deep border-brand-light'
+                    }`}
+                  >
+                    {isLocked ? (
+                      <>
+                        <Lock className="w-3.5 h-3.5 text-emerald-600" strokeWidth={2} />
+                        <span>Esquema Bloqueado (Oficial)</span>
+                      </>
+                    ) : (
+                      <>
+                        <Unlock className="w-3.5 h-3.5 text-brand-accent" strokeWidth={2} />
+                        <span>Esquema Editable (Borrador)</span>
+                      </>
+                    )}
+                  </span>
+                  {isAdminUser && (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>Modo Edición Admin</span>
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-gsitText-secondary">
@@ -253,17 +292,18 @@ export default function ProjectDashboardPage() {
               project={project}
               floors={floors}
               items={items}
+              canEdit={isLoggedIn}
               onRefresh={loadData}
               onOpenLockModal={() => setIsLockModalOpen(true)}
             />
           )}
 
           {activeTab === 'kardex' && (
-            <KardexTab project={project} items={items} onRefresh={loadData} />
+            <KardexTab project={project} items={items} canEdit={isLoggedIn} onRefresh={loadData} />
           )}
 
           {activeTab === 'inspections' && (
-            <InspectionsTab project={project} items={items} />
+            <InspectionsTab project={project} items={items} canEdit={isLoggedIn} />
           )}
 
           {activeTab === 'billing' && (
@@ -271,7 +311,7 @@ export default function ProjectDashboardPage() {
           )}
 
           {activeTab === 'settings' && (
-            <SettingsTab project={project} onRefresh={loadData} />
+            <SettingsTab project={project} canEdit={isLoggedIn} onRefresh={loadData} />
           )}
         </div>
       </main>

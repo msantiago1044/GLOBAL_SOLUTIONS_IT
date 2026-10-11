@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorZone, addItem, removeItem } from '@/src/lib/projects-data';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import EstadioBlueprint from '@/components/blueprints/EstadioBlueprint';
 import TitaniumBlueprint from '@/components/blueprints/TitaniumBlueprint';
-import { Lock, Unlock, Plus, Trash2, Wrench } from 'lucide-react';
+import { Lock, Unlock, Plus, Trash2, Wrench, LogIn } from 'lucide-react';
 
 interface Props {
   project: Project;
   floors: FloorZone[];
   items: FloorItem[];
+  canEdit?: boolean;
   onRefresh: () => void;
   onOpenLockModal: () => void;
 }
@@ -20,6 +22,7 @@ export default function BlueprintTab({
   project,
   floors,
   items,
+  canEdit = false,
   onRefresh,
   onOpenLockModal,
 }: Props) {
@@ -39,7 +42,8 @@ export default function BlueprintTab({
   });
 
   const currentFloor = floors.find((f) => f.id === selectedFloorId) || floors[0];
-  const isEditable = project.schemaStatus === 'editable';
+  const isSchemaEditable = project.schemaStatus === 'editable';
+  const canModifySchema = canEdit && isSchemaEditable;
 
   const floorItems = items.filter((i) => {
     if (!currentFloor) return true;
@@ -52,7 +56,7 @@ export default function BlueprintTab({
 
   const handleCreateItem = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentFloor) return;
+    if (!canModifySchema || !currentFloor) return;
 
     const newItem: FloorItem = {
       id: `${project.id}-item-${Date.now()}`,
@@ -85,7 +89,7 @@ export default function BlueprintTab({
   };
 
   const handleDeleteItem = (itemId: string) => {
-    if (!isEditable) return;
+    if (!canModifySchema) return;
     if (confirm('¿Eliminar este elemento del esquema técnico?')) {
       removeItem(project.id, itemId);
       onRefresh();
@@ -96,33 +100,51 @@ export default function BlueprintTab({
     <div className="space-y-6">
       {/* Top Banner: Schema Status & Actions */}
       <div className={`p-5 rounded-2xl border flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm ${
-        isEditable
+        !canEdit
+          ? 'bg-amber-50/50 border-amber-200'
+          : canModifySchema
           ? 'bg-brand-ice/50 border-brand-light'
           : 'bg-white border-surface-border'
       }`}>
         <div className="flex items-start sm:items-center gap-3">
           <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
-            isEditable
+            !canEdit
+              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+              : canModifySchema
               ? 'bg-brand-deep text-white'
               : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
           }`}>
-            {isEditable ? <Unlock className="w-5 h-5 text-brand-cyan" strokeWidth={2} /> : <Lock className="w-5 h-5 text-emerald-600" strokeWidth={2} />}
+            {!canEdit ? (
+              <Lock className="w-5 h-5 text-amber-700" strokeWidth={2} />
+            ) : canModifySchema ? (
+              <Unlock className="w-5 h-5 text-brand-cyan" strokeWidth={2} />
+            ) : (
+              <Lock className="w-5 h-5 text-emerald-600" strokeWidth={2} />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-extrabold text-brand-deep tracking-tight">
-                {isEditable ? 'Modo: Esquema Técnico Editable' : 'Esquema Técnico Bloqueado y Certificado'}
+                {!canEdit
+                  ? 'Modo: Solo Lectura (Sin Sesión)'
+                  : canModifySchema
+                  ? 'Modo: Esquema Técnico Editable'
+                  : 'Esquema Técnico Bloqueado y Certificado'}
               </h3>
               <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold uppercase border ${
-                isEditable
+                !canEdit
+                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                  : canModifySchema
                   ? 'bg-brand-ice text-brand-deep border-brand-light'
                   : 'bg-emerald-50 text-emerald-700 border-emerald-200'
               }`}>
-                {isEditable ? 'Borrador Activo' : 'Congelado para Obra'}
+                {!canEdit ? 'Solo Lectura' : canModifySchema ? 'Borrador Activo' : 'Congelado para Obra'}
               </span>
             </div>
             <p className="text-xs text-gsitText-secondary mt-0.5">
-              {isEditable
+              {!canEdit
+                ? 'Estás visualizando el esquema técnico en modo solo lectura. Debes iniciar sesión como administrador para agregar o eliminar elementos y bloquear el esquema.'
+                : canModifySchema
                 ? 'Puedes añadir tuberías, cables y equipos libremente. Cuando termines el diseño, bloquéalo para iniciar obra.'
                 : 'El diseño ha sido congelado. No se pueden agregar ni borrar elementos; solo registrar su avance e inspección.'}
             </p>
@@ -131,7 +153,15 @@ export default function BlueprintTab({
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3 self-end md:self-auto">
-          {isEditable && (
+          {!canEdit ? (
+            <Link
+              href="/login"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs tracking-wide transition-all shadow-sm"
+            >
+              <LogIn className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
+              <span>Iniciar Sesión para Editar</span>
+            </Link>
+          ) : canModifySchema ? (
             <>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
@@ -148,12 +178,12 @@ export default function BlueprintTab({
                 <span>Bloquear Esquema</span>
               </button>
             </>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {/* Add Item Form (When Editable) */}
-      {isEditable && showAddForm && (
+      {/* Add Item Form (When Editable and Authenticated) */}
+      {canModifySchema && showAddForm && (
         <form
           onSubmit={handleCreateItem}
           className="rounded-2xl border-2 border-brand-primary/40 bg-white p-6 shadow-gsit-md space-y-4 animate-in fade-in duration-200"
@@ -299,13 +329,13 @@ export default function BlueprintTab({
           <EstadioBlueprint
             items={floorItems}
             currentZone={currentFloor?.name || 'Zona General'}
-            isEditable={isEditable}
+            isEditable={canModifySchema}
           />
         ) : (
           <TitaniumBlueprint
             items={floorItems}
             currentFloorName={currentFloor?.name || 'Piso 1'}
-            isEditable={isEditable}
+            isEditable={canModifySchema}
           />
         )}
       </div>
@@ -318,14 +348,14 @@ export default function BlueprintTab({
             Componentes del Esquema en {currentFloor?.name} ({floorItems.length})
           </h4>
           <span className="text-xs font-mono text-gsitText-muted">
-            {isEditable ? 'Modo Edición Habilitado' : 'Solo Lectura'}
+            {canModifySchema ? 'Modo Edición Habilitado' : 'Solo Lectura'}
           </span>
         </div>
 
         {floorItems.length === 0 ? (
           <div className="py-8 text-center text-xs font-mono text-gsitText-muted">
             No hay componentes registrados en esta zona aún.
-            {isEditable && ' Haz clic en "➕ Añadir Elemento" para comenzar.'}
+            {canModifySchema && ' Haz clic en "➕ Añadir Elemento" para comenzar.'}
           </div>
         ) : (
           <div className="divide-y divide-surface-border">
@@ -355,7 +385,7 @@ export default function BlueprintTab({
                   </p>
                 </div>
 
-                {isEditable && (
+                {canModifySchema && (
                   <button
                     onClick={() => handleDeleteItem(item.id)}
                     className="p-1.5 rounded-lg hover:bg-red-50 text-gsitText-muted hover:text-red-600 transition-colors self-start sm:self-auto"

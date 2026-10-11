@@ -3,11 +3,12 @@
 import React, { useState } from 'react';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { ShieldCheck, Camera, UserCheck, Calendar } from 'lucide-react';
+import { ShieldCheck, Camera, UserCheck, Calendar, Lock } from 'lucide-react';
 
 interface Props {
   project: Project;
   items: FloorItem[];
+  canEdit?: boolean;
 }
 
 interface InspectionRecord {
@@ -54,7 +55,7 @@ const DEFAULT_INSPECTIONS: InspectionRecord[] = [
   },
 ];
 
-export default function InspectionsTab({ project, items }: Props) {
+export default function InspectionsTab({ project, items, canEdit = false }: Props) {
   const [inspections, setInspections] = useState<InspectionRecord[]>(DEFAULT_INSPECTIONS);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -66,6 +67,7 @@ export default function InspectionsTab({ project, items }: Props) {
 
   const handleAddInspection = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) return;
     const targetItem = items.find((i) => i.code === formData.itemCode) || items[0];
     const newRecord: InspectionRecord = {
       id: `insp-${Date.now()}`,
@@ -102,17 +104,24 @@ export default function InspectionsTab({ project, items }: Props) {
           </p>
         </div>
 
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs transition-all shadow-sm self-start sm:self-auto"
-        >
-          <Camera className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
-          <span>{showForm ? 'Cerrar Formulario' : '➕ Registrar Inspección'}</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-brand-deep hover:bg-brand-hover text-white font-bold text-xs transition-all shadow-sm self-start sm:self-auto"
+          >
+            <Camera className="w-4 h-4 text-brand-cyan" strokeWidth={2} />
+            <span>{showForm ? 'Cerrar Formulario' : '➕ Registrar Inspección'}</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-subtle border border-surface-border text-xs font-mono text-gsitText-muted self-start sm:self-auto">
+            <Lock className="w-3.5 h-3.5 text-gsitText-muted" strokeWidth={2} />
+            <span>Solo Lectura (Admin requerido)</span>
+          </div>
+        )}
       </div>
 
       {/* Add Inspection Form */}
-      {showForm && (
+      {canEdit && showForm && (
         <form
           onSubmit={handleAddInspection}
           className="rounded-2xl border-2 border-brand-primary/40 bg-white p-6 shadow-gsit-md space-y-4 animate-in fade-in duration-200 text-xs font-mono"

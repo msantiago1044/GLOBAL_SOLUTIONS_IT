@@ -249,7 +249,7 @@ export default function HomePage() {
                       Haz BEAM &middot; Clase B
                     </span>
                     <span className="px-2.5 py-1 rounded-md bg-amber-50 border border-amber-200 text-amber-800">
-                      Esquema Editable
+                      Borrador en Diseño
                     </span>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export default function HomePage() {
                     href="/projects/estadio-metropolitano"
                     className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-accent hover:bg-brand-primary text-white font-bold text-xs tracking-wide transition-all shadow-gsit-sm"
                   >
-                    <span>Abrir Dashboard y Configurar Esquema</span>
+                    <span>Ver Proyecto y Estudio Técnico</span>
                     <ArrowRight className="w-4 h-4 text-brand-ice" />
                   </Link>
                 </div>

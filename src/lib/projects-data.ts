@@ -1,5 +1,6 @@
 import { Project, CreateProjectPayload } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
+import { isAuthenticated } from '@/src/lib/auth';
 
 export interface FloorZone {
   id: string;
@@ -226,6 +227,10 @@ export function saveProjects(projects: Project[]): void {
 }
 
 export function createProject(payload: CreateProjectPayload): Project {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    throw new Error('No autorizado: Se requiere sesión de administrador para registrar proyectos.');
+  }
+
   const projects = getProjects();
   const slug = payload.name
     .toLowerCase()
@@ -275,6 +280,10 @@ export function createProject(payload: CreateProjectPayload): Project {
 }
 
 export function lockProjectSchema(id: string): boolean {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    return false;
+  }
+
   const projects = getProjects();
   const project = projects.find((p) => p.id === id);
   if (!project) return false;
@@ -328,6 +337,9 @@ export function saveProjectItems(projectId: string, items: FloorItem[]): void {
 }
 
 export function addItem(item: FloorItem): void {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    return;
+  }
   const items = getProjectItems(item.projectId);
   items.push(item);
   saveProjectItems(item.projectId, items);
@@ -335,6 +347,9 @@ export function addItem(item: FloorItem): void {
 }
 
 export function removeItem(projectId: string, itemId: string): void {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    return;
+  }
   const items = getProjectItems(projectId);
   const filtered = items.filter((i) => i.id !== itemId);
   saveProjectItems(projectId, filtered);
@@ -347,6 +362,9 @@ export function updateItemStatus(
   status: 'pending' | 'installed' | 'inspected',
   notes?: string
 ): void {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    return;
+  }
   const items = getProjectItems(projectId);
   const target = items.find((i) => i.id === itemId);
   if (target) {
@@ -386,6 +404,9 @@ export function recalculateProjectProgress(projectId: string): number {
 }
 
 export function updateProject(id: string, updates: Partial<Project>): Project | undefined {
+  if (typeof window !== 'undefined' && !isAuthenticated()) {
+    return undefined;
+  }
   const projects = getProjects();
   const target = projects.find((p) => p.id === id);
   if (!target) return undefined;
