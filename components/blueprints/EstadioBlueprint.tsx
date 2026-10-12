@@ -106,6 +106,7 @@ export default function EstadioBlueprint({
     const code = item.code.toUpperCase();
     const isZ2 = currentZone.includes('Oriental') || currentZone.includes('Zona 2');
     const isZ3 = currentZone.includes('Norte') || currentZone.includes('Zona 3');
+    const isZ4 = currentZone.includes('Sur') || currentZone.includes('Zona 4');
 
     // Central FACP always in Control Room
     if (code.includes('FACP')) {
@@ -114,6 +115,19 @@ export default function EstadioBlueprint({
     // Cuarto de Bombas
     if (code.includes('BOM')) {
       return { cx: 145, cy: 565, trunkX: 145, trunkY: 520, label: 'Cuarto de Bombas RCI' };
+    }
+
+    if (isZ4) {
+      // ZONA 4: Gradería Sur (Tribuna Derecha)
+      if (code.includes('PAL-01')) return { cx: 855, cy: 250, trunkX: 855, trunkY: 250, label: 'Zona 4 &middot; Estación Manual 1' };
+      if (code.includes('SEN-01')) return { cx: 850, cy: 290, trunkX: 855, trunkY: 290, label: 'Zona 4 &middot; Sensor Óptico 1' };
+      if (code.includes('SEN-02')) return { cx: 865, cy: 330, trunkX: 865, trunkY: 330, label: 'Zona 4 &middot; Sensor Térmico 2' };
+      if (code.includes('SEN-03')) return { cx: 850, cy: 370, trunkX: 855, trunkY: 370, label: 'Zona 4 &middot; Sensor 3' };
+      if (code.includes('SIR-01')) return { cx: 820, cy: 270, trunkX: 855, trunkY: 270, label: 'Zona 4 &middot; Sirena 1' };
+      if (code.includes('PAL-02')) return { cx: 820, cy: 350, trunkX: 855, trunkY: 350, label: 'Zona 4 &middot; Estación Manual 2' };
+      if (code.includes('SIR-02')) return { cx: 820, cy: 395, trunkX: 855, trunkY: 395, label: 'Zona 4 &middot; Sirena 2' };
+      if (code.includes('AUT')) return { cx: 890, cy: 325, trunkX: 890, trunkY: 325, label: 'Zona 4 &middot; Equipo Autónomo' };
+      return { cx: 850, cy: 300 + ((index * 30) % 90), trunkX: 855, trunkY: 300, label: 'Zona 4 &middot; Dispositivo' };
     }
 
     if (isZ3) {
@@ -162,9 +176,13 @@ export default function EstadioBlueprint({
 
   const isZ2 = currentZone.includes('Oriental') || currentZone.includes('Zona 2');
   const isZ3 = currentZone.includes('Norte') || currentZone.includes('Zona 3');
+  const isZ4 = currentZone.includes('Sur') || currentZone.includes('Zona 4');
+  const isZ1 = !isZ2 && !isZ3 && !isZ4;
 
   // SVG paths for the shared conduit + cable loop directed to Central FACP
-  const trunkPathD = isZ3
+  const trunkPathD = isZ4
+    ? 'M 855 125 L 855 240 Q 870 325 855 410'
+    : isZ3
     ? 'M 855 125 Q 500 115 160 190 L 160 410'
     : isZ2
     ? 'M 855 125 Q 920 325 855 460 Q 500 540 220 460'
@@ -250,12 +268,12 @@ export default function EstadioBlueprint({
           {/* Tribuna Occidental (Top - Zona 1) */}
           <path
             d="M 180 180 Q 500 110 820 180 L 760 215 Q 500 155 240 215 Z"
-            fill={!isZ2 && !isZ3 ? '#0284c7' : '#1e293b'}
-            fillOpacity={!isZ2 && !isZ3 ? '0.35' : '0.6'}
+            fill={isZ1 ? '#0284c7' : '#1e293b'}
+            fillOpacity={isZ1 ? '0.35' : '0.6'}
             stroke="#0ea5e9"
-            strokeWidth={!isZ2 && !isZ3 ? '2' : '1'}
+            strokeWidth={isZ1 ? '2' : '1'}
           />
-          <text x="500" y="165" fill="#38bdf8" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+          <text x="500" y="165" fill={isZ1 ? '#38bdf8' : '#64748b'} fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
             TRIBUNA OCCIDENTAL &middot; ZONA 1 (PRENSA &amp; VIP)
           </text>
 
@@ -267,7 +285,7 @@ export default function EstadioBlueprint({
             stroke="#475569"
             strokeWidth={isZ2 ? '2' : '1'}
           />
-          <text x="500" y="520" fill="#94a3b8" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+          <text x="500" y="520" fill={isZ2 ? '#38bdf8' : '#94a3b8'} fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
             TRIBUNA ORIENTAL &middot; ZONA 2 (ACCESOS GENERALES)
           </text>
 
@@ -279,19 +297,19 @@ export default function EstadioBlueprint({
             stroke="#475569"
             strokeWidth={isZ3 ? '2' : '1'}
           />
-          <text x="145" y="330" fill="#64748b" fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(-90 145 330)">
+          <text x="145" y="330" fill={isZ3 ? '#38bdf8' : '#64748b'} fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(-90 145 330)">
             TRIBUNA NORTE &middot; ZONA 3
           </text>
 
           {/* Tribuna Sur (Right - Zona 4) */}
           <path
             d="M 860 250 Q 890 325 860 400 L 805 380 Q 830 325 805 270 Z"
-            fill="#1e293b"
-            fillOpacity="0.6"
-            stroke="#475569"
-            strokeWidth="1"
+            fill={isZ4 ? '#0284c7' : '#1e293b'}
+            fillOpacity={isZ4 ? '0.35' : '0.6'}
+            stroke={isZ4 ? '#0ea5e9' : '#475569'}
+            strokeWidth={isZ4 ? '2' : '1'}
           />
-          <text x="855" y="330" fill="#64748b" fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(90 855 330)">
+          <text x="855" y="330" fill={isZ4 ? '#38bdf8' : '#64748b'} fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(90 855 330)">
             TRIBUNA SUR &middot; ZONA 4
           </text>
 
@@ -402,11 +420,33 @@ export default function EstadioBlueprint({
             />
 
             {/* Junction / Condulet Boxes */}
-            {[
-              { x: 855, y: 125 },
-              { x: 500, y: isZ2 ? 530 : 125 },
-              { x: 220, y: isZ2 ? 460 : 160 },
-            ].map((box, i) => (
+            {(isZ4
+              ? [
+                  { x: 855, y: 125 },
+                  { x: 855, y: 240 },
+                  { x: 865, y: 325 },
+                  { x: 855, y: 410 },
+                ]
+              : isZ3
+              ? [
+                  { x: 855, y: 125 },
+                  { x: 500, y: 115 },
+                  { x: 160, y: 190 },
+                  { x: 160, y: 410 },
+                ]
+              : isZ2
+              ? [
+                  { x: 855, y: 125 },
+                  { x: 855, y: 460 },
+                  { x: 500, y: 530 },
+                  { x: 220, y: 460 },
+                ]
+              : [
+                  { x: 855, y: 125 },
+                  { x: 500, y: 125 },
+                  { x: 220, y: 160 },
+                ]
+            ).map((box, i) => (
               <rect
                 key={i}
                 x={box.x - 5}
@@ -427,9 +467,9 @@ export default function EstadioBlueprint({
             onClick={() => setShowTramoPrompt(true)}
           >
             <rect
-              x={isZ3 ? 120 : 420}
-              y={isZ3 ? 200 : isZ2 ? 545 : 105}
-              width="160"
+              x={isZ3 ? 120 : isZ4 ? 740 : 420}
+              y={isZ3 ? 200 : isZ4 ? 180 : isZ2 ? 545 : 105}
+              width={isZ4 ? 170 : 160}
               height="20"
               rx="5"
               fill="#090d16"
@@ -437,8 +477,8 @@ export default function EstadioBlueprint({
               strokeWidth="1.5"
             />
             <text
-              x={isZ3 ? 200 : 500}
-              y={isZ3 ? 213 : isZ2 ? 558 : 118}
+              x={isZ3 ? 200 : isZ4 ? 825 : 500}
+              y={isZ3 ? 213 : isZ4 ? 193 : isZ2 ? 558 : 118}
               fill="#38bdf8"
               fontSize="8.5"
               fontWeight="bold"
