@@ -12,6 +12,17 @@ interface Props {
   onSelectItem?: (item: FloorItem) => void;
 }
 
+export interface BlueprintSection {
+  id: string;
+  code: string;
+  name: string;
+  fromCode: string;
+  toCode: string;
+  lengthMeters: number;
+  pathD: string;
+  labelPos: { x: number; y: number };
+}
+
 export default function EstadioBlueprint({
   items,
   currentZone,
@@ -21,6 +32,8 @@ export default function EstadioBlueprint({
 }: Props) {
   const [internalSelected, setInternalSelected] = useState<FloorItem | null>(null);
   const [hoveredNode, setHoveredNode] = useState<FloorItem | null>(null);
+  const [selectedSection, setSelectedSection] = useState<BlueprintSection | null>(null);
+  const [hoveredSection, setHoveredSection] = useState<BlueprintSection | null>(null);
   const [showTramoPrompt, setShowTramoPrompt] = useState(false);
 
   const activeSelected = selectedItemId
@@ -38,9 +51,9 @@ export default function EstadioBlueprint({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'inspected':
-        return '#10B981'; // emerald-500 (CONFORME)
+        return '#10B981'; // emerald-500
       case 'installed':
-        return '#0077B6'; // brand-primary blue (INSTALADO)
+        return '#0077B6'; // brand-primary blue
       case 'pending':
       default:
         return '#F59E0B'; // amber-500 (PLANIFICADO)
@@ -52,141 +65,442 @@ export default function EstadioBlueprint({
     return text.includes('aut-') || (text.includes('autónomo') && !text.includes('direccionable'));
   };
 
-  // Find the tubería and cable of the active zone
-  const currentTuberia =
-    items.find((i) => i.type === 'tuberia') || {
-      id: 'default-tub',
-      projectId: 'estadio-metropolitano',
-      code: 'EST-TUB-01',
-      type: 'tuberia' as const,
-      name: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
-      model: 'Conduit EMT 1 pulg Heavy Duty C-80',
-      zone: currentZone,
-      status: 'pending' as const,
-      quantity: 380,
-      unit: 'Metros Lineales',
-      unitPrice: 46000,
-      notes: '',
-    };
-
-  const currentCable =
-    items.find((i) => i.type === 'cableado') || {
-      id: 'default-cab',
-      projectId: 'estadio-metropolitano',
-      code: 'EST-CAB-01',
-      type: 'cableado' as const,
-      name: 'Cable FPLR Blindado 2x14 AWG Lazo SLC Dirección FACP',
-      model: 'Honeywell Genesis UV-Resistant FPLR',
-      zone: currentZone,
-      status: 'pending' as const,
-      quantity: 750,
-      unit: 'Metros',
-      unitPrice: 14500,
-      notes: '',
-    };
-
-  // Central System FACP
-  const centralFacp = items.find((i) => i.code.includes('FACP') || i.type === 'facp') || {
-    id: 'em-facp-default',
+  const mainTuberia: FloorItem = (items.find((i) => i.type === 'tuberia' || i.code.includes('TUB')) as FloorItem) || {
+    id: 'default-tub',
     projectId: 'estadio-metropolitano',
-    code: 'EST-FACP-01',
-    type: 'facp' as const,
-    name: 'Panel Principal de Alarma & Control Central FACP',
-    model: 'Notifier NFS2-3030 / Red Noti-Fire-Net',
-    zone: 'Sala de Control FACP',
-    status: 'pending' as const,
-    quantity: 1,
-    unit: 'Unidad',
-    unitPrice: 34500000,
+    code: 'EST-TUB-01',
+    type: 'tuberia',
+    name: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
+    model: 'Conduit EMT 1 pulg Heavy Duty C-80',
+    zone: currentZone,
+    status: 'pending',
+    quantity: 380,
+    unit: 'Metros Lineales',
+    unitPrice: 46000,
     notes: '',
   };
 
-  // Physical coordinates for the 3 active zones
-  const getCoordinatesForZone = (item: FloorItem, index: number) => {
-    const code = item.code.toUpperCase();
-    const isZ2 = currentZone.includes('Oriental') || currentZone.includes('Zona 2');
-    const isZ3 = currentZone.includes('Norte') || currentZone.includes('Zona 3');
-    const isZ4 = currentZone.includes('Sur') || currentZone.includes('Zona 4');
-
-    // Central FACP always in Control Room
-    if (code.includes('FACP')) {
-      return { cx: 855, cy: 82, trunkX: 855, trunkY: 125, label: 'Sala de Control FACP (Sistema Central)' };
-    }
-    // Cuarto de Bombas
-    if (code.includes('BOM')) {
-      return { cx: 145, cy: 565, trunkX: 145, trunkY: 520, label: 'Cuarto de Bombas RCI' };
-    }
-
-    if (isZ4) {
-      // ZONA 4: Gradería Sur (Tribuna Derecha)
-      if (code.includes('PAL-01')) return { cx: 855, cy: 250, trunkX: 855, trunkY: 250, label: 'Zona 4 &middot; Estación Manual 1' };
-      if (code.includes('SEN-01')) return { cx: 850, cy: 290, trunkX: 855, trunkY: 290, label: 'Zona 4 &middot; Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 865, cy: 330, trunkX: 865, trunkY: 330, label: 'Zona 4 &middot; Sensor Térmico 2' };
-      if (code.includes('SEN-03')) return { cx: 850, cy: 370, trunkX: 855, trunkY: 370, label: 'Zona 4 &middot; Sensor 3' };
-      if (code.includes('SIR-01')) return { cx: 820, cy: 270, trunkX: 855, trunkY: 270, label: 'Zona 4 &middot; Sirena 1' };
-      if (code.includes('PAL-02')) return { cx: 820, cy: 350, trunkX: 855, trunkY: 350, label: 'Zona 4 &middot; Estación Manual 2' };
-      if (code.includes('SIR-02')) return { cx: 820, cy: 395, trunkX: 855, trunkY: 395, label: 'Zona 4 &middot; Sirena 2' };
-      if (code.includes('AUT')) return { cx: 890, cy: 325, trunkX: 890, trunkY: 325, label: 'Zona 4 &middot; Equipo Autónomo' };
-      return { cx: 850, cy: 300 + ((index * 30) % 90), trunkX: 855, trunkY: 300, label: 'Zona 4 &middot; Dispositivo' };
-    }
-
-    if (isZ3) {
-      // ZONA 3: Gradería Norte (Tribuna Izquierda)
-      if (code.includes('PAL-01')) return { cx: 145, cy: 250, trunkX: 160, trunkY: 250, label: 'Zona 3 &middot; Estación Manual 1' };
-      if (code.includes('SEN-01')) return { cx: 140, cy: 290, trunkX: 160, trunkY: 290, label: 'Zona 3 &middot; Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 140, cy: 330, trunkX: 160, trunkY: 330, label: 'Zona 3 &middot; Sensor Térmico 2' };
-      if (code.includes('SEN-03')) return { cx: 140, cy: 370, trunkX: 160, trunkY: 370, label: 'Zona 3 &middot; Sensor 3' };
-      if (code.includes('SIR-01')) return { cx: 175, cy: 270, trunkX: 160, trunkY: 270, label: 'Zona 3 &middot; Sirena 1' };
-      if (code.includes('PAL-02')) return { cx: 175, cy: 350, trunkX: 160, trunkY: 350, label: 'Zona 3 &middot; Estación Manual 2' };
-      if (code.includes('SIR-02')) return { cx: 175, cy: 395, trunkX: 160, trunkY: 395, label: 'Zona 3 &middot; Sirena 2' };
-      if (code.includes('AUT')) return { cx: 110, cy: 325, trunkX: 110, trunkY: 325, label: 'Zona 3 &middot; Equipo Autónomo' };
-      return { cx: 155, cy: 300 + (index * 30) % 90, trunkX: 160, trunkY: 300, label: 'Zona 3 &middot; Dispositivo' };
-    }
-
-    if (isZ2) {
-      // ZONA 2: Gradería Oriental & Accesos (Tribuna Inferior)
-      if (code.includes('PAL-01')) return { cx: 280, cy: 475, trunkX: 280, trunkY: 495, label: 'Zona 2 &middot; Estación Manual 1' };
-      if (code.includes('SEN-01')) return { cx: 380, cy: 505, trunkX: 380, trunkY: 515, label: 'Zona 2 &middot; Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 500, cy: 520, trunkX: 500, trunkY: 530, label: 'Zona 2 &middot; Sensor Térmico 2' };
-      if (code.includes('SEN-03')) return { cx: 620, cy: 505, trunkX: 620, trunkY: 515, label: 'Zona 2 &middot; Sensor 3' };
-      if (code.includes('SIR-01')) return { cx: 720, cy: 475, trunkX: 720, trunkY: 495, label: 'Zona 2 &middot; Sirena 1' };
-      if (code.includes('PAL-02')) return { cx: 650, cy: 445, trunkX: 650, trunkY: 470, label: 'Zona 2 &middot; Estación Manual 2' };
-      if (code.includes('SIR-02')) return { cx: 350, cy: 445, trunkX: 350, trunkY: 470, label: 'Zona 2 &middot; Sirena 2' };
-      if (code.includes('AUT')) return { cx: 500, cy: 465, trunkX: 500, trunkY: 465, label: 'Zona 2 &middot; Equipo Autónomo' };
-      return { cx: 360 + (index * 90) % 300, cy: 480, trunkX: 500, trunkY: 510, label: 'Zona 2 &middot; Dispositivo' };
-    }
-
-    // Default: ZONA 1 (Gradería Occidental & Prensa - Tribuna Superior)
-    if (code.includes('PAL-01')) return { cx: 270, cy: 175, trunkX: 270, trunkY: 155, label: 'Zona 1 &middot; Estación Manual 1' };
-    if (code.includes('SEN-01')) return { cx: 380, cy: 150, trunkX: 380, trunkY: 135, label: 'Zona 1 &middot; Sensor Óptico 1' };
-    if (code.includes('SEN-02')) return { cx: 500, cy: 135, trunkX: 500, trunkY: 125, label: 'Zona 1 &middot; Sensor Térmico 2' };
-    if (code.includes('SEN-03')) return { cx: 620, cy: 150, trunkX: 620, trunkY: 135, label: 'Zona 1 &middot; Sensor Haz Beam 3' };
-    if (code.includes('SIR-01')) return { cx: 730, cy: 175, trunkX: 730, trunkY: 155, label: 'Zona 1 &middot; Sirena 1' };
-    if (code.includes('PAL-02')) return { cx: 660, cy: 205, trunkX: 660, trunkY: 180, label: 'Zona 1 &middot; Estación Manual 2' };
-    if (code.includes('SIR-02')) return { cx: 340, cy: 205, trunkX: 340, trunkY: 180, label: 'Zona 1 &middot; Sirena 2' };
-    if (code.includes('AUT')) return { cx: 500, cy: 185, trunkX: 500, trunkY: 185, label: 'Zona 1 &middot; Equipo Autónomo' };
-
-    const cx = 340 + (index * 90) % 320;
-    return { cx, cy: 165, trunkX: cx, trunkY: 145, label: 'Zona 1 &middot; Dispositivo' };
+  const mainCable: FloorItem = (items.find((i) => i.type === 'cableado' || i.code.includes('CAB')) as FloorItem) || {
+    id: 'default-cab',
+    projectId: 'estadio-metropolitano',
+    code: 'EST-CAB-01',
+    type: 'cableado',
+    name: 'Cable FPLR Blindado 2x14 AWG Lazo SLC Dirección FACP',
+    model: 'Honeywell Genesis UV-Resistant FPLR',
+    zone: currentZone,
+    status: 'pending',
+    quantity: 750,
+    unit: 'Metros',
+    unitPrice: 14500,
+    notes: '',
   };
-
-  // Filter out the bulk infrastructure items (tubería/cable) from point dots
-  const discreteDevices = items.filter((i) => i.type !== 'tuberia' && i.type !== 'cableado');
-  const activeDisplayNode = hoveredNode || activeSelected;
 
   const isZ2 = currentZone.includes('Oriental') || currentZone.includes('Zona 2');
   const isZ3 = currentZone.includes('Norte') || currentZone.includes('Zona 3');
   const isZ4 = currentZone.includes('Sur') || currentZone.includes('Zona 4');
   const isZ1 = !isZ2 && !isZ3 && !isZ4;
 
-  // SVG paths for the shared conduit + cable loop directed to Central FACP
-  const trunkPathD = isZ4
-    ? 'M 855 125 L 855 240 Q 870 325 855 410'
-    : isZ3
-    ? 'M 855 125 Q 500 115 160 190 L 160 410'
-    : isZ2
-    ? 'M 855 125 Q 920 325 855 460 Q 500 540 220 460'
-    : 'M 855 125 L 855 160 Q 500 115 220 160';
+  const getSectionsForZone = (): BlueprintSection[] => {
+    if (isZ4) {
+      return [
+        {
+          id: 'z4-sec-1',
+          code: 'SEC-01',
+          name: 'Tramo 1: FACP ➔ PAL-01',
+          fromCode: 'EST-FACP-01',
+          toCode: 'EST-Z4-PAL-01',
+          lengthMeters: 15,
+          pathD: 'M 855 82 L 855 230',
+          labelPos: { x: 810, y: 155 },
+        },
+        {
+          id: 'z4-sec-2',
+          code: 'SEC-02',
+          name: 'Tramo 2: PAL-01 ➔ SIR-01',
+          fromCode: 'EST-Z4-PAL-01',
+          toCode: 'EST-Z4-SIR-01',
+          lengthMeters: 8,
+          pathD: 'M 855 230 L 855 270 L 815 270',
+          labelPos: { x: 835, y: 255 },
+        },
+        {
+          id: 'z4-sec-3',
+          code: 'SEC-03',
+          name: 'Tramo 3: SIR-01 ➔ SEN-01',
+          fromCode: 'EST-Z4-SIR-01',
+          toCode: 'EST-Z4-SEN-01',
+          lengthMeters: 7.5,
+          pathD: 'M 815 270 L 855 270 L 855 305',
+          labelPos: { x: 835, y: 288 },
+        },
+        {
+          id: 'z4-sec-4',
+          code: 'SEC-04',
+          name: 'Tramo 4: SEN-01 ➔ SEN-02',
+          fromCode: 'EST-Z4-SEN-01',
+          toCode: 'EST-Z4-SEN-02',
+          lengthMeters: 4,
+          pathD: 'M 855 305 L 855 345',
+          labelPos: { x: 815, y: 325 },
+        },
+        {
+          id: 'z4-sec-5',
+          code: 'SEC-05',
+          name: 'Tramo 5: SEN-02 ➔ PAL-02',
+          fromCode: 'EST-Z4-SEN-02',
+          toCode: 'EST-Z4-PAL-02',
+          lengthMeters: 6.5,
+          pathD: 'M 855 345 L 855 370 L 815 370',
+          labelPos: { x: 835, y: 358 },
+        },
+        {
+          id: 'z4-sec-6',
+          code: 'SEC-06',
+          name: 'Tramo 6: PAL-02 ➔ SEN-03',
+          fromCode: 'EST-Z4-PAL-02',
+          toCode: 'EST-Z4-SEN-03',
+          lengthMeters: 6.5,
+          pathD: 'M 815 370 L 855 370 L 855 395',
+          labelPos: { x: 835, y: 383 },
+        },
+        {
+          id: 'z4-sec-7',
+          code: 'SEC-07',
+          name: 'Tramo 7: SEN-03 ➔ SIR-02',
+          fromCode: 'EST-Z4-SEN-03',
+          toCode: 'EST-Z4-SIR-02',
+          lengthMeters: 7,
+          pathD: 'M 855 395 L 855 425 L 815 425',
+          labelPos: { x: 835, y: 410 },
+        },
+      ];
+    }
+    if (isZ3) {
+      return [
+        {
+          id: 'z3-sec-1',
+          code: 'SEC-01',
+          name: 'Tramo 1: FACP ➔ PAL-01',
+          fromCode: 'EST-FACP-01',
+          toCode: 'EST-Z3-PAL-01',
+          lengthMeters: 70,
+          pathD: 'M 855 82 L 855 125 Q 500 95 160 140 L 160 230',
+          labelPos: { x: 500, y: 105 },
+        },
+        {
+          id: 'z3-sec-2',
+          code: 'SEC-02',
+          name: 'Tramo 2: PAL-01 ➔ SIR-01',
+          fromCode: 'EST-Z3-PAL-01',
+          toCode: 'EST-Z3-SIR-01',
+          lengthMeters: 8.5,
+          pathD: 'M 160 230 L 160 270 L 205 270',
+          labelPos: { x: 182, y: 255 },
+        },
+        {
+          id: 'z3-sec-3',
+          code: 'SEC-03',
+          name: 'Tramo 3: SIR-01 ➔ SEN-01',
+          fromCode: 'EST-Z3-SIR-01',
+          toCode: 'EST-Z3-SEN-01',
+          lengthMeters: 8,
+          pathD: 'M 205 270 L 160 270 L 160 305',
+          labelPos: { x: 182, y: 288 },
+        },
+        {
+          id: 'z3-sec-4',
+          code: 'SEC-04',
+          name: 'Tramo 4: SEN-01 ➔ SEN-02',
+          fromCode: 'EST-Z3-SEN-01',
+          toCode: 'EST-Z3-SEN-02',
+          lengthMeters: 4,
+          pathD: 'M 160 305 L 160 345',
+          labelPos: { x: 135, y: 325 },
+        },
+        {
+          id: 'z3-sec-5',
+          code: 'SEC-05',
+          name: 'Tramo 5: SEN-02 ➔ PAL-02',
+          fromCode: 'EST-Z3-SEN-02',
+          toCode: 'EST-Z3-PAL-02',
+          lengthMeters: 7,
+          pathD: 'M 160 345 L 160 370 L 205 370',
+          labelPos: { x: 182, y: 358 },
+        },
+        {
+          id: 'z3-sec-6',
+          code: 'SEC-06',
+          name: 'Tramo 6: PAL-02 ➔ SEN-03',
+          fromCode: 'EST-Z3-PAL-02',
+          toCode: 'EST-Z3-SEN-03',
+          lengthMeters: 7,
+          pathD: 'M 205 370 L 160 370 L 160 395',
+          labelPos: { x: 182, y: 383 },
+        },
+        {
+          id: 'z3-sec-7',
+          code: 'SEC-07',
+          name: 'Tramo 7: SEN-03 ➔ SIR-02',
+          fromCode: 'EST-Z3-SEN-03',
+          toCode: 'EST-Z3-SIR-02',
+          lengthMeters: 7.5,
+          pathD: 'M 160 395 L 160 425 L 205 425',
+          labelPos: { x: 182, y: 410 },
+        },
+      ];
+    }
+    if (isZ2) {
+      return [
+        {
+          id: 'z2-sec-1',
+          code: 'SEC-01',
+          name: 'Tramo 1: FACP ➔ SIR-01',
+          fromCode: 'EST-FACP-01',
+          toCode: 'EST-Z2-SIR-01',
+          lengthMeters: 42,
+          pathD: 'M 855 82 L 855 450 Q 820 485 740 485',
+          labelPos: { x: 805, y: 460 },
+        },
+        {
+          id: 'z2-sec-2',
+          code: 'SEC-02',
+          name: 'Tramo 2: SIR-01 ➔ PAL-02',
+          fromCode: 'EST-Z2-SIR-01',
+          toCode: 'EST-Z2-PAL-02',
+          lengthMeters: 8,
+          pathD: 'M 740 485 L 670 460',
+          labelPos: { x: 705, y: 460 },
+        },
+        {
+          id: 'z2-sec-3',
+          code: 'SEC-03',
+          name: 'Tramo 3: PAL-02 ➔ SEN-03',
+          fromCode: 'EST-Z2-PAL-02',
+          toCode: 'EST-Z2-SEN-03',
+          lengthMeters: 9,
+          pathD: 'M 670 460 L 610 520',
+          labelPos: { x: 645, y: 495 },
+        },
+        {
+          id: 'z2-sec-4',
+          code: 'SEC-04',
+          name: 'Tramo 4: SEN-03 ➔ SEN-02',
+          fromCode: 'EST-Z2-SEN-03',
+          toCode: 'EST-Z2-SEN-02',
+          lengthMeters: 11,
+          pathD: 'M 610 520 Q 555 535 500 535',
+          labelPos: { x: 555, y: 545 },
+        },
+        {
+          id: 'z2-sec-5',
+          code: 'SEC-05',
+          name: 'Tramo 5: SEN-02 ➔ SEN-01',
+          fromCode: 'EST-Z2-SEN-02',
+          toCode: 'EST-Z2-SEN-01',
+          lengthMeters: 11,
+          pathD: 'M 500 535 Q 445 535 390 520',
+          labelPos: { x: 445, y: 545 },
+        },
+        {
+          id: 'z2-sec-6',
+          code: 'SEC-06',
+          name: 'Tramo 6: SEN-01 ➔ SIR-02',
+          fromCode: 'EST-Z2-SEN-01',
+          toCode: 'EST-Z2-SIR-02',
+          lengthMeters: 9,
+          pathD: 'M 390 520 L 330 460',
+          labelPos: { x: 355, y: 495 },
+        },
+        {
+          id: 'z2-sec-7',
+          code: 'SEC-07',
+          name: 'Tramo 7: SIR-02 ➔ PAL-01',
+          fromCode: 'EST-Z2-SIR-02',
+          toCode: 'EST-Z2-PAL-01',
+          lengthMeters: 10,
+          pathD: 'M 330 460 L 240 485',
+          labelPos: { x: 285, y: 460 },
+        },
+      ];
+    }
+    // Default: Zona 1 (Occidental)
+    return [
+      {
+        id: 'z1-sec-1',
+        code: 'SEC-01',
+        name: 'Tramo 1: FACP ➔ SIR-01',
+        fromCode: 'EST-FACP-01',
+        toCode: 'EST-Z1-SIR-01',
+        lengthMeters: 16,
+        pathD: 'M 855 82 L 855 125 L 740 155',
+        labelPos: { x: 805, y: 130 },
+      },
+      {
+        id: 'z1-sec-2',
+        code: 'SEC-02',
+        name: 'Tramo 2: SIR-01 ➔ PAL-02',
+        fromCode: 'EST-Z1-SIR-01',
+        toCode: 'EST-Z1-PAL-02',
+        lengthMeters: 8,
+        pathD: 'M 740 155 L 670 180',
+        labelPos: { x: 705, y: 180 },
+      },
+      {
+        id: 'z1-sec-3',
+        code: 'SEC-03',
+        name: 'Tramo 3: PAL-02 ➔ SEN-03',
+        fromCode: 'EST-Z1-PAL-02',
+        toCode: 'EST-Z1-SEN-03',
+        lengthMeters: 9,
+        pathD: 'M 670 180 L 610 115',
+        labelPos: { x: 645, y: 155 },
+      },
+      {
+        id: 'z1-sec-4',
+        code: 'SEC-04',
+        name: 'Tramo 4: SEN-03 ➔ SEN-02',
+        fromCode: 'EST-Z1-SEN-03',
+        toCode: 'EST-Z1-SEN-02',
+        lengthMeters: 11,
+        pathD: 'M 610 115 Q 555 100 500 100',
+        labelPos: { x: 555, y: 90 },
+      },
+      {
+        id: 'z1-sec-5',
+        code: 'SEC-05',
+        name: 'Tramo 5: SEN-02 ➔ SEN-01',
+        fromCode: 'EST-Z1-SEN-02',
+        toCode: 'EST-Z1-SEN-01',
+        lengthMeters: 11,
+        pathD: 'M 500 100 Q 445 100 390 115',
+        labelPos: { x: 445, y: 90 },
+      },
+      {
+        id: 'z1-sec-6',
+        code: 'SEC-06',
+        name: 'Tramo 6: SEN-01 ➔ SIR-02',
+        fromCode: 'EST-Z1-SEN-01',
+        toCode: 'EST-Z1-SIR-02',
+        lengthMeters: 9,
+        pathD: 'M 390 115 L 330 180',
+        labelPos: { x: 355, y: 155 },
+      },
+      {
+        id: 'z1-sec-7',
+        code: 'SEC-07',
+        name: 'Tramo 7: SIR-02 ➔ PAL-01',
+        fromCode: 'EST-Z1-SIR-02',
+        toCode: 'EST-Z1-PAL-01',
+        lengthMeters: 10,
+        pathD: 'M 330 180 L 240 155',
+        labelPos: { x: 285, y: 180 },
+      },
+    ];
+  };
+
+  const sections = getSectionsForZone();
+
+  const getCoordinatesForZone = (item: FloorItem, index: number) => {
+    const code = item.code.toUpperCase();
+
+    // Central FACP always in Control Room
+    if (code.includes('FACP')) {
+      return { cx: 855, cy: 82, label: 'Sala de Control FACP (Sistema Central)' };
+    }
+    // Cuarto de Bombas
+    if (code.includes('BOM')) {
+      return { cx: 145, cy: 565, label: 'Cuarto de Bombas RCI' };
+    }
+
+    if (isZ4) {
+      if (code.includes('PAL-01')) return { cx: 855, cy: 230, label: 'Zona 4 · Estación Manual 1' };
+      if (code.includes('SIR-01')) return { cx: 815, cy: 270, label: 'Zona 4 · Sirena 1' };
+      if (code.includes('SEN-01')) return { cx: 855, cy: 305, label: 'Zona 4 · Sensor Óptico 1' };
+      if (code.includes('SEN-02')) return { cx: 855, cy: 345, label: 'Zona 4 · Sensor Térmico 2' };
+      if (code.includes('PAL-02')) return { cx: 815, cy: 370, label: 'Zona 4 · Estación Manual 2' };
+      if (code.includes('SEN-03')) return { cx: 855, cy: 395, label: 'Zona 4 · Sensor 3' };
+      if (code.includes('SIR-02')) return { cx: 815, cy: 425, label: 'Zona 4 · Sirena 2' };
+      if (code.includes('AUT')) return { cx: 900, cy: 330, label: 'Zona 4 · Equipo Autónomo (Inalámbrico)' };
+      return { cx: 855, cy: 250 + ((index * 30) % 150), label: 'Zona 4 · Dispositivo' };
+    }
+
+    if (isZ3) {
+      if (code.includes('PAL-01')) return { cx: 160, cy: 230, label: 'Zona 3 · Estación Manual 1' };
+      if (code.includes('SIR-01')) return { cx: 205, cy: 270, label: 'Zona 3 · Sirena 1' };
+      if (code.includes('SEN-01')) return { cx: 160, cy: 305, label: 'Zona 3 · Sensor Óptico 1' };
+      if (code.includes('SEN-02')) return { cx: 160, cy: 345, label: 'Zona 3 · Sensor Térmico 2' };
+      if (code.includes('PAL-02')) return { cx: 205, cy: 370, label: 'Zona 3 · Estación Manual 2' };
+      if (code.includes('SEN-03')) return { cx: 160, cy: 395, label: 'Zona 3 · Sensor 3' };
+      if (code.includes('SIR-02')) return { cx: 205, cy: 425, label: 'Zona 3 · Sirena 2' };
+      if (code.includes('AUT')) return { cx: 115, cy: 330, label: 'Zona 3 · Equipo Autónomo (Inalámbrico)' };
+      return { cx: 160, cy: 250 + ((index * 30) % 150), label: 'Zona 3 · Dispositivo' };
+    }
+
+    if (isZ2) {
+      if (code.includes('PAL-01')) return { cx: 240, cy: 485, label: 'Zona 2 · Estación Manual 1' };
+      if (code.includes('SIR-01')) return { cx: 740, cy: 485, label: 'Zona 2 · Sirena 1' };
+      if (code.includes('SEN-01')) return { cx: 390, cy: 520, label: 'Zona 2 · Sensor Óptico 1' };
+      if (code.includes('SEN-02')) return { cx: 500, cy: 535, label: 'Zona 2 · Sensor Térmico 2' };
+      if (code.includes('SEN-03')) return { cx: 610, cy: 520, label: 'Zona 2 · Sensor 3' };
+      if (code.includes('PAL-02')) return { cx: 670, cy: 460, label: 'Zona 2 · Estación Manual 2' };
+      if (code.includes('SIR-02')) return { cx: 330, cy: 460, label: 'Zona 2 · Sirena 2' };
+      if (code.includes('AUT')) return { cx: 500, cy: 470, label: 'Zona 2 · Equipo Autónomo (Inalámbrico)' };
+      return { cx: 500, cy: 535, label: 'Zona 2 · Dispositivo' };
+    }
+
+    // Default: ZONA 1 (Gradería Occidental & Prensa)
+    if (code.includes('PAL-01')) return { cx: 240, cy: 155, label: 'Zona 1 · Estación Manual 1' };
+    if (code.includes('SIR-01')) return { cx: 740, cy: 155, label: 'Zona 1 · Sirena 1' };
+    if (code.includes('SEN-01')) return { cx: 390, cy: 115, label: 'Zona 1 · Sensor Óptico 1' };
+    if (code.includes('SEN-02')) return { cx: 500, cy: 100, label: 'Zona 1 · Sensor Térmico 2' };
+    if (code.includes('SEN-03')) return { cx: 610, cy: 115, label: 'Zona 1 · Sensor Haz Beam 3' };
+    if (code.includes('PAL-02')) return { cx: 670, cy: 180, label: 'Zona 1 · Estación Manual 2' };
+    if (code.includes('SIR-02')) return { cx: 330, cy: 180, label: 'Zona 1 · Sirena 2' };
+    if (code.includes('AUT')) return { cx: 500, cy: 170, label: 'Zona 1 · Equipo Autónomo (Inalámbrico)' };
+    return { cx: 500, cy: 100, label: 'Zona 1 · Dispositivo' };
+  };
+
+  const discreteDevices = items.filter((i) => i.type !== 'tuberia' && i.type !== 'cableado');
+  const activeDisplayNode = hoveredNode || activeSelected;
+
+  const handleSectionClick = (sec: BlueprintSection) => {
+    setSelectedSection(sec);
+    setShowTramoPrompt(true);
+  };
+
+  const getSectionTuberiaItem = (sec: BlueprintSection): FloorItem => {
+    return {
+      id: `em-tub-${sec.id}`,
+      projectId: 'estadio-metropolitano',
+      code: `EST-TUB-${sec.code}`,
+      type: 'tuberia',
+      name: `Tubería Conduit EMT 1" · ${sec.name}`,
+      model: 'Conduit EMT 1 pulg Heavy Duty C-80 Galvanizada',
+      zone: currentZone,
+      status: 'pending',
+      quantity: sec.lengthMeters,
+      unit: 'Metros Lineales',
+      unitPrice: 46000,
+      notes: `Canalización física rígida por tramo desde ${sec.fromCode} hasta ${sec.toCode}.`,
+    };
+  };
+
+  const getSectionCableItem = (sec: BlueprintSection): FloorItem => {
+    return {
+      id: `em-cab-${sec.id}`,
+      projectId: 'estadio-metropolitano',
+      code: `EST-CAB-${sec.code}`,
+      type: 'cableado',
+      name: `Cable FPLR Blindado 2x14 AWG · ${sec.name}`,
+      model: 'Honeywell Genesis UV-Resistant FPLR 300V',
+      zone: currentZone,
+      status: 'pending',
+      quantity: Math.round(sec.lengthMeters * 1.05),
+      unit: 'Metros',
+      unitPrice: 14500,
+      notes: `Lazo SLC direccionable tendido en tubería Conduit desde ${sec.fromCode} hasta ${sec.toCode}.`,
+    };
+  };
 
   return (
     <div className="relative w-full rounded-2xl border border-surface-border bg-white p-5 overflow-hidden shadow-sm">
@@ -206,19 +520,15 @@ export default function EstadioBlueprint({
         <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-gsitText-secondary">
           <div className="flex items-center gap-1.5">
             <span className="w-5 h-2 rounded bg-cyan-400 border border-slate-900 inline-block"></span>
-            <span>Tramo Tubería Conduit + Cable</span>
+            <span>Tubería Conduit EMT (Por Secciones)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
-            <span>Equipo Autónomo (Batería)</span>
+            <span>Equipo Autónomo (Sin Tubería / Batería)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
-            <span>Conforme</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-brand-primary inline-block"></span>
-            <span>Instalado</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
+            <span>Planificado</span>
           </div>
         </div>
       </div>
@@ -250,284 +560,212 @@ export default function EstadioBlueprint({
             ry="290"
             fill="url(#stadiumGlow)"
             stroke="#334155"
-            strokeWidth="2.5"
-            strokeDasharray="6,4"
+            strokeWidth="3"
           />
 
-          {/* Outer Ring & Stands Corridors */}
-          <ellipse
-            cx="500"
-            cy="325"
-            rx="400"
-            ry="240"
-            fill="#0f172a"
-            stroke="#475569"
-            strokeWidth="1.5"
-          />
+          {/* Grandstand Tiers Background */}
+          <ellipse cx="500" cy="325" rx="420" ry="255" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="5,3" />
+          <ellipse cx="500" cy="325" rx="380" ry="220" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="5,3" />
 
-          {/* Tribuna Occidental (Top - Zona 1) */}
+          {/* Gradería Labels & Sectors */}
+          {/* Zona 1: Occidental (Superior) */}
           <path
-            d="M 180 180 Q 500 110 820 180 L 760 215 Q 500 155 240 215 Z"
-            fill={isZ1 ? '#0284c7' : '#1e293b'}
-            fillOpacity={isZ1 ? '0.35' : '0.6'}
-            stroke="#0ea5e9"
-            strokeWidth={isZ1 ? '2' : '1'}
+            d="M 200 130 Q 500 70 800 130"
+            fill="none"
+            stroke={isZ1 ? '#38bdf8' : '#334155'}
+            strokeWidth={isZ1 ? '4' : '2'}
+            strokeOpacity={isZ1 ? 0.9 : 0.4}
           />
-          <text x="500" y="165" fill={isZ1 ? '#38bdf8' : '#64748b'} fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-            TRIBUNA OCCIDENTAL &middot; ZONA 1 (PRENSA &amp; VIP)
+          <text
+            x="500"
+            y="70"
+            fill={isZ1 ? '#38bdf8' : '#64748b'}
+            fontSize="11"
+            fontWeight="bold"
+            fontFamily="monospace"
+            textAnchor="middle"
+          >
+            ZONA 1 &middot; TRIBUNA OCCIDENTAL &amp; CABINAS PRENSA
           </text>
 
-          {/* Tribuna Oriental (Bottom - Zona 2) */}
+          {/* Zona 2: Oriental (Inferior) */}
           <path
-            d="M 180 470 Q 500 540 820 470 L 760 435 Q 500 495 240 435 Z"
-            fill={isZ2 ? '#0284c7' : '#1e293b'}
-            fillOpacity={isZ2 ? '0.35' : '0.6'}
-            stroke="#475569"
-            strokeWidth={isZ2 ? '2' : '1'}
+            d="M 200 520 Q 500 580 800 520"
+            fill="none"
+            stroke={isZ2 ? '#38bdf8' : '#334155'}
+            strokeWidth={isZ2 ? '4' : '2'}
+            strokeOpacity={isZ2 ? 0.9 : 0.4}
           />
-          <text x="500" y="520" fill={isZ2 ? '#38bdf8' : '#94a3b8'} fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-            TRIBUNA ORIENTAL &middot; ZONA 2 (ACCESOS GENERALES)
+          <text
+            x="500"
+            y="595"
+            fill={isZ2 ? '#38bdf8' : '#64748b'}
+            fontSize="11"
+            fontWeight="bold"
+            fontFamily="monospace"
+            textAnchor="middle"
+          >
+            ZONA 2 &middot; TRIBUNA ORIENTAL &amp; ACCESOS GENERALES
           </text>
 
-          {/* Tribuna Norte (Left - Zona 3) */}
+          {/* Zona 3: Norte (Izquierda) */}
           <path
-            d="M 140 250 Q 110 325 140 400 L 195 380 Q 170 325 195 270 Z"
-            fill={isZ3 ? '#0284c7' : '#1e293b'}
-            fillOpacity={isZ3 ? '0.35' : '0.6'}
-            stroke="#475569"
-            strokeWidth={isZ3 ? '2' : '1'}
+            d="M 160 170 Q 110 325 160 480"
+            fill="none"
+            stroke={isZ3 ? '#38bdf8' : '#334155'}
+            strokeWidth={isZ3 ? '4' : '2'}
+            strokeOpacity={isZ3 ? 0.9 : 0.4}
           />
-          <text x="145" y="330" fill={isZ3 ? '#38bdf8' : '#64748b'} fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(-90 145 330)">
-            TRIBUNA NORTE &middot; ZONA 3
+          <text
+            x="115"
+            y="325"
+            fill={isZ3 ? '#38bdf8' : '#64748b'}
+            fontSize="11"
+            fontWeight="bold"
+            fontFamily="monospace"
+            textAnchor="middle"
+            transform="rotate(-90, 115, 325)"
+          >
+            ZONA 3 &middot; TRIBUNA NORTE
           </text>
 
-          {/* Tribuna Sur (Right - Zona 4) */}
+          {/* Zona 4: Sur (Derecha) */}
           <path
-            d="M 860 250 Q 890 325 860 400 L 805 380 Q 830 325 805 270 Z"
-            fill={isZ4 ? '#0284c7' : '#1e293b'}
-            fillOpacity={isZ4 ? '0.35' : '0.6'}
-            stroke={isZ4 ? '#0ea5e9' : '#475569'}
-            strokeWidth={isZ4 ? '2' : '1'}
+            d="M 840 170 Q 890 325 840 480"
+            fill="none"
+            stroke={isZ4 ? '#38bdf8' : '#334155'}
+            strokeWidth={isZ4 ? '4' : '2'}
+            strokeOpacity={isZ4 ? 0.9 : 0.4}
           />
-          <text x="855" y="330" fill={isZ4 ? '#38bdf8' : '#64748b'} fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(90 855 330)">
-            TRIBUNA SUR &middot; ZONA 4
+          <text
+            x="885"
+            y="325"
+            fill={isZ4 ? '#38bdf8' : '#64748b'}
+            fontSize="11"
+            fontWeight="bold"
+            fontFamily="monospace"
+            textAnchor="middle"
+            transform="rotate(90, 885, 325)"
+          >
+            ZONA 4 &middot; TRIBUNA SUR
           </text>
 
-          {/* Athletic Track / Pista Atlética */}
-          <ellipse
-            cx="500"
-            cy="325"
-            rx="330"
-            ry="190"
-            fill="#2c1511"
-            stroke="#7c2d12"
-            strokeWidth="1.5"
-            strokeDasharray="4,2"
-          />
+          {/* Athletic Running Track */}
+          <ellipse cx="500" cy="325" rx="330" ry="175" fill="#7f1d1d" fillOpacity="0.25" stroke="#991b1b" strokeWidth="2" />
+          <ellipse cx="500" cy="325" rx="310" ry="155" fill="none" stroke="#b91c1c" strokeWidth="1" strokeDasharray="6,4" />
 
-          {/* Pitch Field / Césped */}
+          {/* Soccer Grass Pitch */}
           <rect
             x="240"
-            y="200"
+            y="190"
             width="520"
-            height="250"
+            height="270"
             rx="8"
             fill="#064e3b"
+            fillOpacity="0.45"
             stroke="#059669"
             strokeWidth="2"
           />
-          <rect x="250" y="210" width="500" height="230" fill="none" stroke="#10b981" strokeWidth="1.5" strokeOpacity="0.5" />
-          <line x1="500" y1="210" x2="500" y2="440" stroke="#10b981" strokeWidth="1.5" strokeOpacity="0.5" />
-          <circle cx="500" cy="325" r="45" fill="none" stroke="#10b981" strokeWidth="1.5" strokeOpacity="0.5" />
+          <line x1="500" y1="190" x2="500" y2="460" stroke="#059669" strokeWidth="1.5" />
+          <circle cx="500" cy="325" r="45" fill="none" stroke="#059669" strokeWidth="1.5" />
+          <circle cx="500" cy="325" r="3" fill="#10b981" />
 
-          {/* Sala Principal de Control y FACP (Sistema Central) */}
-          <g
-            className="cursor-pointer"
-            onClick={() => handleSelect(centralFacp)}
-          >
-            <rect
-              x="770"
-              y="40"
-              width="170"
-              height="85"
-              rx="6"
-              fill="#0f172a"
-              stroke={activeSelected?.code.includes('FACP') ? '#38bdf8' : '#0284c7'}
-              strokeWidth={activeSelected?.code.includes('FACP') ? '2.5' : '2'}
-            />
-            <circle cx="855" cy="82" r="10" fill="#090d16" stroke="#10b981" strokeWidth="2.5" />
-            <circle cx="855" cy="82" r="4.5" fill="#10b981" />
-            <text x="855" y="85" fill="#ffffff" fontSize="7" fontWeight="bold" textAnchor="middle">✓</text>
-            <text x="855" y="60" fill="#38bdf8" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-              SALA DE CONTROL FACP
-            </text>
-            <text x="855" y="105" fill="#94a3b8" fontSize="8" fontFamily="monospace" textAnchor="middle">
-              SISTEMA CENTRAL (NFPA 72)
-            </text>
-          </g>
+          {/* Pitch Goals and Boxes */}
+          <rect x="240" y="250" width="60" height="150" fill="none" stroke="#059669" strokeWidth="1.5" />
+          <rect x="700" y="250" width="60" height="150" fill="none" stroke="#059669" strokeWidth="1.5" />
 
-          {/* Cuarto de Bombas y Subestación */}
+          {/* Control Room / Central FACP */}
           <rect
-            x="60"
-            y="520"
-            width="170"
-            height="90"
+            x="805"
+            y="55"
+            width="100"
+            height="45"
             rx="6"
             fill="#0f172a"
-            stroke="#0284c7"
-            strokeWidth="1.5"
+            stroke="#10b981"
+            strokeWidth="2"
           />
-          <text x="145" y="545" fill="#38bdf8" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-            CUARTO DE BOMBAS RCI
+          <text x="855" y="73" fill="#10b981" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+            SISTEMA CENTRAL
           </text>
-          <text x="145" y="560" fill="#94a3b8" fontSize="8" fontFamily="monospace" textAnchor="middle">
-            Subestación Técnica
+          <text x="855" y="87" fill="#6ee7b7" fontSize="8" fontFamily="monospace" textAnchor="middle">
+            SALA FACP &bull; NFPA 72
           </text>
 
           {/* ============================================================ */}
-          {/* TRAMO COMPARTIDO: TUBERÍA CONDUIT + CABLEADO AL FACP         */}
+          {/* SECCIONES DISCRIMINADAS DE TUBERÍA Y CABLEADO (DE EQUIPO A EQUIPO) */}
           {/* ============================================================ */}
-          <g
-            className="cursor-pointer group"
-            onClick={() => setShowTramoPrompt(true)}
-          >
-            {/* Hit area and halo on hover */}
-            <path
-              d={trunkPathD}
-              fill="none"
-              stroke="#00b4d8"
-              strokeWidth="10"
-              strokeOpacity="0.15"
-              strokeLinecap="round"
-            />
-            {/* Tubería Conduit EMT Body */}
-            <path
-              d={trunkPathD}
-              fill="none"
-              stroke="#00b4d8"
-              strokeWidth="4"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Cableado FPLR / Lazo SLC Centerline */}
-            <path
-              d={trunkPathD}
-              fill="none"
-              stroke="#f8fafc"
-              strokeWidth="1.2"
-              strokeDasharray="5,4"
-              opacity="0.9"
-            />
-
-            {/* Junction / Condulet Boxes */}
-            {(isZ4
-              ? [
-                  { x: 855, y: 125 },
-                  { x: 855, y: 240 },
-                  { x: 865, y: 325 },
-                  { x: 855, y: 410 },
-                ]
-              : isZ3
-              ? [
-                  { x: 855, y: 125 },
-                  { x: 500, y: 115 },
-                  { x: 160, y: 190 },
-                  { x: 160, y: 410 },
-                ]
-              : isZ2
-              ? [
-                  { x: 855, y: 125 },
-                  { x: 855, y: 460 },
-                  { x: 500, y: 530 },
-                  { x: 220, y: 460 },
-                ]
-              : [
-                  { x: 855, y: 125 },
-                  { x: 500, y: 125 },
-                  { x: 220, y: 160 },
-                ]
-            ).map((box, i) => (
-              <rect
-                key={i}
-                x={box.x - 5}
-                y={box.y - 5}
-                width="10"
-                height="10"
-                rx="1.5"
-                fill="#0f172a"
-                stroke="#38bdf8"
-                strokeWidth="1.5"
-              />
-            ))}
-          </g>
-
-          {/* Interactive Badge on the Shared Tramo */}
-          <g
-            className="cursor-pointer"
-            onClick={() => setShowTramoPrompt(true)}
-          >
-            <rect
-              x={isZ3 ? 120 : isZ4 ? 740 : 420}
-              y={isZ3 ? 200 : isZ4 ? 180 : isZ2 ? 545 : 105}
-              width={isZ4 ? 170 : 160}
-              height="20"
-              rx="5"
-              fill="#090d16"
-              stroke="#00b4d8"
-              strokeWidth="1.5"
-            />
-            <text
-              x={isZ3 ? 200 : isZ4 ? 825 : 500}
-              y={isZ3 ? 213 : isZ4 ? 193 : isZ2 ? 558 : 118}
-              fill="#38bdf8"
-              fontSize="8.5"
-              fontWeight="bold"
-              fontFamily="monospace"
-              textAnchor="middle"
-            >
-              🔀 Tramo: Tubería + Cable (Clic)
-            </text>
-          </g>
-
-          {/* ============================================================ */}
-          {/* BRANCH CONDUIT & CABLE CONNECTIONS TO EACH NON-AUTONOMOUS    */}
-          {/* ============================================================ */}
-          {discreteDevices.map((item, index) => {
-            const coords = getCoordinatesForZone(item, index);
-            const autonomous = isAutonomous(item);
-            const isSelected = activeSelected?.id === item.id || activeSelected?.code === item.code;
-
-            if (autonomous) return null;
+          {sections.map((sec) => {
+            const isHovered = hoveredSection?.id === sec.id;
+            const isSelected = selectedSection?.id === sec.id;
 
             return (
-              <g key={`branch-con-${item.id}`}>
-                {/* Branch conduit pipe */}
-                <line
-                  x1={coords.trunkX}
-                  y1={coords.trunkY}
-                  x2={coords.cx}
-                  y2={coords.cy}
-                  stroke={isSelected ? '#38bdf8' : '#00b4d8'}
-                  strokeWidth={isSelected ? '3' : '2'}
+              <g
+                key={sec.id}
+                className="cursor-pointer"
+                onMouseEnter={() => setHoveredSection(sec)}
+                onMouseLeave={() => setHoveredSection(null)}
+                onClick={() => handleSectionClick(sec)}
+              >
+                {/* Section Glow / Hover AURA */}
+                <path
+                  d={sec.pathD}
+                  fill="none"
+                  stroke="#38bdf8"
+                  strokeWidth="14"
+                  strokeOpacity={isSelected ? 0.35 : isHovered ? 0.25 : 0}
                   strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                {/* Internal SLC Cable */}
-                <line
-                  x1={coords.trunkX}
-                  y1={coords.trunkY}
-                  x2={coords.cx}
-                  y2={coords.cy}
-                  stroke="#f1f5f9"
-                  strokeWidth="0.8"
-                  strokeDasharray="3,2"
+
+                {/* Tubería Conduit EMT Body */}
+                <path
+                  d={sec.pathD}
+                  fill="none"
+                  stroke={isSelected ? '#38bdf8' : isHovered ? '#00b4d8' : '#0284c7'}
+                  strokeWidth="4.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 />
-                <circle cx={coords.trunkX} cy={coords.trunkY} r="2.5" fill="#38bdf8" />
+
+                {/* Cableado FPLR SLC Centerline */}
+                <path
+                  d={sec.pathD}
+                  fill="none"
+                  stroke="#ffffff"
+                  strokeWidth="1.2"
+                  strokeDasharray="4,3"
+                  opacity={isSelected ? 1 : 0.85}
+                />
+
+                {/* Section interactive badge pill */}
+                <rect
+                  x={sec.labelPos.x - 24}
+                  y={sec.labelPos.y - 9}
+                  width="48"
+                  height="18"
+                  rx="6"
+                  fill="#090d16"
+                  stroke={isSelected ? '#38bdf8' : isHovered ? '#00b4d8' : '#334155'}
+                  strokeWidth={isSelected ? '1.5' : '1'}
+                />
+                <text
+                  x={sec.labelPos.x}
+                  y={sec.labelPos.y + 3.5}
+                  fill={isSelected ? '#38bdf8' : isHovered ? '#e0f2fe' : '#94a3b8'}
+                  fontSize="7.5"
+                  fontWeight="bold"
+                  fontFamily="monospace"
+                  textAnchor="middle"
+                >
+                  {sec.code} ({sec.lengthMeters}m)
+                </text>
               </g>
             );
           })}
 
           {/* ============================================================ */}
-          {/* TECHNICAL NODES: 3 SENSORS, 1 AUTONOMOUS, 2 PULL, 2 SIRENS   */}
+          {/* TECHNICAL NODES: FACP, 3 SENSORES, 1 AUTÓNOMO, 2 PULL, 2 SIRENS */}
           {/* ============================================================ */}
           {discreteDevices.map((item, index) => {
             const coords = getCoordinatesForZone(item, index);
@@ -544,15 +782,29 @@ export default function EstadioBlueprint({
                 onMouseEnter={() => setHoveredNode(item)}
                 onMouseLeave={() => setHoveredNode(null)}
               >
+                {/* In-line Condulet connection box behind non-autonomous device */}
+                {!autonomous && (
+                  <rect
+                    x={coords.cx - 7}
+                    y={coords.cy - 7}
+                    width="14"
+                    height="14"
+                    rx="2"
+                    fill="#0f172a"
+                    stroke="#38bdf8"
+                    strokeWidth="1.5"
+                  />
+                )}
+
                 {/* Hover / Selection Aura */}
                 {(isSelected || isHovered) && (
                   <circle
                     cx={coords.cx}
                     cy={coords.cy}
                     r="18"
-                    fill={color}
+                    fill={autonomous ? '#a855f7' : color}
                     fillOpacity="0.25"
-                    stroke={color}
+                    stroke={autonomous ? '#c084fc' : color}
                     strokeWidth="1.5"
                   />
                 )}
@@ -626,15 +878,17 @@ export default function EstadioBlueprint({
         </svg>
 
         {/* ============================================================ */}
-        {/* MODAL / PROMPT DE SELECCIÓN DE TRAMO (TUBERÍA O CABLE)       */}
+        {/* MODAL DISCRIMINADOR DE SECCIÓN (TUBERÍA O CABLEADO DEL TRAMO) */}
         {/* ============================================================ */}
-        {showTramoPrompt && (
-          <div className="absolute inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 z-30 animate-in fade-in duration-150">
-            <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-white space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                <div className="flex items-center gap-2 text-sky-400 font-mono text-xs font-bold uppercase">
-                  <GitBranch className="w-4 h-4" />
-                  <span>Tramo Físico Compartido</span>
+        {showTramoPrompt && selectedSection && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="max-w-md w-full rounded-2xl border border-sky-500/30 bg-slate-900 p-5 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></div>
+                  <h4 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                    Control de Sección Técnica &middot; {selectedSection.code}
+                  </h4>
                 </div>
                 <button
                   onClick={() => setShowTramoPrompt(false)}
@@ -644,20 +898,27 @@ export default function EstadioBlueprint({
                 </button>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed font-sans">
-                En esta trayectoria, la tubería Conduit y el cableado de lazo comparten exactamente la misma canalización física hacia el <strong className="text-white">Sistema Central (FACP)</strong>.
-              </p>
-              <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wide">
-                ¿Qué deseas seleccionar en este tramo?
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 font-mono text-xs">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Trayectoria:</span>
+                  <strong className="text-white">
+                    {selectedSection.fromCode} ➔ {selectedSection.toCode}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Longitud de Sección:</span>
+                  <strong className="text-sky-300">{selectedSection.lengthMeters} metros lineales</strong>
+                </div>
+              </div>
+
+              <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wide font-mono">
+                ¿Qué componente de esta sección deseas seleccionar?
               </div>
 
               <div className="grid grid-cols-1 gap-2.5 font-mono">
                 {/* Option 1: Tubería Conduit */}
                 <button
-                  onClick={() => {
-                    handleSelect(currentTuberia);
-                    setShowTramoPrompt(false);
-                  }}
+                  onClick={() => handleSelect(getSectionTuberiaItem(selectedSection))}
                   className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 text-left transition-all group"
                 >
                   <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 group-hover:scale-105 transition-transform mt-0.5">
@@ -665,23 +926,20 @@ export default function EstadioBlueprint({
                   </div>
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-white block">
-                      Tubería Conduit EMT
+                      Tubería Conduit EMT 1" (Sección {selectedSection.code})
                     </span>
                     <span className="text-[11px] text-slate-400 block font-sans">
-                      Canalización física 1" galvanizada, anclaje antisísmico y cajas condulet 4x4.
+                      Canalización física rígida de {selectedSection.lengthMeters}m entre {selectedSection.fromCode} y {selectedSection.toCode}.
                     </span>
                     <span className="text-[10px] text-cyan-400 font-bold block pt-0.5">
-                      Código: {currentTuberia.code}
+                      Código: EST-TUB-{selectedSection.code} &bull; {selectedSection.lengthMeters} m
                     </span>
                   </div>
                 </button>
 
                 {/* Option 2: Cableado FPLR */}
                 <button
-                  onClick={() => {
-                    handleSelect(currentCable);
-                    setShowTramoPrompt(false);
-                  }}
+                  onClick={() => handleSelect(getSectionCableItem(selectedSection))}
                   className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-sky-500/40 hover:border-sky-400 text-left transition-all group"
                 >
                   <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform mt-0.5">
@@ -689,13 +947,13 @@ export default function EstadioBlueprint({
                   </div>
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-white block">
-                      Cableado FPLR / Lazo SLC
+                      Cableado FPLR / Lazo SLC (Sección {selectedSection.code})
                     </span>
                     <span className="text-[11px] text-slate-400 block font-sans">
-                      Conductor 2x14 AWG blindado viajando dentro del conduit hacia el FACP.
+                      Conductor blindado 2x14 AWG de {Math.round(selectedSection.lengthMeters * 1.05)}m dentro del tramo.
                     </span>
                     <span className="text-[10px] text-sky-400 font-bold block pt-0.5">
-                      Código: {currentCable.code}
+                      Código: EST-CAB-{selectedSection.code} &bull; {Math.round(selectedSection.lengthMeters * 1.05)} m
                     </span>
                   </div>
                 </button>
@@ -704,16 +962,13 @@ export default function EstadioBlueprint({
           </div>
         )}
 
-        {/* ============================================================ */}
-        {/* PINNED TECHNICAL DETAIL CARD (WITH TOGGLE SWITCH)           */}
-        {/* ============================================================ */}
-        {activeDisplayNode && !showTramoPrompt && (
-          <div className="absolute bottom-4 left-4 z-20 max-w-sm w-full rounded-2xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md text-white animate-in fade-in duration-150">
-            {/* Header & Toggle between Tubería and Cable if inspecting conduit/cable */}
-            <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-2.5 mb-2.5">
+        {/* Technical Detail Card */}
+        {activeDisplayNode && (
+          <div className="absolute bottom-5 right-5 max-w-sm w-full rounded-2xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md animate-in fade-in duration-150 z-20">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-2 mb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-sky-400">
+                  <span className="font-mono text-[10px] font-bold text-cyan-400">
                     {activeDisplayNode.code}
                   </span>
                   <span
@@ -748,11 +1003,17 @@ export default function EstadioBlueprint({
               )}
             </div>
 
-            {/* Quick Toggle if currently inspecting either Tubería or Cable */}
+            {/* Quick Toggle if inspecting either Tubería or Cable */}
             {(activeDisplayNode.type === 'tuberia' || activeDisplayNode.type === 'cableado') && (
               <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-2.5 text-[10px] font-mono">
                 <button
-                  onClick={() => handleSelect(currentTuberia)}
+                  onClick={() =>
+                    handleSelect(
+                      selectedSection
+                        ? getSectionTuberiaItem(selectedSection)
+                        : mainTuberia
+                    )
+                  }
                   className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
                     activeDisplayNode.type === 'tuberia'
                       ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
@@ -763,7 +1024,13 @@ export default function EstadioBlueprint({
                   <span>Ver Tubería</span>
                 </button>
                 <button
-                  onClick={() => handleSelect(currentCable)}
+                  onClick={() =>
+                    handleSelect(
+                      selectedSection
+                        ? getSectionCableItem(selectedSection)
+                        : mainCable
+                    )
+                  }
                   className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
                     activeDisplayNode.type === 'cableado'
                       ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
@@ -776,24 +1043,22 @@ export default function EstadioBlueprint({
               </div>
             )}
 
-            {/* Specifications */}
             <div className="space-y-2 text-[11px] font-mono text-slate-300">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Modelo:</span>
                 <span className="text-slate-200 font-bold">{activeDisplayNode.model}</span>
               </div>
               <div className="flex items-center justify-between text-slate-400">
-                <span>Zona:</span>
+                <span>Ubicación:</span>
                 <span className="text-slate-200">{activeDisplayNode.zone}</span>
               </div>
 
-              {/* Infrastructure connections */}
               <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5 mt-2">
                 {isAutonomous(activeDisplayNode) ? (
                   <div className="flex items-start gap-2 text-purple-300">
                     <BatteryCharging className="w-4 h-4 shrink-0 text-purple-400 mt-0.5" />
                     <span className="text-[10px] leading-relaxed">
-                      <strong>Equipo Autónomo:</strong> Batería interna de litio (10 años). Dispositivo independiente que no requiere canalización de tubería ni cable exterior hacia el sistema central.
+                      <strong>Equipo Autónomo:</strong> Batería interna de litio (10 años). Dispositivo independiente que no requiere canalización de tubería ni cable exterior.
                     </span>
                   </div>
                 ) : activeDisplayNode.code.includes('FACP') ? (
@@ -803,39 +1068,25 @@ export default function EstadioBlueprint({
                       <strong>Sistema Central:</strong> Panel Central FACP. Todos los lazos direccionables SLC (3 sensores, 2 palancas y 2 sirenas) convergen aquí.
                     </span>
                   </div>
+                ) : activeDisplayNode.type === 'tuberia' || activeDisplayNode.type === 'cableado' ? (
+                  <div className="flex items-start gap-2 text-cyan-300">
+                    <GitBranch className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
+                    <span className="text-[10px] leading-relaxed">
+                      <strong>Control de Sección:</strong> Canalización y cableado discriminado por tramo entre equipos para control de metraje e instalación.
+                    </span>
+                  </div>
                 ) : (
-                  <>
-                    <div className="flex items-center justify-between text-cyan-400 text-[10px]">
-                      <div className="flex items-center gap-1.5">
-                        <Wrench className="w-3.5 h-3.5 shrink-0" />
-                        <span>Canalización: {currentTuberia.code} (Conduit EMT)</span>
-                      </div>
-                      <button
-                        onClick={() => handleSelect(currentTuberia)}
-                        className="text-[9px] text-cyan-300 underline hover:text-white"
-                      >
-                        Ver Tubería
-                      </button>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sky-300 text-[10px]">
-                      <div className="flex items-center gap-1.5">
-                        <Cable className="w-3.5 h-3.5 shrink-0" />
-                        <span>Cableado: {currentCable.code} (Lazo SLC FACP)</span>
-                      </div>
-                      <button
-                        onClick={() => handleSelect(currentCable)}
-                        className="text-[9px] text-sky-200 underline hover:text-white"
-                      >
-                        Ver Cable
-                      </button>
-                    </div>
-                  </>
+                  <div className="flex items-start gap-2 text-sky-300">
+                    <Wrench className="w-4 h-4 shrink-0 text-sky-400 mt-0.5" />
+                    <span className="text-[10px] leading-relaxed">
+                      <strong>Equipo Conectado:</strong> Tubería Conduit EMT y Cable SLC conectados directamente al circuito general.
+                    </span>
+                  </div>
                 )}
               </div>
 
               <div className="flex items-center justify-between pt-1 text-slate-400">
-                <span>Metrado / Cant:</span>
+                <span>Cantidad:</span>
                 <span className="text-white font-bold">
                   {activeDisplayNode.quantity} {activeDisplayNode.unit} &bull; ${(activeDisplayNode.quantity * activeDisplayNode.unitPrice).toLocaleString('es-CO')}
                 </span>
@@ -851,7 +1102,6 @@ export default function EstadioBlueprint({
         )}
       </div>
 
-      {/* Blueprint Footer */}
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-gsitText-secondary pt-2 border-t border-surface-border">
         <div className="flex items-center gap-3">
           <span>
@@ -859,13 +1109,12 @@ export default function EstadioBlueprint({
           </span>
           <span className="text-slate-300">|</span>
           <span>
-            3 Sensores SLC &bull; 1 Autónomo &bull; 2 Palancas &bull; 2 Sirenas &bull; Sistema Central FACP
+            7 Secciones Técnicas &bull; 3 Sensores SLC &bull; 1 Autónomo (Sin Tubería) &bull; 2 Palancas &bull; 2 Sirenas &bull; Sistema Central FACP
           </span>
         </div>
 
         <div className="flex items-center gap-2 text-brand-primary font-bold">
-          <GitBranch className="w-3.5 h-3.5" />
-          <span>Lazo SLC Clase A &bull; NFPA 72</span>
+          <span>{discreteDevices.length} Equipos en Plano</span>
         </div>
       </div>
     </div>
