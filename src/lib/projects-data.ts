@@ -1370,7 +1370,7 @@ export function updateItemStatus(
   projectId: string,
   itemId: string,
   status: 'pending' | 'installed' | 'inspected',
-  notes?: string
+  notesOrOptions?: string | { notes?: string; installerTeam?: string; photoUrl?: string }
 ): void {
   if (typeof window !== 'undefined' && !isAuthenticated()) {
     return;
@@ -1379,9 +1379,17 @@ export function updateItemStatus(
   const target = items.find((i) => i.id === itemId);
   if (target) {
     target.status = status;
-    if (notes) target.notes = notes;
-    if (status === 'installed' || status === 'inspected') {
+    if (typeof notesOrOptions === 'string') {
+      target.notes = notesOrOptions;
+    } else if (notesOrOptions) {
+      if (notesOrOptions.notes !== undefined) target.notes = notesOrOptions.notes;
+      if (notesOrOptions.installerTeam !== undefined) target.installerTeam = notesOrOptions.installerTeam;
+      if (notesOrOptions.photoUrl !== undefined) target.photoUrl = notesOrOptions.photoUrl;
+    }
+    if ((status === 'installed' || status === 'inspected') && !target.installedAt) {
       target.installedAt = new Date().toISOString();
+    } else if (status === 'pending') {
+      target.installedAt = null;
     }
     saveProjectItems(projectId, items);
     recalculateProjectProgress(projectId);

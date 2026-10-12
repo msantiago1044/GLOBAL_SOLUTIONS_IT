@@ -9,6 +9,7 @@ export const BotStepSchema = z.enum([
   'SELECT_STATUS',
   'SELECT_TEAM',
   'AWAITING_PHOTO',
+  'AWAITING_NOTES',
 ]);
 
 export const SessionPayloadSchema = z.object({

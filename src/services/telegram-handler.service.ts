@@ -67,9 +67,18 @@ export class TelegramHandlerService {
     // 1. Verificar si el usuario está enviando una foto de evidencia
     if (message.photo && message.photo.length > 0) {
       const session = await this.sessionRepo.getSession(chatId);
-      if (session && session.step === 'AWAITING_PHOTO') {
+      if (session && (session.step === 'AWAITING_PHOTO' || session.step === 'AWAITING_NOTES')) {
         const highestResPhoto = message.photo[message.photo.length - 1];
-        await this.wizard.handleIncomingPhoto(session, highestResPhoto.file_id);
+        await this.wizard.handleIncomingPhoto(session, highestResPhoto.file_id, message.caption);
+        return;
+      }
+    }
+
+    // 1.1 Si el usuario está en el paso de ingresar observaciones de campo y no es comando
+    if (text && !text.startsWith('/')) {
+      const session = await this.sessionRepo.getSession(chatId);
+      if (session && session.step === 'AWAITING_NOTES') {
+        await this.wizard.handleNotesReceived(session, text);
         return;
       }
     }
@@ -258,6 +267,14 @@ export class TelegramHandlerService {
       const act = data.substring(4);
       if (act === 'installed' || act === 'inspected') {
         await this.wizard.handleStatusSelected(session, act, messageId);
+        return;
+      }
+      if (act === 'prompt_notes') {
+        await this.wizard.promptNotes(session, messageId);
+        return;
+      }
+      if (act === 'skip_notes') {
+        await this.wizard.finalizeInstallation(session, session.payload.photoUrl, messageId);
         return;
       }
       if (act === 'skip_photo') {

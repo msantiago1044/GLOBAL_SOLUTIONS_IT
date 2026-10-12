@@ -134,6 +134,7 @@ describe('Validación de Máquina de Estados de Sesión (BotSession)', () => {
       'SELECT_STATUS',
       'SELECT_TEAM',
       'AWAITING_PHOTO',
+      'AWAITING_NOTES',
     ];
 
     validSteps.forEach((step) => {

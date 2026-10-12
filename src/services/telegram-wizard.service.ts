@@ -294,7 +294,7 @@ export class TelegramWizardService {
   }
 
   /**
-   * Paso 4.2: Solicitud de Foto de Evidencia
+   * Paso 4.2: Solicitud de Foto de Evidencia y Observaciones
    */
   async handleTeamSelected(
     session: BotSession,
@@ -309,7 +309,8 @@ export class TelegramWizardService {
         : 'Ing. Residente';
 
     const buttons: InlineKeyboardButton[][] = [
-      [{ text: '⏭️ Omitir Foto (Registro Rápido)', callback_data: 'act:skip_photo' }],
+      [{ text: '📝 Escribir Observación Técnica', callback_data: 'act:prompt_notes' }],
+      [{ text: '⏭️ Omitir Foto y Observaciones', callback_data: 'act:skip_photo' }],
       [{ text: '❌ Cancelar Registro', callback_data: 'nav:cancel' }],
     ];
 
@@ -317,8 +318,8 @@ export class TelegramWizardService {
       `<b>📸 ADJUNTA EVIDENCIA FOTOGRÁFICA</b>\n\n` +
       `Elemento: <code>${session.payload.itemCode}</code>\n` +
       `Responsable: ${teamName}\n\n` +
-      `👉 <b>Toma una foto con la cámara de tu celular y envíala a este chat</b> para adjuntarla al acta de obra.\n\n` +
-      `<i>(O pulsa "Omitir Foto" si estás en modo pruebas o no dispones de cámara en este momento).</i>`;
+      `👉 <b>Toma una foto con la cámara de tu celular y envíala a este chat</b> para adjuntarla al acta de obra (puedes escribir tus observaciones en el texto de la foto).\n\n` +
+      `<i>O pulsa "Escribir Observación Técnica" para detallar el montaje sin foto.</i>`;
 
     await this.sessionRepo.saveSession({
       ...session,
@@ -335,6 +336,51 @@ export class TelegramWizardService {
   }
 
   /**
+   * Solicita observaciones técnicas por escrito al instalador
+   */
+  async promptNotes(session: BotSession, messageId?: number): Promise<void> {
+    const text =
+      `<b>📝 PASO: OBSERVACIONES TÉCNICAS DE CAMPO</b>\n\n` +
+      `Elemento: <code>${session.payload.itemCode || 'Equipo'}</code>\n\n` +
+      `👉 <b>Escribe en este chat tus observaciones sobre la instalación:</b>\n` +
+      `<i>(Ej: soporte antisísmico instalado, cable fijado con abrazaderas, conexiones verificadas)</i>`;
+
+    const buttons: InlineKeyboardButton[][] = [
+      [{ text: '⏭️ Omitir Observaciones', callback_data: 'act:skip_notes' }],
+      [{ text: '❌ Cancelar', callback_data: 'nav:cancel' }],
+    ];
+
+    await this.sessionRepo.saveSession({
+      ...session,
+      step: 'AWAITING_NOTES',
+    });
+
+    if (messageId) {
+      await this.telegram.editMessageText(chatId(session), messageId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    } else {
+      await this.telegram.sendMessage(chatId(session), text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    }
+  }
+
+  /**
+   * Procesa texto de observaciones recibido del instalador
+   */
+  async handleNotesReceived(session: BotSession, notesText: string): Promise<void> {
+    const updatedSession: BotSession = {
+      ...session,
+      payload: {
+        ...session.payload,
+        notes: notesText,
+      },
+    };
+    await this.finalizeInstallation(updatedSession, session.payload.photoUrl);
+  }
+
+  /**
    * Paso 5: Guarda la instalación y muestra el resumen con nuevo porcentaje de avance
    */
   async finalizeInstallation(
@@ -342,19 +388,25 @@ export class TelegramWizardService {
     photoUrl?: string,
     messageId?: number
   ): Promise<void> {
-    const { itemId, itemCode, installerTeam, targetStatus, projectId, floorNumber } = session.payload;
+    const { itemId, installerTeam, targetStatus, projectId, floorNumber, notes } = session.payload;
 
     if (!itemId) {
       await this.telegram.sendMessage(chatId(session), '⚠️ Error: No hay elemento seleccionado.');
       return;
     }
 
+    const userNotes = notes?.trim();
+    const finalNotes =
+      userNotes && userNotes.length > 0
+        ? userNotes
+        : `Registrado vía Telegram Bot (@${session.username || 'usuario'})`;
+
     // 1. Guardar en Supabase
     const result = await this.projectExecution.registerInstallation(itemId, {
       status: targetStatus || 'installed',
       team: installerTeam || 'Técnico Instalador',
       photoUrl,
-      notes: `Registrado vía Telegram Bot (@${session.username || 'usuario'})`,
+      notes: finalNotes,
       capturedBy: installerTeam || 'Técnico Telegram',
     });
 
@@ -368,7 +420,8 @@ export class TelegramWizardService {
       `• <b>Descripción:</b> ${result.updatedItem.name}\n` +
       `• <b>Ubicación:</b> ${result.updatedItem.zone}\n` +
       `• <b>Responsable:</b> ${result.updatedItem.installerTeam}\n` +
-      `• <b>Evidencia:</b> ${photoUrl ? '📸 Foto cargada y vinculada' : 'Sin foto adjunta'}\n\n` +
+      `• <b>Evidencia:</b> ${photoUrl ? '📸 Foto cargada y vinculada' : 'Sin foto adjunta'}\n` +
+      (userNotes ? `• <b>Observaciones:</b> <i>${userNotes}</i>\n\n` : `\n`) +
       `<b>📈 NUEVO AVANCE DE OBRA CALCULADO:</b>\n` +
       `• <b>Nivel ${floorNumber ?? 'Actual'}:</b> ${result.floorProgress}%\n` +
       `• <b>Avance Global del Proyecto:</b> ${result.globalProgress}%\n\n` +
@@ -399,9 +452,20 @@ export class TelegramWizardService {
    */
   async handleIncomingPhoto(
     session: BotSession,
-    fileId: string
+    fileId: string,
+    caption?: string
   ): Promise<void> {
     await this.telegram.sendMessage(chatId(session), '⏳ Procesando y almacenando fotografía de evidencia...');
+
+    const updatedPayload = { ...session.payload };
+    if (caption && caption.trim().length > 0) {
+      updatedPayload.notes = caption.trim();
+    }
+
+    const updatedSession: BotSession = {
+      ...session,
+      payload: updatedPayload,
+    };
 
     try {
       const filePath = await this.telegram.getFilePath(fileId);
@@ -412,7 +476,7 @@ export class TelegramWizardService {
 
       const photoUrl = await this.storage.uploadPhoto(projId, itemId, fileBuffer, 'image/jpeg');
 
-      await this.finalizeInstallation(session, photoUrl);
+      await this.finalizeInstallation(updatedSession, photoUrl);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error desconocido';
       console.error('Error al procesar foto de Telegram:', msg);
@@ -420,7 +484,7 @@ export class TelegramWizardService {
         chatId(session),
         `⚠️ Hubo un detalle al procesar la foto (${msg}), guardando registro sin fotografía...`
       );
-      await this.finalizeInstallation(session);
+      await this.finalizeInstallation(updatedSession);
     }
   }
 }
