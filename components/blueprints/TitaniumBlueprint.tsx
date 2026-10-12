@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { X, Wrench, Cable, GitBranch } from 'lucide-react';
+import { X, Wrench, Cable, GitBranch, BatteryCharging, ShieldAlert } from 'lucide-react';
 
 interface Props {
   items: FloorItem[];
@@ -21,6 +21,7 @@ export default function TitaniumBlueprint({
 }: Props) {
   const [internalSelected, setInternalSelected] = useState<FloorItem | null>(null);
   const [hoveredNode, setHoveredNode] = useState<FloorItem | null>(null);
+  const [showTramoPrompt, setShowTramoPrompt] = useState(false);
 
   const activeSelected = selectedItemId
     ? items.find((i) => i.code === selectedItemId || i.id === selectedItemId) || internalSelected
@@ -28,6 +29,7 @@ export default function TitaniumBlueprint({
 
   const handleSelect = (item: FloorItem) => {
     setInternalSelected(item);
+    setShowTramoPrompt(false);
     if (onSelectItem) {
       onSelectItem(item);
     }
@@ -46,47 +48,80 @@ export default function TitaniumBlueprint({
   };
 
   const isAutonomous = (item: FloorItem) => {
-    const text = `${item.name} ${item.type} ${item.notes || ''}`.toLowerCase();
-    return text.includes('autónomo') && !text.includes('direccionable') && !text.includes('conduit');
+    const text = `${item.code} ${item.name} ${item.type} ${item.notes || ''}`.toLowerCase();
+    return text.includes('aut-') || (text.includes('autónomo') && !text.includes('direccionable'));
   };
 
-  const mainTuberia = items.find((i) => i.type === 'tuberia' || i.code.includes('TUB')) || {
+  const mainTuberia: FloorItem = (items.find((i) => i.type === 'tuberia' || i.code.includes('TUB')) as FloorItem) || {
+    id: 'default-tt-tub',
+    projectId: 'torre-titanium',
     code: 'TUB-EMT-34',
+    type: 'tuberia',
     name: 'Tubería Metálica Eléctrica Conduit EMT 3/4"',
+    model: 'Colmena / RigiCol EMT C-80 Rojo',
+    zone: currentFloorName,
     status: 'inspected',
+    quantity: 340,
+    unit: 'Metros Lineales',
+    unitPrice: 38500,
+    notes: 'Canalización física rígida compartida con abrazaderas antisísmicas y cajas condulet.',
   };
 
-  const mainCable = items.find((i) => i.type === 'cableado' || i.code.includes('CAB')) || {
+  const mainCable: FloorItem = (items.find((i) => i.type === 'cableado' || i.code.includes('CAB')) as FloorItem) || {
+    id: 'default-tt-cab',
+    projectId: 'torre-titanium',
     code: 'CAB-FPLR-214',
+    type: 'cableado',
     name: 'Cable FPLR Blindado 2x14 AWG Rojo Certificado UL',
+    model: 'Genesis / Honeywell Cable FPLR 300V',
+    zone: currentFloorName,
     status: 'inspected',
+    quantity: 580,
+    unit: 'Metros',
+    unitPrice: 12400,
+    notes: 'Lazo direccionable SLC Clase A tendido dentro de la tubería Conduit hacia el Sistema Central.',
   };
 
   const getDeviceCoordinates = (item: FloorItem, index: number) => {
     const code = item.code.toUpperCase();
     if (code.includes('FACP')) {
-      return { cx: 230, cy: 375, trunkX: 230, trunkY: 340, label: 'Lobby Principal / Cuarto FACP' };
+      return { cx: 230, cy: 375, trunkX: 230, trunkY: 340, label: 'Sala Central FACP & Telecomunicaciones' };
     }
-    if (code.includes('DET')) {
-      return { cx: 770, cy: 230, trunkX: 770, trunkY: 180, label: 'Ala Oriente - Oficinas' };
+    if (code.includes('SEN-01') || code.includes('SEN-1')) {
+      return { cx: 340, cy: 115, trunkX: 340, trunkY: 115, label: 'Ala Norte &middot; Sensor Óptico 1' };
     }
-    if (code.includes('PAL')) {
-      return { cx: 420, cy: 365, trunkX: 420, trunkY: 320, label: 'Núcleo Central - Escalera NFPA' };
+    if (code.includes('SEN-02') || code.includes('SEN-2')) {
+      return { cx: 500, cy: 115, trunkX: 500, trunkY: 115, label: 'Ala Norte &middot; Sensor Térmico 2' };
     }
-    if (code.includes('SIR')) {
-      return { cx: 500, cy: 115, trunkX: 500, trunkY: 115, label: 'Ala Norte - Pasillo Central' };
+    if (code.includes('SEN-03') || code.includes('SEN-3')) {
+      return { cx: 770, cy: 200, trunkX: 770, trunkY: 200, label: 'Ala Oriente &middot; Sensor Detección 3' };
+    }
+    if (code.includes('AUT')) {
+      return { cx: 770, cy: 310, trunkX: 770, trunkY: 310, label: 'Ala Oriente &middot; Detector Autónomo (Batería 10 Años)' };
+    }
+    if (code.includes('PAL-01') || code.includes('PAL-1')) {
+      return { cx: 410, cy: 365, trunkX: 350, trunkY: 365, label: 'Núcleo Central &middot; Estación Manual 1' };
+    }
+    if (code.includes('PAL-02') || code.includes('PAL-2')) {
+      return { cx: 770, cy: 400, trunkX: 770, trunkY: 400, label: 'Ala Oriente &middot; Estación Manual 2' };
+    }
+    if (code.includes('SIR-01') || code.includes('SIR-1')) {
+      return { cx: 230, cy: 220, trunkX: 230, trunkY: 220, label: 'Ala Occidente &middot; Sirena Estroboscópica 1' };
+    }
+    if (code.includes('SIR-02') || code.includes('SIR-2')) {
+      return { cx: 650, cy: 115, trunkX: 650, trunkY: 115, label: 'Ala Norte &middot; Sirena Estroboscópica 2' };
     }
 
-    // Dynamic placement
+    // Dynamic fallback placement
     if (index % 3 === 0) {
-      const cx = 200 + (index * 40) % 150;
-      return { cx, cy: 290 + (index * 35) % 150, trunkX: 230, trunkY: 340, label: 'Ala Occidente - Telecomunicaciones' };
+      const cx = 200 + ((index * 40) % 150);
+      return { cx, cy: 290 + ((index * 35) % 150), trunkX: 230, trunkY: 340, label: 'Ala Occidente - Telecomunicaciones' };
     }
     if (index % 3 === 1) {
-      const cx = 700 + (index * 40) % 150;
-      return { cx, cy: 260 + (index * 35) % 180, trunkX: 770, trunkY: 180, label: 'Ala Oriente - Coworking' };
+      const cx = 700 + ((index * 40) % 150);
+      return { cx, cy: 260 + ((index * 35) % 180), trunkX: 770, trunkY: 180, label: 'Ala Oriente - Coworking' };
     }
-    const cx = 350 + (index * 110) % 300;
+    const cx = 350 + ((index * 110) % 300);
     return { cx, cy: 115, trunkX: cx, trunkY: 115, label: 'Ala Norte - Salas Técnicas' };
   };
 
@@ -165,7 +200,7 @@ export default function TitaniumBlueprint({
           {/* Office Wings */}
           {/* North Wing */}
           <rect x="80" y="70" width="840" height="90" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
-          <text x="500" y="100" fill="#e2e8f0" fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+          <text x="500" y="93" fill="#e2e8f0" fontSize="11" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
             ALA NORTE &middot; SALAS DE REUNIONES &amp; AUDITORIO
           </text>
 
@@ -176,7 +211,7 @@ export default function TitaniumBlueprint({
           </text>
           <rect x="110" y="250" width="240" height="240" fill="#0f172a" stroke="#0077b6" strokeWidth="1" strokeDasharray="4,2" />
           <text x="230" y="375" fill="#38bdf8" fontSize="10" fontFamily="monospace" textAnchor="middle">
-            CUARTO TÉCNICO TELECOMUNICACIONES
+            SALA CENTRAL FACP &amp; TELECOMUNICACIONES
           </text>
 
           {/* East Wing / Open Office */}
@@ -186,15 +221,21 @@ export default function TitaniumBlueprint({
           </text>
 
           {/* ============================================================ */}
-          {/* RED DE TUBERÍA CONDUIT EMT (TRONCAL & ANILLO DISTRIBUCIÓN) */}
+          {/* TRAMO COMPARTIDO: TUBERÍA CONDUIT EMT + CABLEADO FPLR         */}
           {/* ============================================================ */}
           <g
-            className="cursor-pointer"
-            onClick={() => {
-              const tubItem = items.find((i) => i.type === 'tuberia');
-              if (tubItem) handleSelect(tubItem);
-            }}
+            className="cursor-pointer group"
+            onClick={() => setShowTramoPrompt(true)}
           >
+            {/* Hover Halo */}
+            <path
+              d="M 230 400 L 230 115 L 770 115 L 770 400"
+              fill="none"
+              stroke="#00b4d8"
+              strokeWidth="10"
+              strokeOpacity="0.15"
+              strokeLinecap="round"
+            />
             {/* Outer Conduit Body */}
             <path
               d="M 230 400 L 230 115 L 770 115 L 770 400"
@@ -212,35 +253,60 @@ export default function TitaniumBlueprint({
               strokeWidth="1.2"
               strokeDasharray="5,3"
             />
+
+            {/* Conduit Cajas de Paso en quiebres */}
+            {[
+              { x: 230, y: 400 },
+              { x: 230, y: 115 },
+              { x: 500, y: 115 },
+              { x: 770, y: 115 },
+              { x: 770, y: 400 },
+            ].map((box, i) => (
+              <rect
+                key={i}
+                x={box.x - 5}
+                y={box.y - 5}
+                width="10"
+                height="10"
+                rx="1.5"
+                fill="#0f172a"
+                stroke="#38bdf8"
+                strokeWidth="1.5"
+              />
+            ))}
           </g>
 
-          {/* Conduit Cajas de Paso en quiebres */}
-          {[
-            { x: 230, y: 400 },
-            { x: 230, y: 115 },
-            { x: 500, y: 115 },
-            { x: 770, y: 115 },
-            { x: 770, y: 400 },
-          ].map((box, i) => (
+          {/* Clickable Tramo Badge on Canvas */}
+          <g
+            className="cursor-pointer"
+            onClick={() => setShowTramoPrompt(true)}
+          >
             <rect
-              key={i}
-              x={box.x - 5}
-              y={box.y - 5}
-              width="10"
-              height="10"
-              rx="1.5"
+              x="380"
+              y="126"
+              width="240"
+              height="20"
+              rx="10"
               fill="#0f172a"
+              fillOpacity="0.95"
               stroke="#38bdf8"
-              strokeWidth="1.5"
+              strokeWidth="1.2"
             />
-          ))}
-
-          <text x="500" y="132" fill="#38bdf8" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-            TUBERÍA CONDUIT EMT 3/4" - DISTRIBUCIÓN PERIMETRAL
-          </text>
+            <text
+              x="500"
+              y="140"
+              fill="#38bdf8"
+              fontSize="8.5"
+              fontWeight="bold"
+              fontFamily="monospace"
+              textAnchor="middle"
+            >
+              ⚡ Tramo Compartido: Tubería &amp; Cableado
+            </text>
+          </g>
 
           {/* ============================================================ */}
-          {/* DERIVACIONES DE TUBERÍA CONECTANDO EQUIPOS                   */}
+          {/* DERIVACIONES DE TUBERÍA CONECTANDO EQUIPOS AL LAZO          */}
           {/* ============================================================ */}
           {discreteDevices.map((item, index) => {
             const coords = getDeviceCoordinates(item, index);
@@ -290,9 +356,9 @@ export default function TitaniumBlueprint({
                     cx={coords.cx}
                     cy={coords.cy}
                     r="18"
-                    fill={color}
+                    fill={autonomous ? '#a855f7' : color}
                     fillOpacity="0.25"
-                    stroke={color}
+                    stroke={autonomous ? '#c084fc' : color}
                     strokeWidth="1.5"
                   />
                 )}
@@ -302,13 +368,13 @@ export default function TitaniumBlueprint({
                   cy={coords.cy}
                   r="9.5"
                   fill="#090d16"
-                  stroke={isSelected ? '#ffffff' : color}
+                  stroke={isSelected ? '#ffffff' : autonomous ? '#c084fc' : color}
                   strokeWidth={isSelected ? '2.5' : '2'}
                 />
 
-                <circle cx={coords.cx} cy={coords.cy} r="4" fill={color} />
+                <circle cx={coords.cx} cy={coords.cy} r="4" fill={autonomous ? '#c084fc' : color} />
 
-                {item.status === 'inspected' && (
+                {item.status === 'inspected' && !autonomous && (
                   <text
                     x={coords.cx}
                     y={coords.cy + 2.5}
@@ -329,13 +395,13 @@ export default function TitaniumBlueprint({
                   rx="3"
                   fill="#090d16"
                   fillOpacity="0.95"
-                  stroke={isSelected ? '#38bdf8' : '#334155'}
+                  stroke={isSelected ? '#38bdf8' : autonomous ? '#a855f7' : '#334155'}
                   strokeWidth={isSelected ? '1.2' : '0.8'}
                 />
                 <text
                   x={coords.cx}
                   y={coords.cy - 14.5}
-                  fill={isSelected ? '#38bdf8' : '#f1f5f9'}
+                  fill={isSelected ? '#38bdf8' : autonomous ? '#d8b4fe' : '#f1f5f9'}
                   fontSize="7.5"
                   fontWeight="bold"
                   fontFamily="monospace"
@@ -352,8 +418,89 @@ export default function TitaniumBlueprint({
           })}
         </svg>
 
+        {/* ============================================================ */}
+        {/* MODAL / PROMPT DE SELECCIÓN DE TRAMO (TUBERÍA VS CABLE)       */}
+        {/* ============================================================ */}
+        {showTramoPrompt && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="max-w-md w-full rounded-2xl border border-sky-500/30 bg-slate-900 p-5 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></div>
+                  <h4 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                    Tramo Compartido &middot; Selección de Componente
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setShowTramoPrompt(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                En esta trayectoria, la tubería Conduit y el cableado de lazo comparten exactamente la misma canalización física hacia el <strong className="text-white">Sistema Central (FACP)</strong>.
+              </p>
+              <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wide">
+                ¿Qué deseas seleccionar en este tramo?
+              </div>
+
+              <div className="grid grid-cols-1 gap-2.5 font-mono">
+                {/* Option 1: Tubería Conduit */}
+                <button
+                  onClick={() => {
+                    handleSelect(mainTuberia);
+                    setShowTramoPrompt(false);
+                  }}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 text-left transition-all group"
+                >
+                  <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 group-hover:scale-105 transition-transform mt-0.5">
+                    <Wrench className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      Tubería Conduit EMT
+                    </span>
+                    <span className="text-[11px] text-slate-400 block font-sans">
+                      Canalización física 3/4" metálica EMT, abrazaderas tipo U y cajas condulet.
+                    </span>
+                    <span className="text-[10px] text-cyan-400 font-bold block pt-0.5">
+                      Código: {mainTuberia.code}
+                    </span>
+                  </div>
+                </button>
+
+                {/* Option 2: Cableado FPLR */}
+                <button
+                  onClick={() => {
+                    handleSelect(mainCable);
+                    setShowTramoPrompt(false);
+                  }}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-sky-500/40 hover:border-sky-400 text-left transition-all group"
+                >
+                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform mt-0.5">
+                    <Cable className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      Cableado FPLR / Lazo SLC
+                    </span>
+                    <span className="text-[11px] text-slate-400 block font-sans">
+                      Conductor blindado 2x14 AWG viajando dentro del conduit hacia el FACP.
+                    </span>
+                    <span className="text-[10px] text-sky-400 font-bold block pt-0.5">
+                      Código: {mainCable.code}
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Technical Detail Card */}
-        {activeDisplayNode && (
+        {activeDisplayNode && !showTramoPrompt && (
           <div className="absolute bottom-4 left-4 z-20 max-w-sm w-full rounded-2xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md text-white animate-in fade-in duration-150">
             <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-2.5 mb-2.5">
               <div>
@@ -393,6 +540,34 @@ export default function TitaniumBlueprint({
               )}
             </div>
 
+            {/* Quick Toggle if currently inspecting either Tubería or Cable */}
+            {(activeDisplayNode.type === 'tuberia' || activeDisplayNode.type === 'cableado') && (
+              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-2.5 text-[10px] font-mono">
+                <button
+                  onClick={() => handleSelect(mainTuberia)}
+                  className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
+                    activeDisplayNode.type === 'tuberia'
+                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Wrench className="w-3 h-3" />
+                  <span>Ver Tubería</span>
+                </button>
+                <button
+                  onClick={() => handleSelect(mainCable)}
+                  className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
+                    activeDisplayNode.type === 'cableado'
+                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Cable className="w-3 h-3" />
+                  <span>Ver Cable</span>
+                </button>
+              </div>
+            )}
+
             <div className="space-y-2 text-[11px] font-mono text-slate-300">
               <div className="flex items-center justify-between text-slate-400">
                 <span>Modelo:</span>
@@ -403,27 +578,50 @@ export default function TitaniumBlueprint({
                 <span className="text-slate-200">{activeDisplayNode.zone}</span>
               </div>
 
-              <div className="p-2 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5 mt-2">
-                <div className="flex items-center gap-2 text-cyan-400">
-                  <Wrench className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-[10px] leading-tight">
-                    {activeDisplayNode.type === 'tuberia'
-                      ? 'Tubería Conduit EMT (Ducto vertical y distribución)'
-                      : isAutonomous(activeDisplayNode)
-                      ? 'Equipo Autónomo (Batería interna litio - Sin tubería externa)'
-                      : `Conectado a ${mainTuberia.code} — Conduit EMT`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2 text-sky-300">
-                  <Cable className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-[10px] leading-tight">
-                    {activeDisplayNode.type === 'cableado'
-                      ? 'Cable FPLR Blindado 2x14 AWG (Lazo SLC Clase A)'
-                      : isAutonomous(activeDisplayNode)
-                      ? 'Comunicación local autónoma'
-                      : `Alimentado por ${mainCable.code} (Lazo SLC / Potencia)`}
-                  </span>
-                </div>
+              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5 mt-2">
+                {isAutonomous(activeDisplayNode) ? (
+                  <div className="flex items-start gap-2 text-purple-300">
+                    <BatteryCharging className="w-4 h-4 shrink-0 text-purple-400 mt-0.5" />
+                    <span className="text-[10px] leading-relaxed">
+                      <strong>Equipo Autónomo:</strong> Batería interna de litio (10 años). Dispositivo independiente que no requiere canalización de tubería ni cable exterior hacia el sistema central.
+                    </span>
+                  </div>
+                ) : activeDisplayNode.code.includes('FACP') ? (
+                  <div className="flex items-start gap-2 text-emerald-300">
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                    <span className="text-[10px] leading-relaxed">
+                      <strong>Sistema Central:</strong> Panel Central FACP. Todos los lazos direccionables SLC (3 sensores, 2 palancas y 2 sirenas) convergen aquí.
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between text-cyan-400 text-[10px]">
+                      <div className="flex items-center gap-1.5">
+                        <Wrench className="w-3.5 h-3.5 shrink-0" />
+                        <span>Canalización: {mainTuberia.code} (Conduit EMT)</span>
+                      </div>
+                      <button
+                        onClick={() => handleSelect(mainTuberia)}
+                        className="text-[9px] text-cyan-300 underline hover:text-white"
+                      >
+                        Ver Tubería
+                      </button>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sky-300 text-[10px]">
+                      <div className="flex items-center gap-1.5">
+                        <Cable className="w-3.5 h-3.5 shrink-0" />
+                        <span>Cableado: {mainCable.code} (Lazo SLC FACP)</span>
+                      </div>
+                      <button
+                        onClick={() => handleSelect(mainCable)}
+                        className="text-[9px] text-sky-200 underline hover:text-white"
+                      >
+                        Ver Cable
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-1 text-slate-400">
@@ -432,15 +630,28 @@ export default function TitaniumBlueprint({
                   {activeDisplayNode.quantity} {activeDisplayNode.unit} &bull; ${(activeDisplayNode.quantity * activeDisplayNode.unitPrice).toLocaleString('es-CO')}
                 </span>
               </div>
+
+              {activeDisplayNode.notes && (
+                <p className="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">
+                  "{activeDisplayNode.notes}"
+                </p>
+              )}
             </div>
           </div>
         )}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-gsitText-secondary pt-2 border-t border-surface-border">
-        <div>
-          Total Elementos Ploteados: <strong className="text-brand-deep font-bold">{items.length}</strong>
+        <div className="flex items-center gap-3">
+          <span>
+            Piso Activo: <strong className="text-brand-deep">{currentFloorName}</strong>
+          </span>
+          <span className="text-slate-300">|</span>
+          <span>
+            3 Sensores SLC &bull; 1 Autónomo &bull; 2 Palancas &bull; 2 Sirenas &bull; Sistema Central FACP
+          </span>
         </div>
+
         <div className="flex items-center gap-2 text-brand-primary font-bold">
           <GitBranch className="w-3.5 h-3.5" />
           <span>Lazo SLC Clase A &bull; NFPA 72</span>
@@ -449,3 +660,4 @@ export default function TitaniumBlueprint({
     </div>
   );
 }
+
