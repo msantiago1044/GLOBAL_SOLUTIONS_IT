@@ -11,7 +11,7 @@ export interface FloorZone {
   progress: number;
 }
 
-const DEFAULT_PROJECTS: Project[] = [
+export const DEFAULT_PROJECTS: Project[] = [
   {
     id: 'torre-titanium',
     name: 'Torre Titanium Plaza',
@@ -42,7 +42,7 @@ const DEFAULT_PROJECTS: Project[] = [
   },
 ];
 
-const DEFAULT_FLOORS: Record<string, FloorZone[]> = {
+export const DEFAULT_FLOORS: Record<string, FloorZone[]> = {
   'torre-titanium': [
     { id: 'tt-s2', projectId: 'torre-titanium', number: -2, name: 'Sótano 2 — Parqueaderos y Bombas', type: 'sotano', progress: 0 },
     { id: 'tt-s1', projectId: 'torre-titanium', number: -1, name: 'Sótano 1 — Subestación & Tableros', type: 'sotano', progress: 0 },
@@ -68,7 +68,7 @@ const DEFAULT_FLOORS: Record<string, FloorZone[]> = {
   ],
 };
 
-const DEFAULT_ITEMS: Record<string, FloorItem[]> = {
+export const DEFAULT_ITEMS: Record<string, FloorItem[]> = {
   'torre-titanium': [
     {
       id: 'tt-item-1',

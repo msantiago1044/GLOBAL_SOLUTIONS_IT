@@ -27,6 +27,35 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     setProjects(getProjects());
+
+    // Carga de proyectos desde Supabase para reflejar datos actualizados
+    (async () => {
+      try {
+        const { getSupabaseClient } = await import('@/src/lib/supabase');
+        const supabase = getSupabaseClient();
+        const { data } = await supabase.from('projects').select('*').order('name');
+        if (data && data.length > 0) {
+          const mapped: Project[] = data.map((raw) => ({
+            id: raw.id,
+            name: raw.name,
+            client: raw.client,
+            address: raw.address,
+            contractor: raw.contractor,
+            interventoria: raw.interventoria,
+            systemType: raw.system_type,
+            totalFloors: raw.total_floors,
+            globalProgress: Number(raw.global_progress),
+            schemaStatus: (raw.schema_status as 'editable' | 'locked') || 'locked',
+            createdAt: raw.created_at,
+            updatedAt: raw.updated_at,
+          }));
+          setProjects(mapped);
+        }
+      } catch {
+        // Fallback a almacenamiento local si está offline
+      }
+    })();
+
     const syncAuth = () => {
       setIsLoggedIn(isAuthenticated());
       setAdminMode(isAdmin());

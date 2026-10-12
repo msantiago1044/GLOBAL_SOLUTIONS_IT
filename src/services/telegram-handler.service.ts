@@ -68,7 +68,6 @@ export class TelegramHandlerService {
     if (message.photo && message.photo.length > 0) {
       const session = await this.sessionRepo.getSession(chatId);
       if (session && session.step === 'AWAITING_PHOTO') {
-        // Tomar la foto de mayor resolución (último elemento del arreglo)
         const highestResPhoto = message.photo[message.photo.length - 1];
         await this.wizard.handleIncomingPhoto(session, highestResPhoto.file_id);
         return;
@@ -82,16 +81,12 @@ export class TelegramHandlerService {
     }
 
     if (text.startsWith('/avance')) {
-      const parts = text.split(' ');
-      const floorNum = parts[1] ? parseInt(parts[1], 10) : undefined;
-      await this.sendAvanceReport(chatId, isNaN(floorNum ?? NaN) ? undefined : floorNum);
+      await this.sendSelectProjectForAvance(chatId);
       return;
     }
 
     if (text.startsWith('/pendientes')) {
-      const parts = text.split(' ');
-      const floorNum = parts[1] ? parseInt(parts[1], 10) : 33;
-      await this.sendPendingItemsReport(chatId, isNaN(floorNum) ? 33 : floorNum);
+      await this.sendSelectProjectForPendientes(chatId);
       return;
     }
 
@@ -101,7 +96,7 @@ export class TelegramHandlerService {
       if (!itemCode) {
         await this.telegram.sendMessage(
           chatId,
-          '⚠️ Debes especificar el código del ítem. Ejemplo: <code>/item TUB-P33-S04</code>'
+          '⚠️ Debes especificar el código del ítem. Ejemplo: <code>/item TUB-RIS-01</code>'
         );
         return;
       }
@@ -113,7 +108,6 @@ export class TelegramHandlerService {
       const parts = text.split(' ');
       const itemCode = parts[1];
       if (itemCode) {
-        // Salto directo a la ficha del ítem especificado
         const item = await this.projectExecution.getItemByCodeOrId(itemCode);
         if (item) {
           const sentMsg = await this.telegram.sendMessage(chatId, '⏳ Cargando ficha técnica...');
@@ -125,7 +119,6 @@ export class TelegramHandlerService {
           return;
         }
       }
-      // Si no especificó código, iniciar el wizard interactivo
       await this.wizard.startProjectSelection(chatId, userId, username);
       return;
     }
@@ -136,7 +129,6 @@ export class TelegramHandlerService {
       return;
     }
 
-    // Si escribe texto no reconocido, sugerir menú principal
     await this.telegram.sendMessage(
       chatId,
       `Hola ${message.from?.first_name || ''}, usa los botones del menú o escribe <b>/menu</b> para operar el sistema.`
@@ -160,10 +152,8 @@ export class TelegramHandlerService {
       return;
     }
 
-    // Responder de inmediato a Telegram para quitar el spinner
     await this.telegram.answerCallbackQuery(cb.id);
 
-    // Obtener sesión activa o crear una en blanco
     let session = await this.sessionRepo.getSession(chatId);
     if (!session) {
       session = {
@@ -175,9 +165,9 @@ export class TelegramHandlerService {
       };
     }
 
-    // --- ENRUTAMIENTO DE ACCIONES POR PREFIJO ---
+    // --- ENRUTAMIENTO DE ACCIONES ---
 
-    // 1. Navegación Principal
+    // 1. Menú Principal y Navegación General
     if (data === 'nav:menu') {
       await this.sessionRepo.clearSession(chatId);
       await this.sendMainMenu(chatId, cb.from.first_name, messageId);
@@ -195,34 +185,60 @@ export class TelegramHandlerService {
       return;
     }
 
+    // 2. Consulta de Avance con Selección de Proyecto
     if (data === 'nav:avance') {
-      await this.sendAvanceReport(chatId, undefined, messageId);
+      await this.sendSelectProjectForAvance(chatId, messageId);
       return;
     }
 
+    if (data.startsWith('av_p:')) {
+      const projId = data.substring(5);
+      await this.sendAvanceReport(chatId, projId, undefined, messageId);
+      return;
+    }
+
+    if (data.startsWith('av_f:')) {
+      const [, projId, floorStr] = data.split(':');
+      const floorNum = parseInt(floorStr, 10);
+      await this.sendAvanceReport(chatId, projId, floorNum, messageId);
+      return;
+    }
+
+    // 3. Consulta de Pendientes con Selección de Proyecto y Piso
     if (data === 'nav:pendientes') {
-      await this.sendPendingItemsReport(chatId, 33, messageId);
+      await this.sendSelectProjectForPendientes(chatId, messageId);
       return;
     }
 
-    // 2. Wizard Paso 1 -> Proyecto seleccionado
+    if (data.startsWith('pen_p:')) {
+      const projId = data.substring(6);
+      await this.sendSelectFloorForPendientes(chatId, projId, messageId);
+      return;
+    }
+
+    if (data.startsWith('pen_f:')) {
+      const [, projId, floorStr] = data.split(':');
+      const floorNum = parseInt(floorStr, 10);
+      await this.sendPendingItemsReport(chatId, projId, floorNum, messageId);
+      return;
+    }
+
+    // 4. Wizard de Instalación Paso a Paso
     if (data.startsWith('p:')) {
       const projId = data.substring(2);
       await this.wizard.handleProjectSelected(session, projId, messageId);
       return;
     }
 
-    // 3. Wizard Paso 2 -> Piso seleccionado
     if (data.startsWith('f:')) {
       const floorNum = parseInt(data.substring(2), 10);
       await this.wizard.handleFloorSelected(session, floorNum, messageId);
       return;
     }
 
-    // 4. Wizard Filtro de Categoría
     if (data.startsWith('cat:')) {
       const category = data.substring(4);
-      const floorNum = session.payload.floorNumber || 33;
+      const floorNum = session.payload.floorNumber || 1;
       await this.wizard.handleFloorSelected(
         session,
         floorNum,
@@ -232,14 +248,12 @@ export class TelegramHandlerService {
       return;
     }
 
-    // 5. Wizard Paso 3 -> Ítem seleccionado
     if (data.startsWith('i:')) {
       const itemId = data.substring(2);
       await this.wizard.handleItemSelected(session, itemId, messageId);
       return;
     }
 
-    // 6. Wizard Paso 4 -> Estado seleccionado
     if (data.startsWith('act:')) {
       const act = data.substring(4);
       if (act === 'installed' || act === 'inspected') {
@@ -252,7 +266,6 @@ export class TelegramHandlerService {
       }
     }
 
-    // 7. Wizard Paso 4.1 -> Cuadrilla seleccionada
     if (data.startsWith('tm:')) {
       const teamCode = data.substring(3);
       await this.wizard.handleTeamSelected(session, teamCode, messageId);
@@ -261,22 +274,22 @@ export class TelegramHandlerService {
   }
 
   /**
-   * Envía o edita el Menú Principal con Botones
+   * Menú Principal con Botones
    */
   private async sendMainMenu(chatId: number, userName: string, messageId?: number): Promise<void> {
     const text =
       `<b>🛡️ GLOBAL SOLUTIONS IT S.A.S. — CONTROL DE OBRA NFPA 72</b>\n\n` +
       `Bienvenido, <b>${userName}</b>.\n` +
-      `Selecciona la acción que deseas realizar en terreno:`;
+      `Selecciona la acción que deseas realizar en obra:`;
 
     const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [
         [
-          { text: '🛠️ Registrar Instalación', callback_data: 'nav:start' },
           { text: '📊 Consultar Avance', callback_data: 'nav:avance' },
+          { text: '📋 Ver Ítems Pendientes', callback_data: 'nav:pendientes' },
         ],
         [
-          { text: '📋 Ver Ítems Pendientes', callback_data: 'nav:pendientes' },
+          { text: '🛠️ Registrar Instalación', callback_data: 'nav:start' },
         ],
       ],
     };
@@ -289,16 +302,48 @@ export class TelegramHandlerService {
   }
 
   /**
-   * Genera el informe de avance global o por piso
+   * Pantalla para preguntar de qué proyecto se desea consultar el avance
+   */
+  private async sendSelectProjectForAvance(chatId: number, messageId?: number): Promise<void> {
+    const projects = await this.projectExecution.getProjects();
+
+    const buttons: InlineKeyboardButton[][] = projects.map((p) => [
+      {
+        text: `🏢 ${p.name}`,
+        callback_data: `av_p:${p.id}`,
+      },
+    ]);
+
+    buttons.push([{ text: '🔙 Menú Principal', callback_data: 'nav:menu' }]);
+
+    const text =
+      `<b>📊 CONSULTAR AVANCE DE OBRA</b>\n\n` +
+      `Tienes <b>${projects.length}</b> proyectos registrados.\n` +
+      `¿De qué proyecto deseas ver el avance?`;
+
+    if (messageId) {
+      await this.telegram.editMessageText(chatId, messageId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    } else {
+      await this.telegram.sendMessage(chatId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    }
+  }
+
+  /**
+   * Genera el informe de avance global o por nivel para el proyecto seleccionado
    */
   private async sendAvanceReport(
     chatId: number,
+    projectId: string,
     floorNumber?: number,
     messageId?: number
   ): Promise<void> {
-    const stats = await this.projectExecution.getProjectStats('torre-titanium');
+    const stats = await this.projectExecution.getProjectStats(projectId);
     if (!stats) {
-      const errorText = '⚠️ No fue posible consultar las estadísticas de la obra.';
+      const errorText = '⚠️ No fue posible consultar las estadísticas del proyecto.';
       if (messageId) await this.telegram.editMessageText(chatId, messageId, errorText);
       else await this.telegram.sendMessage(chatId, errorText);
       return;
@@ -308,22 +353,21 @@ export class TelegramHandlerService {
     const buttons: InlineKeyboardButton[][] = [];
 
     if (floorNumber !== undefined) {
-      // Reporte de piso específico
-      const floors = await this.projectExecution.getFloors('torre-titanium');
+      const floors = await this.projectExecution.getFloors(projectId);
       const targetFloor = floors.find((f) => f.floorNumber === floorNumber);
-      const pendingItems = await this.projectExecution.getPendingItemsByFloor('torre-titanium', floorNumber);
+      const pendingItems = await this.projectExecution.getPendingItemsByFloor(projectId, floorNumber);
 
       const progress = targetFloor?.progressPercentage ?? 0;
       const bar = createProgressBar(progress);
 
       text =
-        `<b>📊 AVANCE NIVEL ${floorNumber} — TORRE GRAND TITANIUM</b>\n\n` +
-        `Avance: <b>${progress}%</b>\n` +
+        `<b>📊 AVANCE NIVEL ${floorNumber} — ${stats.project.name.toUpperCase()}</b>\n\n` +
+        `Avance del Nivel: <b>${progress}%</b>\n` +
         `<code>${bar}</code>\n\n` +
         `• <b>Equipos pendientes:</b> ${pendingItems.length}\n`;
 
       if (pendingItems.length > 0) {
-        text += `\n<b>Pendientes en este piso:</b>\n`;
+        text += `\n<b>Pendientes en este nivel:</b>\n`;
         for (const it of pendingItems.slice(0, 5)) {
           text += `• <code>${it.code}</code>: ${it.name} (${it.zone})\n`;
         }
@@ -332,62 +376,145 @@ export class TelegramHandlerService {
       buttons.push([
         { text: `🛠️ Instalar en Nivel ${floorNumber}`, callback_data: `f:${floorNumber}` },
       ]);
-      buttons.push([{ text: '🔙 Ver Avance Global', callback_data: 'nav:avance' }]);
+      buttons.push([{ text: '🔙 Ver Todo el Proyecto', callback_data: `av_p:${projectId}` }]);
     } else {
-      // Reporte Global
       const globalProgress = stats.project.globalProgress;
       const bar = createProgressBar(globalProgress);
 
-      const tubPercent = stats.tuberiaMetrosTotal > 0
-        ? Math.round((stats.tuberiaMetrosInstalled / stats.tuberiaMetrosTotal) * 100)
-        : 100;
-      const cablePercent = stats.cableMetrosTotal > 0
-        ? Math.round((stats.cableMetrosInstalled / stats.cableMetrosTotal) * 100)
-        : 100;
+      const tubPercent =
+        stats.tuberiaMetrosTotal > 0
+          ? Math.round((stats.tuberiaMetrosInstalled / stats.tuberiaMetrosTotal) * 100)
+          : 0;
+      const cablePercent =
+        stats.cableMetrosTotal > 0
+          ? Math.round((stats.cableMetrosInstalled / stats.cableMetrosTotal) * 100)
+          : 0;
 
       text =
         `<b>📊 AVANCE GLOBAL — ${stats.project.name.toUpperCase()}</b>\n\n` +
+        `• <b>Cliente:</b> ${stats.project.client}\n` +
+        `• <b>Sistema:</b> ${stats.project.systemType}\n\n` +
         `Avance Consolidado: <b>${globalProgress}%</b>\n` +
         `<code>${bar}</code>\n\n` +
         `<b>Desglose Técnico:</b>\n` +
         `• <b>Tubería Conduit EMT:</b> ${stats.tuberiaMetrosInstalled}m / ${stats.tuberiaMetrosTotal}m (${tubPercent}%)\n` +
         `• <b>Cableado FPLR SLC:</b> ${stats.cableMetrosInstalled}m / ${stats.cableMetrosTotal}m (${cablePercent}%)\n` +
         `• <b>Dispositivos/Sensores:</b> ${stats.sensoresInstalled} / ${stats.sensoresTotal} instalados\n\n` +
-        `<b>Niveles Activos en Ejecución:</b>\n`;
+        `<b>Zonas / Pisos (${stats.floorsCount} en total):</b>\n`;
 
-      for (const f of stats.activeFloors.slice(0, 4)) {
-        text += `• Nivel ${f.floorNumber}: ${f.progressPercentage}% (${f.name})\n`;
+      const floorsToShow = stats.activeFloors.length > 0 ? stats.activeFloors.slice(0, 6) : [];
+      for (const f of floorsToShow) {
+        text += `• ${f.name}: <b>${f.progressPercentage}%</b>\n`;
       }
 
-      // Botones para pisos activos
-      const floorButtons: InlineKeyboardButton[] = stats.activeFloors.slice(0, 4).map((f) => ({
+      const floorButtons: InlineKeyboardButton[] = floorsToShow.slice(0, 4).map((f) => ({
         text: `📍 Nivel ${f.floorNumber}`,
-        callback_data: `f:${f.floorNumber}`,
+        callback_data: `av_f:${projectId}:${f.floorNumber}`,
       }));
-      buttons.push(floorButtons);
-      buttons.push([{ text: '🛠️ Iniciar Instalación', callback_data: 'nav:start' }]);
+      if (floorButtons.length > 0) buttons.push(floorButtons);
+
+      buttons.push([
+        { text: '🛠️ Registrar Instalación en este Proyecto', callback_data: `p:${projectId}` },
+      ]);
+      buttons.push([{ text: '🏢 Cambiar de Proyecto', callback_data: 'nav:avance' }]);
     }
 
     buttons.push([{ text: '🏁 Menú Principal', callback_data: 'nav:menu' }]);
 
-    const keyboard: InlineKeyboardMarkup = { inline_keyboard: buttons };
-
     if (messageId) {
-      await this.telegram.editMessageText(chatId, messageId, text, { reply_markup: keyboard });
+      await this.telegram.editMessageText(chatId, messageId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
     } else {
-      await this.telegram.sendMessage(chatId, text, { reply_markup: keyboard });
+      await this.telegram.sendMessage(chatId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
     }
   }
 
   /**
-   * Lista los ítems pendientes de un piso con botones directos para instalar
+   * Selector de proyecto para consultar pendientes
+   */
+  private async sendSelectProjectForPendientes(chatId: number, messageId?: number): Promise<void> {
+    const projects = await this.projectExecution.getProjects();
+
+    const buttons: InlineKeyboardButton[][] = projects.map((p) => [
+      {
+        text: `🏢 ${p.name}`,
+        callback_data: `pen_p:${p.id}`,
+      },
+    ]);
+
+    buttons.push([{ text: '🔙 Menú Principal', callback_data: 'nav:menu' }]);
+
+    const text =
+      `<b>📋 VER ÍTEMS PENDIENTES</b>\n\n` +
+      `Selecciona el proyecto que deseas inspeccionar:`;
+
+    if (messageId) {
+      await this.telegram.editMessageText(chatId, messageId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    } else {
+      await this.telegram.sendMessage(chatId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+    }
+  }
+
+  /**
+   * Selector de piso/zona para ver pendientes
+   */
+  private async sendSelectFloorForPendientes(
+    chatId: number,
+    projectId: string,
+    messageId: number
+  ): Promise<void> {
+    const project = await this.projectExecution.getProject(projectId);
+    const floors = await this.projectExecution.getFloors(projectId);
+
+    const buttons: InlineKeyboardButton[][] = [];
+    for (let i = 0; i < floors.length; i += 2) {
+      const row: InlineKeyboardButton[] = [];
+      const f1 = floors[i];
+      row.push({
+        text: `📍 ${f1.name.length > 20 ? f1.name.substring(0, 18) + '..' : f1.name}`,
+        callback_data: `pen_f:${projectId}:${f1.floorNumber}`,
+      });
+      if (i + 1 < floors.length) {
+        const f2 = floors[i + 1];
+        row.push({
+          text: `📍 ${f2.name.length > 20 ? f2.name.substring(0, 18) + '..' : f2.name}`,
+          callback_data: `pen_f:${projectId}:${f2.floorNumber}`,
+        });
+      }
+      buttons.push(row);
+    }
+
+    buttons.push([
+      { text: '🏢 Cambiar Proyecto', callback_data: 'nav:pendientes' },
+      { text: '🏁 Menú Principal', callback_data: 'nav:menu' },
+    ]);
+
+    const text =
+      `<b>📋 PENDIENTES — ${project?.name.toUpperCase()}</b>\n\n` +
+      `Selecciona la zona o piso a consultar:`;
+
+    await this.telegram.editMessageText(chatId, messageId, text, {
+      reply_markup: { inline_keyboard: buttons },
+    });
+  }
+
+  /**
+   * Muestra la lista de elementos pendientes de un piso con botones para instalarlos
    */
   private async sendPendingItemsReport(
     chatId: number,
+    projectId: string,
     floorNumber: number,
-    messageId?: number
+    messageId: number
   ): Promise<void> {
-    const items = await this.projectExecution.getPendingItemsByFloor('torre-titanium', floorNumber);
+    const items = await this.projectExecution.getPendingItemsByFloor(projectId, floorNumber);
 
     let text = `<b>📋 ELEMENTOS PENDIENTES — NIVEL ${floorNumber}</b>\n\n`;
     const buttons: InlineKeyboardButton[][] = [];
@@ -399,7 +526,7 @@ export class TelegramHandlerService {
       for (const it of items.slice(0, 6)) {
         buttons.push([
           {
-            text: `🛠️ ${it.code} — ${it.name}`,
+            text: `🛠️ ${it.code} — ${it.name.length > 25 ? it.name.substring(0, 23) + '..' : it.name}`,
             callback_data: `i:${it.id}`,
           },
         ]);
@@ -407,18 +534,13 @@ export class TelegramHandlerService {
     }
 
     buttons.push([
-      { text: '📍 Cambiar a Piso 32', callback_data: `f:32` },
-      { text: '📍 Cambiar a Piso 31', callback_data: `f:31` },
+      { text: '📍 Cambiar de Zona / Piso', callback_data: `pen_p:${projectId}` },
+      { text: '🏁 Menú Principal', callback_data: 'nav:menu' },
     ]);
-    buttons.push([{ text: '🏁 Menú Principal', callback_data: 'nav:menu' }]);
 
-    const keyboard: InlineKeyboardMarkup = { inline_keyboard: buttons };
-
-    if (messageId) {
-      await this.telegram.editMessageText(chatId, messageId, text, { reply_markup: keyboard });
-    } else {
-      await this.telegram.sendMessage(chatId, text, { reply_markup: keyboard });
-    }
+    await this.telegram.editMessageText(chatId, messageId, text, {
+      reply_markup: { inline_keyboard: buttons },
+    });
   }
 
   /**
