@@ -80,8 +80,9 @@ export function validateServerEnv(): ServerEnv {
 
   const result = serverEnvSchema.safeParse(env);
   if (!result.success) {
+    const missingKeys = Object.keys(result.error.flatten().fieldErrors).join(', ');
     console.error('❌ Variables de entorno servidor inválidas:', result.error.format());
-    throw new Error('Error al validar las variables de entorno de Supabase (Servidor)');
+    throw new Error(`Faltan variables de entorno en el servidor: [${missingKeys}]`);
   }
 
   return result.data;

@@ -32,10 +32,18 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  const missing: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push('NEXT_PUBLIC_SUPABASE_URL');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) missing.push('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY');
+  if (!process.env.SUPABASE_SECRET_KEY) missing.push('SUPABASE_SECRET_KEY');
+  if (!process.env.TELEGRAM_BOT_TOKEN) missing.push('TELEGRAM_BOT_TOKEN');
+  if (!process.env.TELEGRAM_WEBHOOK_SECRET) missing.push('TELEGRAM_WEBHOOK_SECRET');
+
   return NextResponse.json({
-    status: 'online',
+    status: missing.length === 0 ? 'ready' : 'incomplete_configuration',
     bot: '@global_solutions_it_bot',
     service: 'Global Solutions IT S.A.S. — Integración Telegram',
+    missing_variables: missing,
     timestamp: new Date().toISOString(),
   });
 }
