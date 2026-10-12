@@ -17,6 +17,7 @@ export default function BillingTab({ project, items }: Props) {
   const [statusFilter, setStatusFilter] = useState<'executed' | 'installed' | 'inspected' | 'all'>('executed');
   const [actaNumber, setActaNumber] = useState(`ACTA-${Date.now().toString().slice(-6)}`);
   const [previewItem, setPreviewItem] = useState<FloorItem | null>(null);
+  const [previewPhotoError, setPreviewPhotoError] = useState(false);
 
   // Filtrado de elementos para el corte
   const billedItems = items.filter((item) => {
@@ -316,7 +317,10 @@ export default function BillingTab({ project, items }: Props) {
                           <div className="flex items-center gap-2">
                             <button
                               type="button"
-                              onClick={() => setPreviewItem(item)}
+                              onClick={() => {
+                                setPreviewPhotoError(false);
+                                setPreviewItem(item);
+                              }}
                               className="no-print inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-deep/5 hover:bg-brand-deep/10 text-brand-deep text-[11px] font-bold border border-brand-primary/20 transition-all"
                             >
                               <Camera className="w-3.5 h-3.5 text-brand-primary" />
@@ -378,16 +382,21 @@ export default function BillingTab({ project, items }: Props) {
             <div className="p-4 space-y-4">
               {/* Photo Display */}
               <div className="rounded-xl overflow-hidden bg-surface-main border border-surface-border aspect-video flex items-center justify-center">
-                {previewItem.photoUrl ? (
+                {previewItem.photoUrl && !previewPhotoError ? (
                   <img
                     src={previewItem.photoUrl}
                     alt={`Evidencia ${previewItem.code}`}
+                    onError={() => setPreviewPhotoError(true)}
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="text-center p-6 text-gsitText-muted">
-                    <Camera className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                    <p>No hay imagen adjunta para este elemento</p>
+                  <div className="text-center p-6 text-gsitText-muted space-y-1">
+                    <Camera className="w-8 h-8 mx-auto mb-1 opacity-40 text-brand-primary" />
+                    <p className="font-bold text-xs text-brand-deep">
+                      {previewPhotoError
+                        ? 'Fotografía pendiente de sincronización o no disponible'
+                        : 'No hay imagen adjunta para este elemento'}
+                    </p>
                   </div>
                 )}
               </div>

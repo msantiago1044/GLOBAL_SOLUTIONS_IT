@@ -2,7 +2,8 @@ import { getSupabaseAdminClient } from '../lib/supabase';
 
 export class StorageService {
   private supabase = getSupabaseAdminClient();
-  private bucketName = 'evidencias-instalacion';
+  private primaryBucket = 'evidencias-instalacion';
+  private fallbackBucket = 'evidencias-obra';
 
   /**
    * Sube una fotografía de evidencia tomada en campo a Supabase Storage
@@ -17,24 +18,42 @@ export class StorageService {
     const sanitizedItemId = itemId.replace(/[^a-zA-Z0-9_-]/g, '_');
     const filename = `${projectId}/${sanitizedItemId}_${Date.now()}.jpg`;
 
+    // 1. Intentar subir al bucket principal
     const { data, error } = await this.supabase.storage
-      .from(this.bucketName)
+      .from(this.primaryBucket)
       .upload(filename, fileBuffer, {
         contentType,
         upsert: true,
       });
 
-    if (error) {
-      console.warn(
-        `Almacenamiento en bucket '${this.bucketName}' no disponible (${error.message}). Generando referencia de evidencia.`
-      );
-      return `https://fqxjeohmoidnhmlocbok.supabase.co/storage/v1/object/public/${this.bucketName}/${filename}`;
+    if (!error && data) {
+      const { data: publicUrlData } = this.supabase.storage
+        .from(this.primaryBucket)
+        .getPublicUrl(data.path);
+      return publicUrlData.publicUrl;
     }
 
-    const { data: publicUrlData } = this.supabase.storage
-      .from(this.bucketName)
-      .getPublicUrl(data.path);
+    console.warn(
+      `Fallo en bucket '${this.primaryBucket}' (${error?.message}). Intentando fallback a '${this.fallbackBucket}'...`
+    );
 
-    return publicUrlData.publicUrl;
+    // 2. Intentar subir al bucket de respaldo
+    const { data: fallbackData, error: fallbackError } = await this.supabase.storage
+      .from(this.fallbackBucket)
+      .upload(filename, fileBuffer, {
+        contentType,
+        upsert: true,
+      });
+
+    if (!fallbackError && fallbackData) {
+      const { data: fallbackUrlData } = this.supabase.storage
+        .from(this.fallbackBucket)
+        .getPublicUrl(fallbackData.path);
+      return fallbackUrlData.publicUrl;
+    }
+
+    throw new Error(
+      `No fue posible almacenar la fotografía en Supabase Storage: ${error?.message || fallbackError?.message}`
+    );
   }
 }

@@ -37,6 +37,7 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
   const [editNotes, setEditNotes] = useState('');
   const [editTeam, setEditTeam] = useState('');
   const [editPhotoUrl, setEditPhotoUrl] = useState('');
+  const [photoLoadError, setPhotoLoadError] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
@@ -59,6 +60,7 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
     setEditNotes(item.notes || '');
     setEditTeam(item.installerTeam || '');
     setEditPhotoUrl(item.photoUrl || '');
+    setPhotoLoadError(false);
     setSaveSuccess(false);
   };
 
@@ -432,12 +434,13 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                   Evidencia Fotográfica de Obra
                 </h4>
 
-                {editPhotoUrl ? (
+                {editPhotoUrl && !photoLoadError ? (
                   <div className="space-y-2">
                     <div className="rounded-xl overflow-hidden bg-surface-main border border-surface-border aspect-video flex items-center justify-center max-h-64">
                       <img
                         src={editPhotoUrl}
                         alt={`Evidencia ${activeItem.code}`}
+                        onError={() => setPhotoLoadError(true)}
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -455,8 +458,12 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                   </div>
                 ) : (
                   <div className="rounded-xl border border-dashed border-surface-border p-6 text-center text-gsitText-muted space-y-1">
-                    <Camera className="w-7 h-7 mx-auto opacity-40" />
-                    <p>Sin fotografía de campo vinculada a este equipo.</p>
+                    <Camera className="w-7 h-7 mx-auto opacity-40 text-brand-primary" />
+                    <p className="font-bold text-xs text-brand-deep">
+                      {photoLoadError
+                        ? 'Fotografía no disponible o pendiente de sincronización'
+                        : 'Sin fotografía de campo vinculada a este equipo.'}
+                    </p>
                   </div>
                 )}
 

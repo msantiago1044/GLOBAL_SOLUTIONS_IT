@@ -33,6 +33,19 @@ interface InspectionRecord {
   notes: string;
 }
 
+function EvidenciaImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [hasError, setHasError] = useState(false);
+  if (hasError || !src) {
+    return (
+      <div className="flex flex-col items-center justify-center p-4 text-center text-gsitText-muted space-y-1">
+        <Camera className="w-7 h-7 opacity-40 text-brand-primary" />
+        <span className="text-[10px] font-mono">Fotografía en sincronización</span>
+      </div>
+    );
+  }
+  return <img src={src} alt={alt} onError={() => setHasError(true)} className={className} />;
+}
+
 export default function InspectionsTab({
   project,
   items,
@@ -191,7 +204,7 @@ export default function InspectionsTab({
                   >
                     {item.photoUrl ? (
                       <>
-                        <img
+                        <EvidenciaImage
                           src={item.photoUrl}
                           alt={`Evidencia ${item.code}`}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
