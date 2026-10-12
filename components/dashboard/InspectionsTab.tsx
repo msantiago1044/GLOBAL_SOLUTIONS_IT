@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { ShieldCheck, Camera, UserCheck, Calendar } from 'lucide-react';
+import { ShieldCheck, Camera, UserCheck, Calendar, MapPin } from 'lucide-react';
 
 interface Props {
   project: Project;
   items: FloorItem[];
   canEdit?: boolean;
+  onLocateOnBlueprint?: (itemCode: string, zoneName: string) => void;
 }
 
 interface InspectionRecord {
@@ -22,9 +23,62 @@ interface InspectionRecord {
   notes: string;
 }
 
-const DEFAULT_INSPECTIONS: InspectionRecord[] = [
+const ESTADIO_INSPECTIONS: InspectionRecord[] = [
   {
-    id: 'insp-1',
+    id: 'insp-em-1',
+    itemCode: 'EST-FACP-01',
+    itemName: 'Panel Principal de Alarma & Control Central FACP',
+    zone: 'Zona 1 — Gradería Occidental & Prensa',
+    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
+    date: '2026-03-12',
+    result: 'conforme',
+    notes: 'Prueba de lazo SLC direccionable, transferencia a baterías 24V y comunicación conforme bajo NFPA 72.',
+  },
+  {
+    id: 'insp-em-2',
+    itemCode: 'EST-TUB-01',
+    itemName: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
+    zone: 'Zona 1 — Gradería Occidental & Prensa',
+    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
+    date: '2026-03-18',
+    result: 'conforme',
+    notes: 'Trazado troncal con abrazaderas antisísmicas y continuidad equipotencial de puesta a tierra conforme a RETIE.',
+  },
+  {
+    id: 'insp-em-3',
+    itemCode: 'EST-DET-01',
+    itemName: 'Detector Óptico de Humo Haz Proyectado (Beam)',
+    zone: 'Zona 1 — Gradería Occidental & Prensa',
+    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
+    date: '2026-03-22',
+    result: 'conforme',
+    notes: 'Calibración de haz óptico a 12m de elevación y conexión a tubería Conduit EMT 1" aprobada.',
+  },
+  {
+    id: 'insp-em-4',
+    itemCode: 'EST-BOM-01',
+    itemName: 'Módulo de Monitoreo Tablero Bomba Principal RCI',
+    zone: 'Zona 6 — Cuarto Bombas & Subestación',
+    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
+    date: '2026-03-24',
+    result: 'conforme',
+    notes: 'Supervisión de presostato y conmutación de bombas contra incendio enlazadas al FACP.',
+  },
+  {
+    id: 'insp-em-5',
+    itemCode: 'EST-PAL-01',
+    itemName: 'Estación Manual de Alarma Doble Acción Intemperie',
+    zone: 'Zona 1 — Gradería Occidental & Prensa',
+    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
+    date: '2026-03-25',
+    result: 'observacion',
+    notes: 'Instalada a 1.20m de altura en acceso a prensa. Conexión rígida con tubería Conduit EMT 3/4".',
+  },
+];
+
+const TITANIUM_INSPECTIONS: InspectionRecord[] = [
+  {
+    id: 'insp-tt-1',
     itemCode: 'FACP-01',
     itemName: 'Panel Principal de Alarma Contra Incendio',
     zone: 'Piso 1 — Lobby Principal & FACP',
@@ -34,17 +88,27 @@ const DEFAULT_INSPECTIONS: InspectionRecord[] = [
     notes: 'Prueba de lazo SLC y transferencia a batería de respaldo 24V superada satisfactoriamente bajo NFPA 72 Cap. 14.',
   },
   {
-    id: 'insp-2',
+    id: 'insp-tt-2',
+    itemCode: 'TUB-RIS-01',
+    itemName: 'Tubería Conduit EMT 1-1/2" Troncal Vertical (Riser)',
+    zone: 'Piso 1 — Lobby Principal & FACP',
+    inspector: 'Ing. Carlos Mendoza (Interventoría)',
+    date: '2026-03-21',
+    result: 'conforme',
+    notes: 'Montante vertical en ducto eléctrico técnico y cajas de paso con soportería unistrut conforme a norma.',
+  },
+  {
+    id: 'insp-tt-3',
     itemCode: 'DET-SMK-01',
     itemName: 'Detector Fotoeléctrico Direccionable Inteligente',
     zone: 'Piso 3 — Oficinas Corporativas',
     inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
     date: '2026-03-24',
     result: 'conforme',
-    notes: 'Verificación de dirección 101 en panel y destello de LED indicador.',
+    notes: 'Verificación de dirección 101 en panel y destello de LED indicador con alimentación por tubería Conduit.',
   },
   {
-    id: 'insp-3',
+    id: 'insp-tt-4',
     itemCode: 'TUB-EMT-34',
     itemName: 'Tubería Metálica Eléctrica Conduit EMT 3/4"',
     zone: 'Piso 2 — Auditorio & Mezzanine',
@@ -55,8 +119,17 @@ const DEFAULT_INSPECTIONS: InspectionRecord[] = [
   },
 ];
 
-export default function InspectionsTab({ project, items, canEdit = false }: Props) {
-  const [inspections, setInspections] = useState<InspectionRecord[]>(DEFAULT_INSPECTIONS);
+export default function InspectionsTab({
+  project,
+  items,
+  canEdit = false,
+  onLocateOnBlueprint,
+}: Props) {
+  const [inspections, setInspections] = useState<InspectionRecord[]>(() => {
+    if (project.id === 'estadio-metropolitano') return ESTADIO_INSPECTIONS;
+    if (project.id === 'torre-titanium') return TITANIUM_INSPECTIONS;
+    return ESTADIO_INSPECTIONS;
+  });
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     itemCode: items[0]?.code || '',
@@ -226,15 +299,27 @@ export default function InspectionsTab({ project, items, canEdit = false }: Prop
               "{insp.notes}"
             </p>
 
-            <div className="flex items-center justify-between text-[11px] font-mono text-gsitText-muted pt-2 border-t border-surface-border">
-              <div className="flex items-center gap-1.5">
-                <UserCheck className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
-                <span>{insp.inspector}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-gsitText-muted pt-2 border-t border-surface-border">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1.5">
+                  <UserCheck className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
+                  <span>{insp.inspector}</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
+                  <span>{insp.date}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
-                <span>{insp.date}</span>
-              </div>
+
+              {onLocateOnBlueprint && (
+                <button
+                  onClick={() => onLocateOnBlueprint(insp.itemCode, insp.zone)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white text-[11px] font-mono font-bold transition-all shadow-xs self-start sm:self-auto"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-brand-cyan" />
+                  <span>Ver Ubicación en Plano</span>
+                </button>
+              )}
             </div>
           </div>
         ))}

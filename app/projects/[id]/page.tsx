@@ -47,6 +47,14 @@ export default function ProjectDashboardPage() {
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [highlightedItemCode, setHighlightedItemCode] = useState<string | null>(null);
+  const [preselectedZone, setPreselectedZone] = useState<string | null>(null);
+
+  const handleLocateOnBlueprint = (itemCode: string, zoneName: string) => {
+    setHighlightedItemCode(itemCode);
+    setPreselectedZone(zoneName);
+    setActiveTab('blueprint');
+  };
 
   const loadData = () => {
     if (!projectId) return;
@@ -255,6 +263,8 @@ export default function ProjectDashboardPage() {
               floors={floors}
               items={items}
               canEdit={isLoggedIn}
+              highlightedItemCode={highlightedItemCode}
+              preselectedZone={preselectedZone}
               onRefresh={loadData}
               onOpenLockModal={() => setIsLockModalOpen(true)}
             />
@@ -265,7 +275,12 @@ export default function ProjectDashboardPage() {
           )}
 
           {activeTab === 'inspections' && (
-            <InspectionsTab project={project} items={items} canEdit={isLoggedIn} />
+            <InspectionsTab
+              project={project}
+              items={items}
+              canEdit={isLoggedIn}
+              onLocateOnBlueprint={handleLocateOnBlueprint}
+            />
           )}
 
           {activeTab === 'billing' && (

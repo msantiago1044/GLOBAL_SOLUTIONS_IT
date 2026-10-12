@@ -6,13 +6,15 @@ import { FloorZone, addItem, removeItem } from '@/src/lib/projects-data';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import EstadioBlueprint from '@/components/blueprints/EstadioBlueprint';
 import TitaniumBlueprint from '@/components/blueprints/TitaniumBlueprint';
-import { Lock, Plus, Trash2, Wrench } from 'lucide-react';
+import { Lock, Plus, Trash2, Wrench, MapPin } from 'lucide-react';
 
 interface Props {
   project: Project;
   floors: FloorZone[];
   items: FloorItem[];
   canEdit?: boolean;
+  highlightedItemCode?: string | null;
+  preselectedZone?: string | null;
   onRefresh: () => void;
   onOpenLockModal: () => void;
 }
@@ -22,11 +24,37 @@ export default function BlueprintTab({
   floors,
   items,
   canEdit = false,
+  highlightedItemCode,
+  preselectedZone,
   onRefresh,
   onOpenLockModal,
 }: Props) {
   const [selectedFloorId, setSelectedFloorId] = useState<string>(floors[0]?.id || '');
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(highlightedItemCode || null);
   const [showAddForm, setShowAddForm] = useState(false);
+
+  React.useEffect(() => {
+    if (highlightedItemCode) {
+      setSelectedItemId(highlightedItemCode);
+      const targetItem = items.find((i) => i.code === highlightedItemCode);
+      if (targetItem) {
+        const matchingFloor = floors.find(
+          (f) =>
+            targetItem.zone.toLowerCase().includes(f.name.toLowerCase()) ||
+            targetItem.zone.includes(`Piso ${f.number}`) ||
+            targetItem.zone.includes(`Zona ${f.number}`)
+        );
+        if (matchingFloor) {
+          setSelectedFloorId(matchingFloor.id);
+        }
+      }
+    } else if (preselectedZone) {
+      const matchingFloor = floors.find((f) => f.name.toLowerCase().includes(preselectedZone.toLowerCase()));
+      if (matchingFloor) {
+        setSelectedFloorId(matchingFloor.id);
+      }
+    }
+  }, [highlightedItemCode, preselectedZone, items, floors]);
 
   // New item form state
   const [formData, setFormData] = useState({
@@ -265,12 +293,16 @@ export default function BlueprintTab({
             items={floorItems}
             currentZone={currentFloor?.name || 'Zona General'}
             isEditable={canModifySchema}
+            selectedItemId={selectedItemId}
+            onSelectItem={(item) => setSelectedItemId(item.code)}
           />
         ) : (
           <TitaniumBlueprint
             items={floorItems}
             currentFloorName={currentFloor?.name || 'Piso 1'}
             isEditable={canModifySchema}
+            selectedItemId={selectedItemId}
+            onSelectItem={(item) => setSelectedItemId(item.code)}
           />
         )}
       </div>
@@ -291,43 +323,66 @@ export default function BlueprintTab({
           </div>
         ) : (
           <div className="divide-y divide-surface-border">
-            {floorItems.map((item) => (
-              <div
-                key={item.id}
-                className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono"
-              >
-                <div className="space-y-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-brand-primary">{item.code}</span>
-                    <span className="text-brand-deep font-bold">{item.name}</span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${
-                        item.status === 'inspected'
-                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            {floorItems.map((item) => {
+              const isSelected = selectedItemId === item.code || selectedItemId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className={`py-3 px-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-mono transition-colors ${
+                    isSelected ? 'bg-sky-50/80 border border-brand-primary/40' : 'hover:bg-surface-subtle'
+                  }`}
+                >
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-brand-primary">{item.code}</span>
+                      <span className="text-brand-deep font-bold">{item.name}</span>
+                      <span
+                        className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${
+                          item.status === 'inspected'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : item.status === 'installed'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-amber-50 text-amber-700 border-amber-200'
+                        }`}
+                      >
+                        {item.status === 'inspected'
+                          ? 'Conforme'
                           : item.status === 'installed'
-                          ? 'bg-blue-50 text-blue-700 border-blue-200'
-                          : 'bg-amber-50 text-amber-700 border-amber-200'
+                          ? 'Instalado'
+                          : 'Planificado'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-gsitText-secondary">
+                      Modelo: {item.model} &bull; Cantidad: {item.quantity} {item.unit} &bull; Total: ${(item.quantity * item.unitPrice).toLocaleString('es-CO')} COP
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <button
+                      onClick={() => setSelectedItemId(item.code)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold transition-all border ${
+                        isSelected
+                          ? 'bg-brand-deep text-white border-brand-deep shadow-xs'
+                          : 'bg-white hover:bg-brand-ice text-brand-deep border-surface-border'
                       }`}
                     >
-                      {item.status}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-gsitText-secondary">
-                    Modelo: {item.model} &bull; Cantidad: {item.quantity} {item.unit} &bull; Total: ${(item.quantity * item.unitPrice).toLocaleString('es-CO')} COP
-                  </p>
-                </div>
+                      <MapPin className="w-3.5 h-3.5 text-brand-primary" />
+                      <span>{isSelected ? 'Ubicado en Plano' : 'Ubicar en Plano'}</span>
+                    </button>
 
-                {canModifySchema && (
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-gsitText-muted hover:text-red-600 transition-colors self-start sm:self-auto"
-                    title="Eliminar del esquema"
-                  >
-                    <Trash2 className="w-4 h-4" strokeWidth={1.75} />
-                  </button>
-                )}
-              </div>
-            ))}
+                    {canModifySchema && (
+                      <button
+                        onClick={() => handleDeleteItem(item.id)}
+                        className="p-1.5 rounded-lg hover:bg-red-50 text-gsitText-muted hover:text-red-600 transition-colors"
+                        title="Eliminar del esquema"
+                      >
+                        <Trash2 className="w-4 h-4" strokeWidth={1.75} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
