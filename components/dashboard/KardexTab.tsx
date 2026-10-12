@@ -57,7 +57,11 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
         <div className="flex items-center gap-3">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as any)}
+            onChange={(e) =>
+              setStatusFilter(
+                e.target.value as 'all' | 'pending' | 'installed' | 'inspected'
+              )
+            }
             className="rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-xs font-mono text-gsitText-secondary focus:border-brand-primary focus:outline-none"
           >
             <option value="all">Todos los Estados</option>

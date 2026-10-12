@@ -62,11 +62,11 @@ export default function EstadioBlueprint({
       name: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
       model: 'Conduit EMT 1 pulg Heavy Duty C-80',
       zone: currentZone,
-      status: 'inspected' as const,
+      status: 'pending' as const,
       quantity: 380,
       unit: 'Metros Lineales',
       unitPrice: 46000,
-      notes: 'Canalización física rígida compartida con abrazaderas antisísmicas y cajas condulet.',
+      notes: '',
     };
 
   const currentCable =
@@ -78,11 +78,11 @@ export default function EstadioBlueprint({
       name: 'Cable FPLR Blindado 2x14 AWG Lazo SLC Dirección FACP',
       model: 'Honeywell Genesis UV-Resistant FPLR',
       zone: currentZone,
-      status: 'inspected' as const,
+      status: 'pending' as const,
       quantity: 750,
       unit: 'Metros',
       unitPrice: 14500,
-      notes: 'Lazo direccionable SLC Clase A tendido dentro de la tubería Conduit hacia el Sistema Central.',
+      notes: '',
     };
 
   // Central System FACP
@@ -94,11 +94,11 @@ export default function EstadioBlueprint({
     name: 'Panel Principal de Alarma & Control Central FACP',
     model: 'Notifier NFS2-3030 / Red Noti-Fire-Net',
     zone: 'Sala de Control FACP',
-    status: 'inspected' as const,
+    status: 'pending' as const,
     quantity: 1,
     unit: 'Unidad',
     unitPrice: 34500000,
-    notes: 'Sistema Central FACP. Monitoreo centralizado y convergencia de todos los lazos bajo NFPA 72.',
+    notes: '',
   };
 
   // Physical coordinates for the 3 active zones

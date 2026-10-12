@@ -57,10 +57,19 @@ export default function BlueprintTab({
   }, [highlightedItemCode, preselectedZone, items, floors]);
 
   // New item form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    code: string;
+    name: string;
+    type: FloorItem['type'];
+    model: string;
+    quantity: number;
+    unit: string;
+    unitPrice: number;
+    notes: string;
+  }>({
     code: '',
     name: '',
-    type: 'detector-autonomo' as const,
+    type: 'detector-autonomo',
     model: '',
     quantity: 1,
     unit: 'Unidad',
@@ -178,7 +187,9 @@ export default function BlueprintTab({
               <label className="block text-gsitText-secondary mb-1 font-bold">Tipo de Componente *</label>
               <select
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value as any })}
+                onChange={(e) =>
+                  setFormData({ ...formData, type: e.target.value as FloorItem['type'] })
+                }
                 className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
               >
                 <option value="detector-autonomo">Detector de Humo Óptico / Fotoeléctrico</option>

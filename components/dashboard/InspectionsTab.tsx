@@ -23,102 +23,6 @@ interface InspectionRecord {
   notes: string;
 }
 
-const ESTADIO_INSPECTIONS: InspectionRecord[] = [
-  {
-    id: 'insp-em-1',
-    itemCode: 'EST-FACP-01',
-    itemName: 'Panel Principal de Alarma & Control Central FACP',
-    zone: 'Zona 1 — Gradería Occidental & Prensa',
-    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
-    date: '2026-03-12',
-    result: 'conforme',
-    notes: 'Prueba de lazo SLC direccionable, transferencia a baterías 24V y comunicación conforme bajo NFPA 72.',
-  },
-  {
-    id: 'insp-em-2',
-    itemCode: 'EST-TUB-01',
-    itemName: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
-    zone: 'Zona 1 — Gradería Occidental & Prensa',
-    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
-    date: '2026-03-18',
-    result: 'conforme',
-    notes: 'Trazado troncal con abrazaderas antisísmicas y continuidad equipotencial de puesta a tierra conforme a RETIE.',
-  },
-  {
-    id: 'insp-em-3',
-    itemCode: 'EST-DET-01',
-    itemName: 'Detector Óptico de Humo Haz Proyectado (Beam)',
-    zone: 'Zona 1 — Gradería Occidental & Prensa',
-    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
-    date: '2026-03-22',
-    result: 'conforme',
-    notes: 'Calibración de haz óptico a 12m de elevación y conexión a tubería Conduit EMT 1" aprobada.',
-  },
-  {
-    id: 'insp-em-4',
-    itemCode: 'EST-BOM-01',
-    itemName: 'Módulo de Monitoreo Tablero Bomba Principal RCI',
-    zone: 'Zona 6 — Cuarto Bombas & Subestación',
-    inspector: 'Ing. Carlos Mendoza (Interventoría Caribe)',
-    date: '2026-03-24',
-    result: 'conforme',
-    notes: 'Supervisión de presostato y conmutación de bombas contra incendio enlazadas al FACP.',
-  },
-  {
-    id: 'insp-em-5',
-    itemCode: 'EST-PAL-01',
-    itemName: 'Estación Manual de Alarma Doble Acción Intemperie',
-    zone: 'Zona 1 — Gradería Occidental & Prensa',
-    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
-    date: '2026-03-25',
-    result: 'observacion',
-    notes: 'Instalada a 1.20m de altura en acceso a prensa. Conexión rígida con tubería Conduit EMT 3/4".',
-  },
-];
-
-const TITANIUM_INSPECTIONS: InspectionRecord[] = [
-  {
-    id: 'insp-tt-1',
-    itemCode: 'FACP-01',
-    itemName: 'Panel Principal de Alarma Contra Incendio',
-    zone: 'Piso 1 — Lobby Principal & FACP',
-    inspector: 'Ing. Carlos Mendoza (Interventoría)',
-    date: '2026-03-20',
-    result: 'conforme',
-    notes: 'Prueba de lazo SLC y transferencia a batería de respaldo 24V superada satisfactoriamente bajo NFPA 72 Cap. 14.',
-  },
-  {
-    id: 'insp-tt-2',
-    itemCode: 'TUB-RIS-01',
-    itemName: 'Tubería Conduit EMT 1-1/2" Troncal Vertical (Riser)',
-    zone: 'Piso 1 — Lobby Principal & FACP',
-    inspector: 'Ing. Carlos Mendoza (Interventoría)',
-    date: '2026-03-21',
-    result: 'conforme',
-    notes: 'Montante vertical en ducto eléctrico técnico y cajas de paso con soportería unistrut conforme a norma.',
-  },
-  {
-    id: 'insp-tt-3',
-    itemCode: 'DET-SMK-01',
-    itemName: 'Detector Fotoeléctrico Direccionable Inteligente',
-    zone: 'Piso 3 — Oficinas Corporativas',
-    inspector: 'Tec. Marcelo Barraza (Global Solutions IT)',
-    date: '2026-03-24',
-    result: 'conforme',
-    notes: 'Verificación de dirección 101 en panel y destello de LED indicador con alimentación por tubería Conduit.',
-  },
-  {
-    id: 'insp-tt-4',
-    itemCode: 'TUB-EMT-34',
-    itemName: 'Tubería Metálica Eléctrica Conduit EMT 3/4"',
-    zone: 'Piso 2 — Auditorio & Mezzanine',
-    inspector: 'Ing. Carlos Mendoza (Interventoría)',
-    date: '2026-03-25',
-    result: 'observacion',
-    notes: 'Ajustar abrazadera en curva previa a caja de paso 4x4. Corregido en obra.',
-  },
-];
-
 export default function InspectionsTab({
   project,
   items,
@@ -126,15 +30,34 @@ export default function InspectionsTab({
   onLocateOnBlueprint,
 }: Props) {
   const [inspections, setInspections] = useState<InspectionRecord[]>(() => {
-    if (project.id === 'estadio-metropolitano') return ESTADIO_INSPECTIONS;
-    if (project.id === 'torre-titanium') return TITANIUM_INSPECTIONS;
-    return ESTADIO_INSPECTIONS;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem(`gsit_inspections_${project.id}`);
+        if (stored) {
+          const parsed = JSON.parse(stored) as InspectionRecord[];
+          // Purgar cualquier dato mock inicial previo
+          const userOnly = parsed.filter((i) => !i.id.startsWith('insp-em-') && !i.id.startsWith('insp-tt-'));
+          if (userOnly.length !== parsed.length) {
+            localStorage.setItem(`gsit_inspections_${project.id}`, JSON.stringify(userOnly));
+          }
+          return userOnly;
+        }
+      } catch {
+        // fallback
+      }
+    }
+    return [];
   });
   const [showForm, setShowForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    itemCode: string;
+    inspector: string;
+    result: 'conforme' | 'observacion' | 'no-conforme';
+    notes: string;
+  }>({
     itemCode: items[0]?.code || '',
     inspector: 'Ing. Auditor NFPA 72',
-    result: 'conforme' as const,
+    result: 'conforme',
     notes: '',
   });
 
@@ -153,7 +76,11 @@ export default function InspectionsTab({
       notes: formData.notes,
     };
 
-    setInspections([newRecord, ...inspections]);
+    const updated = [newRecord, ...inspections];
+    setInspections(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(`gsit_inspections_${project.id}`, JSON.stringify(updated));
+    }
     setShowForm(false);
     setFormData({
       itemCode: items[0]?.code || '',
@@ -229,7 +156,12 @@ export default function InspectionsTab({
               <label className="block text-gsitText-secondary mb-1 font-bold">Dictamen Técnico *</label>
               <select
                 value={formData.result}
-                onChange={(e) => setFormData({ ...formData, result: e.target.value as any })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    result: e.target.value as 'conforme' | 'observacion' | 'no-conforme',
+                  })
+                }
                 className="w-full rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-gsitText-main focus:border-brand-primary focus:outline-none"
               >
                 <option value="conforme">Conforme (Aprobado NFPA 72)</option>
@@ -270,60 +202,69 @@ export default function InspectionsTab({
       )}
 
       {/* Inspections Timeline Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {inspections.map((insp) => (
-          <div
-            key={insp.id}
-            className="rounded-2xl border border-surface-border bg-white p-5 shadow-sm space-y-3 hover:border-brand-primary/40 transition-colors"
-          >
-            <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2">
-              <div>
-                <span className="font-mono text-xs font-bold text-brand-primary">{insp.itemCode}</span>
-                <h4 className="text-xs font-bold text-brand-deep mt-0.5">{insp.itemName}</h4>
-                <p className="text-[11px] font-mono text-gsitText-muted">{insp.zone}</p>
-              </div>
-              <span
-                className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase border ${
-                  insp.result === 'conforme'
-                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                    : insp.result === 'observacion'
-                    ? 'bg-amber-50 text-amber-700 border-amber-200'
-                    : 'bg-red-50 text-red-700 border-red-200'
-                }`}
-              >
-                {insp.result}
-              </span>
-            </div>
-
-            <p className="text-xs text-gsitText-secondary leading-relaxed">
-              "{insp.notes}"
-            </p>
-
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-gsitText-muted pt-2 border-t border-surface-border">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
-                  <UserCheck className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
-                  <span>{insp.inspector}</span>
+      {inspections.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-surface-border p-12 text-center bg-white shadow-sm space-y-2">
+          <ShieldCheck className="w-8 h-8 text-gsitText-muted mx-auto opacity-40" />
+          <p className="text-xs font-mono text-gsitText-muted">
+            Sin actas de inspección registradas.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {inspections.map((insp) => (
+            <div
+              key={insp.id}
+              className="rounded-2xl border border-surface-border bg-white p-5 shadow-sm space-y-3 hover:border-brand-primary/40 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-2 border-b border-surface-border pb-2">
+                <div>
+                  <span className="font-mono text-xs font-bold text-brand-primary">{insp.itemCode}</span>
+                  <h4 className="text-xs font-bold text-brand-deep mt-0.5">{insp.itemName}</h4>
+                  <p className="text-[11px] font-mono text-gsitText-muted">{insp.zone}</p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
-                  <span>{insp.date}</span>
-                </div>
-              </div>
-
-              {onLocateOnBlueprint && (
-                <button
-                  onClick={() => onLocateOnBlueprint(insp.itemCode, insp.zone)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white text-[11px] font-mono font-bold transition-all shadow-xs self-start sm:self-auto"
+                <span
+                  className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-bold uppercase border ${
+                    insp.result === 'conforme'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      : insp.result === 'observacion'
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
+                      : 'bg-red-50 text-red-700 border-red-200'
+                  }`}
                 >
-                  <MapPin className="w-3.5 h-3.5 text-brand-cyan" />
-                  <span>Ver Ubicación en Plano</span>
-                </button>
-              )}
+                  {insp.result}
+                </span>
+              </div>
+
+              <p className="text-xs text-gsitText-secondary leading-relaxed">
+                "{insp.notes}"
+              </p>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] font-mono text-gsitText-muted pt-2 border-t border-surface-border">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5">
+                    <UserCheck className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
+                    <span>{insp.inspector}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-brand-primary" strokeWidth={2} />
+                    <span>{insp.date}</span>
+                  </div>
+                </div>
+
+                {onLocateOnBlueprint && (
+                  <button
+                    onClick={() => onLocateOnBlueprint(insp.itemCode, insp.zone)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-brand-deep hover:bg-brand-hover text-white text-[11px] font-mono font-bold transition-all shadow-xs self-start sm:self-auto"
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-brand-cyan" />
+                    <span>Ver Ubicación en Plano</span>
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

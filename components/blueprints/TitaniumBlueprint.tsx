@@ -60,11 +60,11 @@ export default function TitaniumBlueprint({
     name: 'Tubería Metálica Eléctrica Conduit EMT 3/4"',
     model: 'Colmena / RigiCol EMT C-80 Rojo',
     zone: currentFloorName,
-    status: 'inspected',
+    status: 'pending',
     quantity: 340,
     unit: 'Metros Lineales',
     unitPrice: 38500,
-    notes: 'Canalización física rígida compartida con abrazaderas antisísmicas y cajas condulet.',
+    notes: '',
   };
 
   const mainCable: FloorItem = (items.find((i) => i.type === 'cableado' || i.code.includes('CAB')) as FloorItem) || {
@@ -75,11 +75,11 @@ export default function TitaniumBlueprint({
     name: 'Cable FPLR Blindado 2x14 AWG Rojo Certificado UL',
     model: 'Genesis / Honeywell Cable FPLR 300V',
     zone: currentFloorName,
-    status: 'inspected',
+    status: 'pending',
     quantity: 580,
     unit: 'Metros',
     unitPrice: 12400,
-    notes: 'Lazo direccionable SLC Clase A tendido dentro de la tubería Conduit hacia el Sistema Central.',
+    notes: '',
   };
 
   const getDeviceCoordinates = (item: FloorItem, index: number) => {
