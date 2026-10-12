@@ -192,6 +192,33 @@ export interface Database {
         };
         Relationships: [];
       };
+      telegram_sessions: {
+        Row: {
+          chat_id: number;
+          user_id: number;
+          username: string | null;
+          step: string;
+          payload: Json;
+          updated_at: string;
+        };
+        Insert: {
+          chat_id: number;
+          user_id: number;
+          username?: string | null;
+          step?: string;
+          payload?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          chat_id?: number;
+          user_id?: number;
+          username?: string | null;
+          step?: string;
+          payload?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

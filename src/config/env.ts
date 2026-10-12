@@ -27,6 +27,14 @@ export const serverEnvSchema = clientEnvSchema.extend({
     .string()
     .url('DATABASE_URL debe ser una URL de conexión válida')
     .optional(),
+  TELEGRAM_BOT_TOKEN: z
+    .string()
+    .min(10, 'TELEGRAM_BOT_TOKEN es requerido para el bot de Telegram')
+    .optional(),
+  TELEGRAM_WEBHOOK_SECRET: z
+    .string()
+    .min(8, 'TELEGRAM_WEBHOOK_SECRET es requerido para validar el webhook')
+    .optional(),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
@@ -66,6 +74,8 @@ export function validateServerEnv(): ServerEnv {
     SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     SUPABASE_JWKS_URL: process.env.SUPABASE_JWKS_URL,
     DATABASE_URL: process.env.DATABASE_URL,
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
+    TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
   };
 
   const result = serverEnvSchema.safeParse(env);

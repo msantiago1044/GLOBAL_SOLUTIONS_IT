@@ -16,9 +16,12 @@ import {
   getProject,
   getFloors,
   getProjectItems,
+  saveProjectItems,
+  recalculateProjectProgress,
   lockProjectSchema,
   FloorZone,
 } from '@/src/lib/projects-data';
+import { ItemsRepository } from '@/src/services/items.repository';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import { isAdmin, isAuthenticated } from '@/src/lib/auth';
@@ -56,13 +59,28 @@ export default function ProjectDashboardPage() {
     setActiveTab('blueprint');
   };
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!projectId) return;
     const proj = getProject(projectId);
     if (proj) {
       setProject({ ...proj });
       setFloors([...getFloors(projectId)]);
       setItems([...getProjectItems(projectId)]);
+    }
+
+    // Carga de estado actualizado desde Supabase al entrar o recargar (F5)
+    try {
+      const repo = new ItemsRepository();
+      const remoteItems = await repo.getItemsByProject(projectId);
+      if (remoteItems && remoteItems.length > 0) {
+        setItems(remoteItems);
+        saveProjectItems(projectId, remoteItems);
+        recalculateProjectProgress(projectId);
+        const updatedProj = getProject(projectId);
+        if (updatedProj) setProject({ ...updatedProj });
+      }
+    } catch {
+      // Fallback a almacenamiento local si está en modo offline/demo
     }
   };
 

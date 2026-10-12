@@ -70,6 +70,42 @@ export class ItemsRepository {
   }
 
   /**
+   * Obtiene todos los elementos de un proyecto específico validados con Zod
+   */
+  async getItemsByProject(projectId: string): Promise<FloorItem[]> {
+    const { data: items, error: itemsError } = await this.supabase
+      .from('floor_items')
+      .select('*')
+      .eq('project_id', projectId);
+
+    if (itemsError || !items) {
+      console.warn(`Error al consultar elementos del proyecto ${projectId}:`, itemsError?.message);
+      return [];
+    }
+
+    return items.map((raw) =>
+      FloorItemSchema.parse({
+        id: raw.id,
+        floorId: raw.floor_id,
+        projectId: raw.project_id,
+        code: raw.code,
+        type: raw.type,
+        name: raw.name,
+        model: raw.model,
+        zone: raw.zone,
+        status: raw.status,
+        quantity: Number(raw.quantity),
+        unit: raw.unit,
+        unitPrice: Number(raw.unit_price),
+        photoUrl: raw.photo_url,
+        notes: raw.notes,
+        installedAt: raw.installed_at,
+        installerTeam: raw.installer_team,
+      })
+    );
+  }
+
+  /**
    * Actualiza el estado y metadatos de un elemento en Supabase con validación Zod previa
    */
   async updateItemStatus(
