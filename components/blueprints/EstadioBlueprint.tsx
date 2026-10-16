@@ -13,6 +13,8 @@ import {
   Minimize2,
   Flame,
   CheckCircle2,
+  Wrench,
+  Cable,
 } from 'lucide-react';
 
 import canchaDevices from '@/src/data/estadio-cancha-devices.json';
@@ -23,7 +25,7 @@ import nivel3Devices from '@/src/data/estadio-nivel-3-devices.json';
 interface Props {
   items: FloorItem[];
   currentZone: string;
-  isEditable: boolean;
+  isEditable?: boolean;
   selectedItemId?: string | null;
   onSelectItem?: (item: FloorItem) => void;
 }
@@ -37,6 +39,18 @@ interface HotspotNode {
   x: number;
   y: number;
   color: string;
+}
+
+interface BlueprintSection {
+  id: string;
+  code: string;
+  name: string;
+  fromCode: string;
+  toCode: string;
+  lengthMeters: number;
+  diameter: string;
+  pathD: string;
+  labelPos: { x: number; y: number };
 }
 
 export default function EstadioBlueprint({
@@ -59,12 +73,18 @@ export default function EstadioBlueprint({
 
   // Interactive layer filter toggles
   const [showHotspots, setShowHotspots] = useState(true);
+  const [showPipes, setShowPipes] = useState(true);
   const [filterS, setFilterS] = useState(true);
   const [filterF, setFilterF] = useState(true);
   const [filterH, setFilterH] = useState(true);
   const [filterOther, setFilterOther] = useState(true);
 
-  // Selection state
+  // Pipe section selection state (Discriminador Tubo vs Cable)
+  const [selectedSection, setSelectedSection] = useState<BlueprintSection | null>(null);
+  const [hoveredSection, setHoveredSection] = useState<BlueprintSection | null>(null);
+  const [showTramoPrompt, setShowTramoPrompt] = useState(false);
+
+  // Device selection state
   const [internalSelected, setInternalSelected] = useState<FloorItem | null>(null);
   const [hoveredNode, setHoveredNode] = useState<HotspotNode | null>(null);
 
@@ -120,11 +140,312 @@ export default function EstadioBlueprint({
         devices: nivel1Devices as HotspotNode[],
       };
 
+  // Sections defined per level
+  const getSectionsForLevel = (): BlueprintSection[] => {
+    if (isCancha) {
+      return [
+        {
+          id: 'sec-can-01',
+          code: 'CAN-01',
+          name: 'Anillo Cárcamo Suroccidental (Eje 1 a 6)',
+          fromCode: 'Cárcamo Eje 1',
+          toCode: 'Boca Túnel Sur Eje 6',
+          lengthMeters: 85,
+          diameter: '3/4"',
+          pathD: 'M 656 205 C 526 219 404 267 299 344 C 217 446 164 565 144 695',
+          labelPos: { x: 260, y: 395 },
+        },
+        {
+          id: 'sec-can-02',
+          code: 'CAN-02',
+          name: 'Ramal Cafetería VIP, Bodega & Shafte Técnico',
+          fromCode: 'Cárcamo Eje 6',
+          toCode: 'Shafte Técnico 20.3m²',
+          lengthMeters: 54,
+          diameter: '3/4"',
+          pathD: 'M 205 947 L 282 1053 L 348 1041 L 433 1088 L 470 1122',
+          labelPos: { x: 350, y: 1100 },
+        },
+        {
+          id: 'sec-can-03',
+          code: 'CAN-03',
+          name: 'Ramal Tanque Subterráneo & Servicios',
+          fromCode: 'Shafte Técnico',
+          toCode: 'Tanque Subterráneo 30.6m²',
+          lengthMeters: 42,
+          diameter: '3/4"',
+          pathD: 'M 374 1065 L 420 1112 L 504 1187 L 735 1188',
+          labelPos: { x: 570, y: 1195 },
+        },
+        {
+          id: 'sec-can-04',
+          code: 'CAN-04',
+          name: 'Alimentación Boca Túnel Acceso Sur',
+          fromCode: 'Cárcamo Perimetral',
+          toCode: 'Boca Túnel Sur',
+          lengthMeters: 65,
+          diameter: '3/4"',
+          pathD: 'M 144 695 L 158 825 L 205 947',
+          labelPos: { x: 175, y: 880 },
+        },
+        {
+          id: 'sec-can-05',
+          code: 'CAN-05',
+          name: 'Anillo Cárcamo Noroccidental (Eje 6 a 11)',
+          fromCode: 'Hospitality A',
+          toCode: 'Acceso Norte Cancha',
+          lengthMeters: 90,
+          diameter: '3/4"',
+          pathD: 'M 656 205 L 1022 215 L 1137 221',
+          labelPos: { x: 880, y: 210 },
+        },
+        {
+          id: 'sec-can-06',
+          code: 'CAN-06',
+          name: 'Alimentación Boca Túnel Acceso Norte',
+          fromCode: 'Cárcamo Nororiental',
+          toCode: 'Boca Túnel Norte',
+          lengthMeters: 65,
+          diameter: '3/4"',
+          pathD: 'M 1619 718 L 1605 588 L 1558 466',
+          labelPos: { x: 1600, y: 530 },
+        },
+        {
+          id: 'sec-can-07',
+          code: 'CAN-07',
+          name: 'Anillo Cárcamo Nororiental (Eje 11 a 16)',
+          fromCode: 'Centro de Prensa Norte',
+          toCode: 'Subestación Cancha Oriente',
+          lengthMeters: 88,
+          diameter: '3/4"',
+          pathD: 'M 1137 221 L 1378 278 L 1480 360 L 1558 466',
+          labelPos: { x: 1380, y: 310 },
+        },
+        {
+          id: 'sec-can-08',
+          code: 'CAN-08',
+          name: 'Anillo Cárcamo Suroriental (Eje 16 a 21)',
+          fromCode: 'Gradería Suroriental',
+          toCode: 'Vestidores & Primeros Auxilios',
+          lengthMeters: 92,
+          diameter: '3/4"',
+          pathD: 'M 1619 718 L 1599 847 L 1546 967 L 1464 1069 L 1358 1146 L 1236 1193',
+          labelPos: { x: 1515, y: 920 },
+        },
+        {
+          id: 'sec-can-09',
+          code: 'CAN-09',
+          name: 'Riser Pasante Vertical Cancha ➔ Nivel 1',
+          fromCode: 'Cárcamo Sur Cota -3.80m',
+          toCode: 'Riser Subestación Cota +42.08m',
+          lengthMeters: 25,
+          diameter: '1"',
+          pathD: 'M 1022 1188 L 1137 1188 L 1236 1193',
+          labelPos: { x: 1130, y: 1195 },
+        },
+      ];
+    }
+
+    if (isMezanine) {
+      return [
+        {
+          id: 'sec-mez-01',
+          code: 'MEZ-01',
+          name: 'Anillo Palcos VIP Occidentales',
+          fromCode: 'Escalera Sur Mezanine',
+          toCode: 'Palcos VIP Central',
+          lengthMeters: 110,
+          diameter: '3/4"',
+          pathD: 'M 680 560 L 990 460 L 1120 410 L 1260 440',
+          labelPos: { x: 990, y: 460 },
+        },
+        {
+          id: 'sec-mez-02',
+          code: 'MEZ-02',
+          name: 'Ramal Salón Presidencial & Sala de Juntas VIP',
+          fromCode: 'Palcos Centrales',
+          toCode: 'Salón Presidencial VIP',
+          lengthMeters: 75,
+          diameter: '3/4"',
+          pathD: 'M 1120 410 L 1260 350 L 1390 420',
+          labelPos: { x: 1260, y: 380 },
+        },
+        {
+          id: 'sec-mez-03',
+          code: 'MEZ-03',
+          name: 'Ramal Museo de la Selección & Jefatura de Escenarios',
+          fromCode: 'Puente Conexión VIP',
+          toCode: 'Museo Selección Colombia',
+          lengthMeters: 90,
+          diameter: '3/4"',
+          pathD: 'M 1260 440 L 1550 470 L 1970 420',
+          labelPos: { x: 1650, y: 460 },
+        },
+        {
+          id: 'sec-mez-04',
+          code: 'MEZ-04',
+          name: 'Acometida Módulo Relevo Control Audio/AC (CR)',
+          fromCode: 'Palcos VIP',
+          toCode: 'Módulo Relevo Audio/AC',
+          lengthMeters: 35,
+          diameter: '3/4"',
+          pathD: 'M 890 480 L 990 460',
+          labelPos: { x: 940, y: 480 },
+        },
+      ];
+    }
+
+    if (isNivel3) {
+      return [
+        {
+          id: 'sec-n3-01',
+          code: 'N3-01',
+          name: 'Corona Alta Occidental (Cabinas Radio y Prensa Alta)',
+          fromCode: 'Caracola 2 Noroccidental',
+          toCode: 'Gradería Prensa Alta',
+          lengthMeters: 145,
+          diameter: '3/4"',
+          pathD: 'M 1000 330 L 1260 280 L 1300 420 L 1580 330',
+          labelPos: { x: 1260, y: 320 },
+        },
+        {
+          id: 'sec-n3-02',
+          code: 'N3-02',
+          name: 'Corona Alta Oriental (Gradería Alta Oriental)',
+          fromCode: 'Caracola 3 Suroriental',
+          toCode: 'Baños Corona Oriental',
+          lengthMeters: 155,
+          diameter: '3/4"',
+          pathD: 'M 1000 1770 L 1260 1850 L 1580 1770',
+          labelPos: { x: 1260, y: 1810 },
+        },
+        {
+          id: 'sec-n3-03',
+          code: 'N3-03',
+          name: 'Alimentación Caracolas 1 y 2 (Evacuación Norte)',
+          fromCode: 'Corona Alta Occidente',
+          toCode: 'Caracola 1 Nororiental',
+          lengthMeters: 90,
+          diameter: '3/4"',
+          pathD: 'M 420 550 L 1000 330 L 2160 550',
+          labelPos: { x: 650, y: 440 },
+        },
+        {
+          id: 'sec-n3-04',
+          code: 'N3-04',
+          name: 'Alimentación Caracolas 3 y 4 (Evacuación Sur)',
+          fromCode: 'Corona Alta Oriente',
+          toCode: 'Caracola 4 Suroccidental',
+          lengthMeters: 90,
+          diameter: '3/4"',
+          pathD: 'M 420 1530 L 1000 1770 L 2160 1530',
+          labelPos: { x: 650, y: 1650 },
+        },
+      ];
+    }
+
+    // Default: NIVEL 1 (+42.08 m)
+    return [
+      {
+        id: 'sec-n1-01',
+        code: 'N1-01',
+        name: 'Riser Principal FACP-02 ➔ Cuarto de Control Occidental',
+        fromCode: 'Riser Cancha',
+        toCode: 'Panel FACP-02 Control Central',
+        lengthMeters: 55,
+        diameter: '1"',
+        pathD: 'M 380 400 L 520 420 L 680 440 L 850 450',
+        labelPos: { x: 600, y: 435 },
+      },
+      {
+        id: 'sec-n1-02',
+        code: 'N1-02',
+        name: 'Troncal Interconexión FACP-02 ➔ FACP-03 Subestación',
+        fromCode: 'FACP-02 Control',
+        toCode: 'FACP-03 Subestación Oriental',
+        lengthMeters: 180,
+        diameter: '1"',
+        pathD: 'M 850 450 L 1040 380 L 1350 380 L 1680 370',
+        labelPos: { x: 1200, y: 385 },
+      },
+      {
+        id: 'sec-n1-03',
+        code: 'N1-03',
+        name: 'Anillo Camerino Colombia & Camerino Junior',
+        fromCode: 'FACP-02',
+        toCode: 'Camerino Selección Colombia',
+        lengthMeters: 125,
+        diameter: '3/4"',
+        pathD: 'M 904 351 L 1085 433 L 1220 450',
+        labelPos: { x: 1085, y: 445 },
+      },
+      {
+        id: 'sec-n1-04',
+        code: 'N1-04',
+        name: 'Ramal Camerinos Visitantes 1 y 2',
+        fromCode: 'Pasillo Camerinos',
+        toCode: 'Camerino Visitantes 2',
+        lengthMeters: 85,
+        diameter: '3/4"',
+        pathD: 'M 780 390 L 904 351 L 1040 380',
+        labelPos: { x: 860, y: 375 },
+      },
+      {
+        id: 'sec-n1-05',
+        code: 'N1-05',
+        name: 'Ramal Sala de Prensa & Médica Antidopaje',
+        fromCode: 'Distribución Occidente',
+        toCode: 'Sala de Prensa 252m²',
+        lengthMeters: 95,
+        diameter: '3/4"',
+        pathD: 'M 580 610 L 670 430 L 780 390',
+        labelPos: { x: 640, y: 520 },
+      },
+      {
+        id: 'sec-n1-06',
+        code: 'N1-06',
+        name: 'Anillo Oriental Ligas Deportivas (Boxeo & Gimnasia)',
+        fromCode: 'Subestación Oriental',
+        toCode: 'Liga de Gimnasia 705m²',
+        lengthMeters: 210,
+        diameter: '3/4"',
+        pathD: 'M 814 1691 L 950 1720 L 1281 1752',
+        labelPos: { x: 1050, y: 1735 },
+      },
+      {
+        id: 'sec-n1-07',
+        code: 'N1-07',
+        name: 'Ramal Corredores Circulación & Taquillas Occ/Ori',
+        fromCode: 'Acceso Occidental',
+        toCode: 'Taquillas Orientales',
+        lengthMeters: 145,
+        diameter: '3/4"',
+        pathD: 'M 1040 260 L 1260 260 L 1480 360',
+        labelPos: { x: 1260, y: 265 },
+      },
+      {
+        id: 'sec-n1-08',
+        code: 'N1-08',
+        name: 'Alimentación Anunciadores Remotos LCD (AR-01 / AR-02 / AR-03)',
+        fromCode: 'FACP-03 Subestación',
+        toCode: 'Taquillas Anunciador AR-01',
+        lengthMeters: 110,
+        diameter: '3/4"',
+        pathD: 'M 1680 370 L 1988 1562 L 2170 1040',
+        labelPos: { x: 1850, y: 960 },
+      },
+    ];
+  };
+
+  const sections = getSectionsForLevel();
+
   // Reset pan/zoom on floor change
   useEffect(() => {
     setZoomScale(1);
     setPanOffset({ x: 0, y: 0 });
     setInternalSelected(null);
+    setSelectedSection(null);
+    setShowTramoPrompt(false);
   }, [currentZone]);
 
   const allLevelNodes = levelMeta.devices;
@@ -150,9 +471,52 @@ export default function EstadioBlueprint({
 
   const handleSelect = (item: FloorItem) => {
     setInternalSelected(item);
+    setShowTramoPrompt(false);
     if (onSelectItem) {
       onSelectItem(item);
     }
+  };
+
+  // Pipe vs Cable generator helpers
+  const getSectionTuberiaItem = (sec: BlueprintSection): FloorItem => {
+    const existing = items.find((i) => i.code === `TUB-${sec.code}` || i.code === `EST-${sec.code}-TUB`);
+    if (existing) return existing;
+    return {
+      id: `item-tub-${sec.code}`,
+      projectId: 'estadio-metropolitano',
+      code: `TUB-${sec.code}`,
+      type: 'tuberia',
+      name: `Tubería Conduit EMT ${sec.diameter} (${sec.name})`,
+      model: `Conduit EMT ${sec.diameter} Heavy Duty C-80 Galvanizada`,
+      zone: levelMeta.sheetTitle,
+      status: 'pending',
+      quantity: sec.lengthMeters,
+      unit: 'Metros Lineales',
+      unitPrice: 38500,
+      installerTeam: 'Cuadrilla Tubería Caribe',
+      notes: `Canalización rígida de ${sec.lengthMeters}m entre ${sec.fromCode} y ${sec.toCode}.`,
+    };
+  };
+
+  const getSectionCableItem = (sec: BlueprintSection): FloorItem => {
+    const existing = items.find((i) => i.code === `CAB-${sec.code}` || i.code === `EST-${sec.code}-CAB`);
+    if (existing) return existing;
+    const cableLen = Math.round(sec.lengthMeters * 1.05);
+    return {
+      id: `item-cab-${sec.code}`,
+      projectId: 'estadio-metropolitano',
+      code: `CAB-${sec.code}`,
+      type: 'cableado',
+      name: `Cable FPLR Blindado 2x14 AWG Lazo SLC (${sec.name})`,
+      model: 'Honeywell Genesis UV-Resistant FPLR 300V',
+      zone: levelMeta.sheetTitle,
+      status: 'pending',
+      quantity: cableLen,
+      unit: 'Metros',
+      unitPrice: 14500,
+      installerTeam: 'Cuadrilla Cableado C',
+      notes: `Conductor blindado dentro de tubería entre ${sec.fromCode} y ${sec.toCode}.`,
+    };
   };
 
   // Mouse pan event handlers
@@ -243,14 +607,14 @@ export default function EstadioBlueprint({
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 text-slate-700">
             <button
               onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 4.0))}
-              className="p-1.5 rounded-lg hover:bg-white transition-all"
+              className="p-1.5 rounded-lg hover:bg-white transition-all cursor-pointer"
               title="Acercar plano (+)"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
               onClick={() => setZoomScale((prev) => Math.max(prev - 0.25, 0.6))}
-              className="p-1.5 rounded-lg hover:bg-white transition-all"
+              className="p-1.5 rounded-lg hover:bg-white transition-all cursor-pointer"
               title="Alejar plano (-)"
             >
               <ZoomOut className="w-4 h-4" />
@@ -260,7 +624,7 @@ export default function EstadioBlueprint({
                 setZoomScale(1);
                 setPanOffset({ x: 0, y: 0 });
               }}
-              className="p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[11px] px-2"
+              className="p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[11px] px-2 cursor-pointer"
               title="Restablecer vista 100%"
             >
               <RotateCcw className="w-3.5 h-3.5 inline mr-1 text-slate-500" />
@@ -268,7 +632,7 @@ export default function EstadioBlueprint({
             </button>
             <button
               onClick={() => setIsFullscreen(!isFullscreen)}
-              className="p-1.5 rounded-lg hover:bg-white transition-all text-slate-700"
+              className="p-1.5 rounded-lg hover:bg-white transition-all text-slate-700 cursor-pointer"
               title={isFullscreen ? 'Salir de pantalla completa' : 'Ver a pantalla completa'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -293,16 +657,22 @@ export default function EstadioBlueprint({
               onChange={(e) => setShowHotspots(e.target.checked)}
               className="rounded text-red-600 focus:ring-0 cursor-pointer"
             />
-            <span className="font-bold text-red-700">Puntos de Obra ({allLevelNodes.length})</span>
+            <span className="font-bold text-red-700">Equipos de Obra ({allLevelNodes.length})</span>
+          </label>
+
+          {/* Conduit Sections Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer bg-white px-2 py-1 rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
+            <input
+              type="checkbox"
+              checked={showPipes}
+              onChange={(e) => setShowPipes(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0 cursor-pointer"
+            />
+            <span className="w-4 h-1 bg-red-600 rounded inline-block"></span>
+            <span className="font-bold">Tubería EMT & Cable ({sections.length} Tramos)</span>
           </label>
 
           <div className="h-4 w-px bg-slate-300"></div>
-
-          {/* Conduit Legend Indicator */}
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-white rounded-lg border border-slate-200">
-            <span className="w-4 h-1 bg-red-600 rounded inline-block"></span>
-            <span>Tubería EMT 3/4" & 1"</span>
-          </div>
 
           {/* Detector Humo Toggle */}
           <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
@@ -390,166 +760,330 @@ export default function EstadioBlueprint({
             draggable={false}
           />
 
-          {/* 2. INTERACTIVE SVG PRECISION CAD RETICLES (2004 x 1417 pt EXACT NATIVE PDF COORD) */}
-          {showHotspots && (
-            <svg
-              viewBox="0 0 2004 1417"
-              className="absolute inset-0 w-full h-full pointer-events-auto"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              {visibleNodes.map((node) => {
-                const isSelected =
-                  activeSelected?.code === node.code ||
-                  activeSelected?.name.toLowerCase().includes(node.name.toLowerCase());
-                const isHovered = hoveredNode?.code === node.code;
-
-                // Match with FloorItem from props or create exact item
-                const matchedItem = items.find(
-                  (i) => i.code === node.code || i.name.toLowerCase().includes(node.name.toLowerCase())
-                ) || {
-                  id: `hotspot-${node.code}`,
-                  projectId: 'estadio-metropolitano',
-                  code: node.code,
-                  type: node.type,
-                  name: node.name,
-                  model: 'Notifier NFPA 72',
-                  zone: currentZone,
-                  status: 'pending',
-                  quantity: 1,
-                  unit: 'Unidad',
-                  unitPrice: 385000,
-                  notes: `Componente identificado en plano oficial de detección: ${node.room}`,
-                };
-
-                const isSquare = node.symbol === 'F';
-                const isRect = node.symbol === 'AR' || node.symbol === 'FACP';
-
-                return (
-                  <g
-                    key={node.code}
-                    className="cursor-pointer group"
-                    onMouseEnter={() => setHoveredNode(node)}
-                    onMouseLeave={() => setHoveredNode(null)}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSelect(matchedItem);
-                    }}
-                  >
-                    {/* Generous invisible target for smooth hit testing */}
-                    <circle cx={node.x} cy={node.y} r="9" fill="transparent" />
-
-                    {/* Pulsing Selection Radar Aura */}
-                    {isSelected && (
-                      <circle
-                        cx={node.x}
-                        cy={node.y}
-                        r="12"
-                        fill={node.color}
-                        fillOpacity="0.25"
-                        stroke={node.color}
-                        strokeWidth="1.2"
-                        strokeDasharray="3,1.5"
-                        className="animate-spin"
-                        style={{ transformOrigin: `${node.x}px ${node.y}px` }}
-                      />
-                    )}
-
-                    {/* Precision Reticle Shape */}
-                    {isSquare ? (
-                      <rect
-                        x={node.x - (isSelected || isHovered ? 4.5 : 3.5)}
-                        y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
-                        width={isSelected || isHovered ? 9 : 7}
-                        height={isSelected || isHovered ? 9 : 7}
-                        rx="1.5"
-                        fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
-                        stroke="#ffffff"
-                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
-                        className="drop-shadow-sm transition-all duration-150"
-                      />
-                    ) : isRect ? (
-                      <rect
-                        x={node.x - (isSelected || isHovered ? 7 : 5.5)}
-                        y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
-                        width={isSelected || isHovered ? 14 : 11}
-                        height={isSelected || isHovered ? 9 : 7}
-                        rx="1.5"
-                        fill={isSelected ? '#991b1b' : isHovered ? '#7c3aed' : node.color}
-                        stroke="#ffffff"
-                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
-                        className="drop-shadow-sm transition-all duration-150"
-                      />
-                    ) : (
-                      <circle
-                        cx={node.x}
-                        cy={node.y}
-                        r={isSelected || isHovered ? 5.8 : 4.2}
-                        fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
-                        stroke="#ffffff"
-                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
-                        className="drop-shadow-sm transition-all duration-150"
-                      />
-                    )}
-
-                    {/* Symbol Text */}
-                    <text
-                      x={node.x}
-                      y={node.y}
-                      dy={node.symbol.length > 2 ? 0.9 : 1.1}
-                      fill="#ffffff"
-                      fontSize={node.symbol.length > 2 ? 2.3 : 3.2}
-                      fontWeight="bold"
-                      fontFamily="monospace"
-                      textAnchor="middle"
-                      className="pointer-events-none select-none"
+          {/* 2. INTERACTIVE SVG PRECISION CAD RETICLES & TRAMOS */}
+          <svg
+            viewBox="0 0 2004 1417"
+            className="absolute inset-0 w-full h-full pointer-events-auto"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            {/* 2.1 SELECTABLE CONDUIT PIPE SECTIONS (TRAMOS DE TUBERÍA Y CABLE) */}
+            {showPipes && (
+              <g className="conduit-sections-layer">
+                {sections.map((sec) => {
+                  const isSelected = selectedSection?.id === sec.id;
+                  const isHovered = hoveredSection?.id === sec.id;
+                  return (
+                    <g
+                      key={sec.id}
+                      className="cursor-pointer group"
+                      onMouseEnter={() => setHoveredSection(sec)}
+                      onMouseLeave={() => setHoveredSection(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedSection(sec);
+                        setShowTramoPrompt(true);
+                      }}
                     >
-                      {node.symbol}
-                    </text>
+                      {/* Broad invisible hit stroke for easy clicking */}
+                      <path
+                        d={sec.pathD}
+                        fill="none"
+                        stroke="transparent"
+                        strokeWidth="18"
+                        strokeLinecap="round"
+                      />
 
-                    {/* Engineering HUD Tooltip Card on Hover or Selection */}
-                    {(isHovered || isSelected) && (
-                      <g className="pointer-events-none animate-in fade-in duration-100">
+                      {/* Highlighted Tube Outline */}
+                      <path
+                        d={sec.pathD}
+                        fill="none"
+                        stroke={isSelected ? '#dc2626' : isHovered ? '#ea580c' : '#dc2626'}
+                        strokeWidth={isSelected ? 4.5 : isHovered ? 3.5 : 2.0}
+                        strokeDasharray={isSelected ? '6,3' : isHovered ? '4,2' : undefined}
+                        strokeOpacity={isSelected ? 0.95 : isHovered ? 0.85 : 0.35}
+                        className="transition-all duration-150"
+                      />
+
+                      {/* Technical Section Badge Indicator */}
+                      <g transform={`translate(${sec.labelPos.x}, ${sec.labelPos.y})`}>
                         <rect
-                          x={node.x - 70}
-                          y={node.y - 28}
-                          width="140"
-                          height="22"
-                          rx="4"
-                          fill="#0f172a"
+                          x="-28"
+                          y="-7"
+                          width="56"
+                          height="14"
+                          rx="3"
+                          fill={isSelected ? '#b91c1c' : isHovered ? '#dc2626' : '#0f172a'}
                           stroke="#ffffff"
                           strokeWidth="0.8"
-                          opacity="0.95"
-                          className="drop-shadow-lg"
+                          opacity="0.92"
+                          className="drop-shadow-sm transition-all"
                         />
                         <text
-                          x={node.x}
-                          y={node.y - 17}
+                          x="0"
+                          y="1"
+                          dy="2.5"
                           fill="#ffffff"
-                          fontSize="3.6"
+                          fontSize="4.2"
                           fontWeight="bold"
                           fontFamily="monospace"
                           textAnchor="middle"
+                          className="select-none pointer-events-none"
                         >
-                          {node.code} · {node.symbol}
-                        </text>
-                        <text
-                          x={node.x}
-                          y={node.y - 9}
-                          fill="#cbd5e1"
-                          fontSize="2.8"
-                          fontFamily="sans-serif"
-                          textAnchor="middle"
-                        >
-                          {node.room.length > 28 ? `${node.room.slice(0, 26)}...` : node.room}
+                          ⚡ {sec.code}
                         </text>
                       </g>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          )}
+                    </g>
+                  );
+                })}
+              </g>
+            )}
+
+            {/* 2.2 SELECTABLE EQUIPMENT (DETECTORES, ESTACIONES MANUALES, PANELES) */}
+            {showHotspots && (
+              <g className="devices-layer">
+                {visibleNodes.map((node) => {
+                  const isSelected =
+                    activeSelected?.code === node.code ||
+                    activeSelected?.name.toLowerCase().includes(node.name.toLowerCase());
+                  const isHovered = hoveredNode?.code === node.code;
+
+                  // Match with FloorItem from props or create exact item
+                  const matchedItem = items.find(
+                    (i) => i.code === node.code || i.name.toLowerCase().includes(node.name.toLowerCase())
+                  ) || {
+                    id: `hotspot-${node.code}`,
+                    projectId: 'estadio-metropolitano',
+                    code: node.code,
+                    type: node.type,
+                    name: node.name,
+                    model: 'Notifier NFPA 72',
+                    zone: currentZone,
+                    status: 'pending',
+                    quantity: 1,
+                    unit: 'Unidad',
+                    unitPrice: 385000,
+                    notes: `Componente identificado en plano oficial de detección: ${node.room}`,
+                  };
+
+                  const isSquare = node.symbol === 'F';
+                  const isRect = node.symbol === 'AR' || node.symbol === 'FACP';
+
+                  return (
+                    <g
+                      key={node.code}
+                      className="cursor-pointer group"
+                      onMouseEnter={() => setHoveredNode(node)}
+                      onMouseLeave={() => setHoveredNode(null)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelect(matchedItem);
+                      }}
+                    >
+                      {/* Generous invisible target for smooth hit testing */}
+                      <circle cx={node.x} cy={node.y} r="9" fill="transparent" />
+
+                      {/* Pulsing Selection Radar Aura */}
+                      {isSelected && (
+                        <circle
+                          cx={node.x}
+                          cy={node.y}
+                          r="12"
+                          fill={node.color}
+                          fillOpacity="0.25"
+                          stroke={node.color}
+                          strokeWidth="1.2"
+                          strokeDasharray="3,1.5"
+                          className="animate-spin"
+                          style={{ transformOrigin: `${node.x}px ${node.y}px` }}
+                        />
+                      )}
+
+                      {/* Precision Reticle Shape */}
+                      {isSquare ? (
+                        <rect
+                          x={node.x - (isSelected || isHovered ? 4.5 : 3.5)}
+                          y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
+                          width={isSelected || isHovered ? 9 : 7}
+                          height={isSelected || isHovered ? 9 : 7}
+                          rx="1.5"
+                          fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                          stroke="#ffffff"
+                          strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                          className="drop-shadow-sm transition-all duration-150"
+                        />
+                      ) : isRect ? (
+                        <rect
+                          x={node.x - (isSelected || isHovered ? 7 : 5.5)}
+                          y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
+                          width={isSelected || isHovered ? 14 : 11}
+                          height={isSelected || isHovered ? 9 : 7}
+                          rx="1.5"
+                          fill={isSelected ? '#991b1b' : isHovered ? '#7c3aed' : node.color}
+                          stroke="#ffffff"
+                          strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                          className="drop-shadow-sm transition-all duration-150"
+                        />
+                      ) : (
+                        <circle
+                          cx={node.x}
+                          cy={node.y}
+                          r={isSelected || isHovered ? 5.8 : 4.2}
+                          fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                          stroke="#ffffff"
+                          strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                          className="drop-shadow-sm transition-all duration-150"
+                        />
+                      )}
+
+                      {/* Symbol Text */}
+                      <text
+                        x={node.x}
+                        y={node.y}
+                        dy={node.symbol.length > 2 ? 0.9 : 1.1}
+                        fill="#ffffff"
+                        fontSize={node.symbol.length > 2 ? 2.3 : 3.2}
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                        className="pointer-events-none select-none"
+                      >
+                        {node.symbol}
+                      </text>
+
+                      {/* Engineering HUD Tooltip Card on Hover or Selection */}
+                      {(isHovered || isSelected) && (
+                        <g className="pointer-events-none animate-in fade-in duration-100">
+                          <rect
+                            x={node.x - 70}
+                            y={node.y - 28}
+                            width="140"
+                            height="22"
+                            rx="4"
+                            fill="#0f172a"
+                            stroke="#ffffff"
+                            strokeWidth="0.8"
+                            opacity="0.95"
+                            className="drop-shadow-lg"
+                          />
+                          <text
+                            x={node.x}
+                            y={node.y - 17}
+                            fill="#ffffff"
+                            fontSize="3.6"
+                            fontWeight="bold"
+                            fontFamily="monospace"
+                            textAnchor="middle"
+                          >
+                            {node.code} · {node.symbol}
+                          </text>
+                          <text
+                            x={node.x}
+                            y={node.y - 9}
+                            fill="#cbd5e1"
+                            fontSize="2.8"
+                            fontFamily="sans-serif"
+                            textAnchor="middle"
+                          >
+                            {node.room.length > 28 ? `${node.room.slice(0, 26)}...` : node.room}
+                          </text>
+                        </g>
+                      )}
+                    </g>
+                  );
+                })}
+              </g>
+            )}
+          </svg>
         </div>
+
+        {/* ============================================================ */}
+        {/* MODAL DISCRIMINADOR DE SECCIÓN (TUBERÍA O CABLEADO DEL TRAMO) */}
+        {/* ============================================================ */}
+        {showTramoPrompt && selectedSection && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
+            <div className="max-w-md w-full rounded-2xl border-2 border-red-500/50 bg-slate-900 p-5 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></div>
+                  <h4 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
+                    Control de Tramo de Obra &middot; {selectedSection.code}
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setShowTramoPrompt(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 font-mono text-xs">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Tramo / Trayectoria:</span>
+                  <strong className="text-white">
+                    {selectedSection.fromCode} ➔ {selectedSection.toCode}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Longitud de Tramo:</span>
+                  <strong className="text-red-400 font-bold">{selectedSection.lengthMeters} metros lineales</strong>
+                </div>
+                <div className="flex items-center justify-between text-slate-400">
+                  <span>Especificación:</span>
+                  <span className="text-slate-300">Conduit EMT {selectedSection.diameter}</span>
+                </div>
+              </div>
+
+              <div className="text-[11px] font-bold text-red-300 uppercase tracking-wide font-mono">
+                ¿Qué componente de este tramo deseas seleccionar?
+              </div>
+
+              <div className="grid grid-cols-1 gap-2.5 font-mono">
+                {/* Opción 1: Tubería EMT */}
+                <button
+                  onClick={() => handleSelect(getSectionTuberiaItem(selectedSection))}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-red-500/40 hover:border-red-400 text-left transition-all group cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform mt-0.5">
+                    <Wrench className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      Tubería Conduit EMT {selectedSection.diameter} (Tramo {selectedSection.code})
+                    </span>
+                    <span className="text-[11px] text-slate-400 block font-sans">
+                      Canalización física rígida de {selectedSection.lengthMeters}m entre {selectedSection.fromCode} y {selectedSection.toCode}.
+                    </span>
+                    <span className="text-[10px] text-red-400 font-bold block pt-0.5">
+                      Código: TUB-{selectedSection.code} &bull; {selectedSection.lengthMeters} Metros Lineales
+                    </span>
+                  </div>
+                </button>
+
+                {/* Opción 2: Cableado FPLR / Lazo SLC */}
+                <button
+                  onClick={() => handleSelect(getSectionCableItem(selectedSection))}
+                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-sky-500/40 hover:border-sky-400 text-left transition-all group cursor-pointer"
+                >
+                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform mt-0.5">
+                    <Cable className="w-4 h-4" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-white block">
+                      Cable de Detección FPLR / Lazo SLC (Tramo {selectedSection.code})
+                    </span>
+                    <span className="text-[11px] text-slate-400 block font-sans">
+                      Conductor blindado 2x14 AWG de {Math.round(selectedSection.lengthMeters * 1.05)}m tendido dentro de la tubería.
+                    </span>
+                    <span className="text-[10px] text-sky-400 font-bold block pt-0.5">
+                      Código: CAB-{selectedSection.code} &bull; {Math.round(selectedSection.lengthMeters * 1.05)} Metros
+                    </span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Selected Element Inspection Card */}
@@ -557,7 +1091,13 @@ export default function EstadioBlueprint({
         <div className="mt-4 p-4 rounded-xl border-2 border-red-500 bg-red-50/70 flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-150 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex flex-col items-center justify-center font-bold font-mono shadow-sm">
-              <Flame className="w-5 h-5 text-amber-200" />
+              {activeSelected.type === 'tuberia' ? (
+                <Wrench className="w-5 h-5 text-amber-200" />
+              ) : activeSelected.type === 'cableado' ? (
+                <Cable className="w-5 h-5 text-sky-200" />
+              ) : (
+                <Flame className="w-5 h-5 text-amber-200" />
+              )}
               <span className="text-[10px] uppercase">{activeSelected.type.slice(0, 3)}</span>
             </div>
             <div>
@@ -570,7 +1110,7 @@ export default function EstadioBlueprint({
                 </span>
               </div>
               <p className="text-xs text-slate-600 mt-1">
-                <strong>Modelo:</strong> {activeSelected.model} &middot; <strong>Ubicación:</strong>{' '}
+                <strong>Modelo / Esp:</strong> {activeSelected.model} &middot; <strong>Ubicación:</strong>{' '}
                 {activeSelected.zone}
               </p>
             </div>
@@ -609,8 +1149,11 @@ export default function EstadioBlueprint({
             </div>
 
             <button
-              onClick={() => setInternalSelected(null)}
-              className="p-1.5 rounded-lg hover:bg-red-200 text-slate-600 hover:text-slate-900 transition-all"
+              onClick={() => {
+                setInternalSelected(null);
+                setSelectedSection(null);
+              }}
+              className="p-1.5 rounded-lg hover:bg-red-200 text-slate-600 hover:text-slate-900 transition-all cursor-pointer"
               title="Cerrar ficha técnica"
             >
               <X className="w-4 h-4" />

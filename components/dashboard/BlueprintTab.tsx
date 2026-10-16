@@ -83,8 +83,15 @@ export default function BlueprintTab({
 
   const floorItems = items.filter((i) => {
     if (!currentFloor) return true;
+    const fName = currentFloor.name.toLowerCase();
+    const zName = i.zone.toLowerCase();
     return (
-      i.zone.toLowerCase().includes(currentFloor.name.toLowerCase()) ||
+      zName.includes(fName) ||
+      fName.includes(zName) ||
+      (fName.includes('cancha') && zName.includes('cancha')) ||
+      (fName.includes('nivel 1') && zName.includes('nivel 1')) ||
+      ((fName.includes('mezanine') || fName.includes('mezzanine')) && (zName.includes('mezanine') || zName.includes('mezzanine'))) ||
+      (fName.includes('nivel 3') && zName.includes('nivel 3')) ||
       i.zone.includes(`Piso ${currentFloor.number}`) ||
       i.zone.includes(`Zona ${currentFloor.number}`)
     );

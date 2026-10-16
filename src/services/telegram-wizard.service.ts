@@ -72,19 +72,27 @@ export class TelegramWizardService {
 
     const buttons: InlineKeyboardButton[][] = [];
 
+    const getFloorLabel = (f: typeof floorsToShow[0]) => {
+      if (f.name && !f.name.startsWith('Zona / Nivel')) {
+        const clean = f.name.replace(/\s*\([^)]*\)/g, '').trim();
+        return clean.length > 18 ? clean.substring(0, 16) + '..' : clean;
+      }
+      return `Nivel ${f.floorNumber}`;
+    };
+
     // Agrupar pisos de 2 en 2 para que sea cómodo al tacto
     for (let i = 0; i < floorsToShow.length; i += 2) {
       const row: InlineKeyboardButton[] = [];
       const f1 = floorsToShow[i];
       row.push({
-        text: `📍 Nivel ${f1.floorNumber} (${f1.progressPercentage}%)`,
+        text: `📍 ${getFloorLabel(f1)} (${f1.progressPercentage}%)`,
         callback_data: `f:${f1.floorNumber}`,
       });
 
       if (i + 1 < floorsToShow.length) {
         const f2 = floorsToShow[i + 1];
         row.push({
-          text: `📍 Nivel ${f2.floorNumber} (${f2.progressPercentage}%)`,
+          text: `📍 ${getFloorLabel(f2)} (${f2.progressPercentage}%)`,
           callback_data: `f:${f2.floorNumber}`,
         });
       }
