@@ -21,6 +21,7 @@ import canchaDevices from '@/src/data/estadio-cancha-devices.json';
 import nivel1Devices from '@/src/data/estadio-nivel-1-devices.json';
 import mezanineDevices from '@/src/data/estadio-mezanine-devices.json';
 import nivel3Devices from '@/src/data/estadio-nivel-3-devices.json';
+import exactPipesData from '@/src/data/estadio-exact-pipes.json';
 
 interface Props {
   items: FloorItem[];
@@ -140,301 +141,14 @@ export default function EstadioBlueprint({
         devices: nivel1Devices as HotspotNode[],
       };
 
-  // Sections defined per level
+  // Sections loaded dynamically from exact CAD blueprint vector extraction
   const getSectionsForLevel = (): BlueprintSection[] => {
-    if (isCancha) {
-      return [
-        {
-          id: 'sec-can-01',
-          code: 'CAN-01',
-          name: 'Anillo Cárcamo Suroccidental (Eje 1 a 6)',
-          fromCode: 'Cárcamo Eje 1',
-          toCode: 'Boca Túnel Sur Eje 6',
-          lengthMeters: 85,
-          diameter: '3/4"',
-          pathD: 'M 656 205 C 526 219 404 267 299 344 C 217 446 164 565 144 695',
-          labelPos: { x: 260, y: 395 },
-        },
-        {
-          id: 'sec-can-02',
-          code: 'CAN-02',
-          name: 'Ramal Cafetería VIP, Bodega & Shafte Técnico',
-          fromCode: 'Cárcamo Eje 6',
-          toCode: 'Shafte Técnico 20.3m²',
-          lengthMeters: 54,
-          diameter: '3/4"',
-          pathD: 'M 205 947 L 282 1053 L 348 1041 L 433 1088 L 470 1122',
-          labelPos: { x: 350, y: 1100 },
-        },
-        {
-          id: 'sec-can-03',
-          code: 'CAN-03',
-          name: 'Ramal Tanque Subterráneo & Servicios',
-          fromCode: 'Shafte Técnico',
-          toCode: 'Tanque Subterráneo 30.6m²',
-          lengthMeters: 42,
-          diameter: '3/4"',
-          pathD: 'M 374 1065 L 420 1112 L 504 1187 L 735 1188',
-          labelPos: { x: 570, y: 1195 },
-        },
-        {
-          id: 'sec-can-04',
-          code: 'CAN-04',
-          name: 'Alimentación Boca Túnel Acceso Sur',
-          fromCode: 'Cárcamo Perimetral',
-          toCode: 'Boca Túnel Sur',
-          lengthMeters: 65,
-          diameter: '3/4"',
-          pathD: 'M 144 695 L 158 825 L 205 947',
-          labelPos: { x: 175, y: 880 },
-        },
-        {
-          id: 'sec-can-05',
-          code: 'CAN-05',
-          name: 'Anillo Cárcamo Noroccidental (Eje 6 a 11)',
-          fromCode: 'Hospitality A',
-          toCode: 'Acceso Norte Cancha',
-          lengthMeters: 90,
-          diameter: '3/4"',
-          pathD: 'M 656 205 L 1022 215 L 1137 221',
-          labelPos: { x: 880, y: 210 },
-        },
-        {
-          id: 'sec-can-06',
-          code: 'CAN-06',
-          name: 'Alimentación Boca Túnel Acceso Norte',
-          fromCode: 'Cárcamo Nororiental',
-          toCode: 'Boca Túnel Norte',
-          lengthMeters: 65,
-          diameter: '3/4"',
-          pathD: 'M 1619 718 L 1605 588 L 1558 466',
-          labelPos: { x: 1600, y: 530 },
-        },
-        {
-          id: 'sec-can-07',
-          code: 'CAN-07',
-          name: 'Anillo Cárcamo Nororiental (Eje 11 a 16)',
-          fromCode: 'Centro de Prensa Norte',
-          toCode: 'Subestación Cancha Oriente',
-          lengthMeters: 88,
-          diameter: '3/4"',
-          pathD: 'M 1137 221 L 1378 278 L 1480 360 L 1558 466',
-          labelPos: { x: 1380, y: 310 },
-        },
-        {
-          id: 'sec-can-08',
-          code: 'CAN-08',
-          name: 'Anillo Cárcamo Suroriental (Eje 16 a 21)',
-          fromCode: 'Gradería Suroriental',
-          toCode: 'Vestidores & Primeros Auxilios',
-          lengthMeters: 92,
-          diameter: '3/4"',
-          pathD: 'M 1619 718 L 1599 847 L 1546 967 L 1464 1069 L 1358 1146 L 1236 1193',
-          labelPos: { x: 1515, y: 920 },
-        },
-        {
-          id: 'sec-can-09',
-          code: 'CAN-09',
-          name: 'Riser Pasante Vertical Cancha ➔ Nivel 1',
-          fromCode: 'Cárcamo Sur Cota -3.80m',
-          toCode: 'Riser Subestación Cota +42.08m',
-          lengthMeters: 25,
-          diameter: '1"',
-          pathD: 'M 1022 1188 L 1137 1188 L 1236 1193',
-          labelPos: { x: 1130, y: 1195 },
-        },
-      ];
+    const key = levelMeta.key as keyof typeof exactPipesData;
+    const levelSections = exactPipesData[key];
+    if (levelSections && levelSections.length > 0) {
+      return levelSections as BlueprintSection[];
     }
-
-    if (isMezanine) {
-      return [
-        {
-          id: 'sec-mez-01',
-          code: 'MEZ-01',
-          name: 'Anillo Palcos VIP Occidentales',
-          fromCode: 'Escalera Sur Mezanine',
-          toCode: 'Palcos VIP Central',
-          lengthMeters: 110,
-          diameter: '3/4"',
-          pathD: 'M 680 560 L 990 460 L 1120 410 L 1260 440',
-          labelPos: { x: 990, y: 460 },
-        },
-        {
-          id: 'sec-mez-02',
-          code: 'MEZ-02',
-          name: 'Ramal Salón Presidencial & Sala de Juntas VIP',
-          fromCode: 'Palcos Centrales',
-          toCode: 'Salón Presidencial VIP',
-          lengthMeters: 75,
-          diameter: '3/4"',
-          pathD: 'M 1120 410 L 1260 350 L 1390 420',
-          labelPos: { x: 1260, y: 380 },
-        },
-        {
-          id: 'sec-mez-03',
-          code: 'MEZ-03',
-          name: 'Ramal Museo de la Selección & Jefatura de Escenarios',
-          fromCode: 'Puente Conexión VIP',
-          toCode: 'Museo Selección Colombia',
-          lengthMeters: 90,
-          diameter: '3/4"',
-          pathD: 'M 1260 440 L 1550 470 L 1970 420',
-          labelPos: { x: 1650, y: 460 },
-        },
-        {
-          id: 'sec-mez-04',
-          code: 'MEZ-04',
-          name: 'Acometida Módulo Relevo Control Audio/AC (CR)',
-          fromCode: 'Palcos VIP',
-          toCode: 'Módulo Relevo Audio/AC',
-          lengthMeters: 35,
-          diameter: '3/4"',
-          pathD: 'M 890 480 L 990 460',
-          labelPos: { x: 940, y: 480 },
-        },
-      ];
-    }
-
-    if (isNivel3) {
-      return [
-        {
-          id: 'sec-n3-01',
-          code: 'N3-01',
-          name: 'Corona Alta Occidental (Cabinas Radio y Prensa Alta)',
-          fromCode: 'Caracola 2 Noroccidental',
-          toCode: 'Gradería Prensa Alta',
-          lengthMeters: 145,
-          diameter: '3/4"',
-          pathD: 'M 1000 330 L 1260 280 L 1300 420 L 1580 330',
-          labelPos: { x: 1260, y: 320 },
-        },
-        {
-          id: 'sec-n3-02',
-          code: 'N3-02',
-          name: 'Corona Alta Oriental (Gradería Alta Oriental)',
-          fromCode: 'Caracola 3 Suroriental',
-          toCode: 'Baños Corona Oriental',
-          lengthMeters: 155,
-          diameter: '3/4"',
-          pathD: 'M 1000 1770 L 1260 1850 L 1580 1770',
-          labelPos: { x: 1260, y: 1810 },
-        },
-        {
-          id: 'sec-n3-03',
-          code: 'N3-03',
-          name: 'Alimentación Caracolas 1 y 2 (Evacuación Norte)',
-          fromCode: 'Corona Alta Occidente',
-          toCode: 'Caracola 1 Nororiental',
-          lengthMeters: 90,
-          diameter: '3/4"',
-          pathD: 'M 420 550 L 1000 330 L 2160 550',
-          labelPos: { x: 650, y: 440 },
-        },
-        {
-          id: 'sec-n3-04',
-          code: 'N3-04',
-          name: 'Alimentación Caracolas 3 y 4 (Evacuación Sur)',
-          fromCode: 'Corona Alta Oriente',
-          toCode: 'Caracola 4 Suroccidental',
-          lengthMeters: 90,
-          diameter: '3/4"',
-          pathD: 'M 420 1530 L 1000 1770 L 2160 1530',
-          labelPos: { x: 650, y: 1650 },
-        },
-      ];
-    }
-
-    // Default: NIVEL 1 (+42.08 m)
-    return [
-      {
-        id: 'sec-n1-01',
-        code: 'N1-01',
-        name: 'Riser Principal FACP-02 ➔ Cuarto de Control Occidental',
-        fromCode: 'Riser Cancha',
-        toCode: 'Panel FACP-02 Control Central',
-        lengthMeters: 55,
-        diameter: '1"',
-        pathD: 'M 380 400 L 520 420 L 680 440 L 850 450',
-        labelPos: { x: 600, y: 435 },
-      },
-      {
-        id: 'sec-n1-02',
-        code: 'N1-02',
-        name: 'Troncal Interconexión FACP-02 ➔ FACP-03 Subestación',
-        fromCode: 'FACP-02 Control',
-        toCode: 'FACP-03 Subestación Oriental',
-        lengthMeters: 180,
-        diameter: '1"',
-        pathD: 'M 850 450 L 1040 380 L 1350 380 L 1680 370',
-        labelPos: { x: 1200, y: 385 },
-      },
-      {
-        id: 'sec-n1-03',
-        code: 'N1-03',
-        name: 'Anillo Camerino Colombia & Camerino Junior',
-        fromCode: 'FACP-02',
-        toCode: 'Camerino Selección Colombia',
-        lengthMeters: 125,
-        diameter: '3/4"',
-        pathD: 'M 904 351 L 1085 433 L 1220 450',
-        labelPos: { x: 1085, y: 445 },
-      },
-      {
-        id: 'sec-n1-04',
-        code: 'N1-04',
-        name: 'Ramal Camerinos Visitantes 1 y 2',
-        fromCode: 'Pasillo Camerinos',
-        toCode: 'Camerino Visitantes 2',
-        lengthMeters: 85,
-        diameter: '3/4"',
-        pathD: 'M 780 390 L 904 351 L 1040 380',
-        labelPos: { x: 860, y: 375 },
-      },
-      {
-        id: 'sec-n1-05',
-        code: 'N1-05',
-        name: 'Ramal Sala de Prensa & Médica Antidopaje',
-        fromCode: 'Distribución Occidente',
-        toCode: 'Sala de Prensa 252m²',
-        lengthMeters: 95,
-        diameter: '3/4"',
-        pathD: 'M 580 610 L 670 430 L 780 390',
-        labelPos: { x: 640, y: 520 },
-      },
-      {
-        id: 'sec-n1-06',
-        code: 'N1-06',
-        name: 'Anillo Oriental Ligas Deportivas (Boxeo & Gimnasia)',
-        fromCode: 'Subestación Oriental',
-        toCode: 'Liga de Gimnasia 705m²',
-        lengthMeters: 210,
-        diameter: '3/4"',
-        pathD: 'M 814 1691 L 950 1720 L 1281 1752',
-        labelPos: { x: 1050, y: 1735 },
-      },
-      {
-        id: 'sec-n1-07',
-        code: 'N1-07',
-        name: 'Ramal Corredores Circulación & Taquillas Occ/Ori',
-        fromCode: 'Acceso Occidental',
-        toCode: 'Taquillas Orientales',
-        lengthMeters: 145,
-        diameter: '3/4"',
-        pathD: 'M 1040 260 L 1260 260 L 1480 360',
-        labelPos: { x: 1260, y: 265 },
-      },
-      {
-        id: 'sec-n1-08',
-        code: 'N1-08',
-        name: 'Alimentación Anunciadores Remotos LCD (AR-01 / AR-02 / AR-03)',
-        fromCode: 'FACP-03 Subestación',
-        toCode: 'Taquillas Anunciador AR-01',
-        lengthMeters: 110,
-        diameter: '3/4"',
-        pathD: 'M 1680 370 L 1988 1562 L 2170 1040',
-        labelPos: { x: 1850, y: 960 },
-      },
-    ];
+    return [];
   };
 
   const sections = getSectionsForLevel();
@@ -784,54 +498,59 @@ export default function EstadioBlueprint({
                         setShowTramoPrompt(true);
                       }}
                     >
-                      {/* Broad invisible hit stroke for easy clicking */}
+                      {/* Broad invisible hit stroke for easy clicking directly on the pipe */}
                       <path
                         d={sec.pathD}
                         fill="none"
                         stroke="transparent"
-                        strokeWidth="18"
+                        strokeWidth="16"
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                       />
 
-                      {/* Highlighted Tube Outline */}
+                      {/* Highlighted Tube Outline on Hover or Selection */}
                       <path
                         d={sec.pathD}
                         fill="none"
-                        stroke={isSelected ? '#dc2626' : isHovered ? '#ea580c' : '#dc2626'}
-                        strokeWidth={isSelected ? 4.5 : isHovered ? 3.5 : 2.0}
-                        strokeDasharray={isSelected ? '6,3' : isHovered ? '4,2' : undefined}
-                        strokeOpacity={isSelected ? 0.95 : isHovered ? 0.85 : 0.35}
+                        stroke={isSelected ? '#dc2626' : isHovered ? '#ea580c' : 'transparent'}
+                        strokeWidth={isSelected ? 4.5 : isHovered ? 3.8 : 0}
+                        strokeDasharray={isSelected ? '6,3' : undefined}
+                        strokeOpacity={isSelected ? 1.0 : isHovered ? 0.9 : 0}
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                         className="transition-all duration-150"
                       />
 
-                      {/* Technical Section Badge Indicator */}
-                      <g transform={`translate(${sec.labelPos.x}, ${sec.labelPos.y})`}>
-                        <rect
-                          x="-28"
-                          y="-7"
-                          width="56"
-                          height="14"
-                          rx="3"
-                          fill={isSelected ? '#b91c1c' : isHovered ? '#dc2626' : '#0f172a'}
-                          stroke="#ffffff"
-                          strokeWidth="0.8"
-                          opacity="0.92"
-                          className="drop-shadow-sm transition-all"
-                        />
-                        <text
-                          x="0"
-                          y="1"
-                          dy="2.5"
-                          fill="#ffffff"
-                          fontSize="4.2"
-                          fontWeight="bold"
-                          fontFamily="monospace"
-                          textAnchor="middle"
-                          className="select-none pointer-events-none"
-                        >
-                          ⚡ {sec.code}
-                        </text>
-                      </g>
+                      {/* Technical Section Badge Indicator (Shown on Hover / Selection) */}
+                      {(isHovered || isSelected) && (
+                        <g transform={`translate(${sec.labelPos.x}, ${sec.labelPos.y})`}>
+                          <rect
+                            x="-26"
+                            y="-6.5"
+                            width="52"
+                            height="13"
+                            rx="3"
+                            fill={isSelected ? '#b91c1c' : '#0f172a'}
+                            stroke="#ffffff"
+                            strokeWidth="0.8"
+                            opacity="0.95"
+                            className="drop-shadow-md transition-all"
+                          />
+                          <text
+                            x="0"
+                            y="1"
+                            dy="2.5"
+                            fill="#ffffff"
+                            fontSize="4"
+                            fontWeight="bold"
+                            fontFamily="monospace"
+                            textAnchor="middle"
+                            className="select-none pointer-events-none"
+                          >
+                            ⚡ {sec.code}
+                          </text>
+                        </g>
+                      )}
                     </g>
                   );
                 })}
