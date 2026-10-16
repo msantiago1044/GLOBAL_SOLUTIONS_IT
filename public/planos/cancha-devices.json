@@ -1,0 +1,792 @@
+[
+  {
+    "code": "EST-CAN-F-01",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 1022.2,
+    "y": 1188.3,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-02",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - A-NOR",
+    "room": "A-NOR",
+    "x": 1499.1,
+    "y": 1005.5,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-03",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 1529.5,
+    "y": 442.9,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-04",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - CIRCULACIÓN",
+    "room": "CIRCULACIÓN",
+    "x": 1137.9,
+    "y": 221.7,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-05",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 599.3,
+    "y": 237.0,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-06",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - WC PMR",
+    "room": "WC PMR",
+    "x": 226.5,
+    "y": 465.4,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-07",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - BODEGA 10.48 m²",
+    "room": "BODEGA 10.48 m²",
+    "x": 226.1,
+    "y": 938.8,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-F-08",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 735.3,
+    "y": 1188.3,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-CAN-S-01",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1577.0,
+    "y": 750.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-02",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1545.0,
+    "y": 746.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-03",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1539.8,
+    "y": 772.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-04",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1575.0,
+    "y": 778.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-05",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA 18.78 m²",
+    "room": "BODEGA 18.78 m²",
+    "x": 1568.4,
+    "y": 804.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-06",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA 18.78 m²",
+    "room": "BODEGA 18.78 m²",
+    "x": 1527.4,
+    "y": 815.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-07",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC PMR",
+    "room": "WC PMR",
+    "x": 1542.1,
+    "y": 830.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-08",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DISPONIBLE",
+    "room": "DISPONIBLE",
+    "x": 1401.7,
+    "y": 1054.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-09",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DISPONIBLE",
+    "room": "DISPONIBLE",
+    "x": 1350.6,
+    "y": 1089.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-10",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PRIMEROS",
+    "room": "PRIMEROS",
+    "x": 1295.2,
+    "y": 1125.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-11",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 3.58 m² CUARTO TÉCNICO",
+    "room": "ASEO 3.58 m² CUARTO TÉCNICO",
+    "x": 1262.8,
+    "y": 1158.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-12",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 3.58 m² CUARTO TÉCNICO",
+    "room": "ASEO 3.58 m² CUARTO TÉCNICO",
+    "x": 1239.9,
+    "y": 1165.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-13",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1207.4,
+    "y": 1150.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-14",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1202.1,
+    "y": 1125.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-15",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 1031.8,
+    "y": 1168.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-16",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 9.93 m²",
+    "room": "ASEO 9.93 m²",
+    "x": 1031.6,
+    "y": 1134.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-17",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AMENITIES",
+    "room": "AMENITIES",
+    "x": 839.8,
+    "y": 1149.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-18",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AMENITIES",
+    "room": "AMENITIES",
+    "x": 793.4,
+    "y": 1149.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-19",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 732.9,
+    "y": 1161.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-20",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 4.45 m²",
+    "room": "ASEO 4.45 m²",
+    "x": 732.9,
+    "y": 1127.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-21",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC PMR",
+    "room": "WC PMR",
+    "x": 468.9,
+    "y": 1123.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-22",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 421.3,
+    "y": 1113.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-23",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 434.5,
+    "y": 1089.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-24",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 405.4,
+    "y": 1089.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-25",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - TANQUE SUBTERRÁNEO",
+    "room": "TANQUE SUBTERRÁNEO",
+    "x": 375.3,
+    "y": 1066.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-26",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 349.0,
+    "y": 1042.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-27",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA 10.48 m²",
+    "room": "BODEGA 10.48 m²",
+    "x": 274.4,
+    "y": 923.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-28",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA 10.48 m²",
+    "room": "BODEGA 10.48 m²",
+    "x": 246.2,
+    "y": 940.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-29",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 223.3,
+    "y": 898.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-30",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 190.0,
+    "y": 758.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-31",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 220.4,
+    "y": 754.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-32",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 195.1,
+    "y": 739.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-33",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 212.4,
+    "y": 668.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-34",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PRIMEROS",
+    "room": "PRIMEROS",
+    "x": 187.9,
+    "y": 651.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-35",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 223.4,
+    "y": 513.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-36",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - HINCHAS",
+    "room": "HINCHAS",
+    "x": 262.2,
+    "y": 481.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-37",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA HINCHAS",
+    "room": "BODEGA HINCHAS",
+    "x": 327.1,
+    "y": 464.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-38",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 6.67 m²",
+    "room": "ASEO 6.67 m²",
+    "x": 303.3,
+    "y": 399.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-39",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DISPONIBLE",
+    "room": "DISPONIBLE",
+    "x": 352.3,
+    "y": 365.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-40",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DISPONIBLE",
+    "room": "DISPONIBLE",
+    "x": 360.9,
+    "y": 345.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-41",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PROYECCION INFERIOR DE",
+    "room": "PROYECCION INFERIOR DE",
+    "x": 381.0,
+    "y": 331.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-42",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 401.4,
+    "y": 319.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-43",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 422.5,
+    "y": 307.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-44",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - LOBBY WC",
+    "room": "LOBBY WC",
+    "x": 470.4,
+    "y": 292.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-45",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BOX 72.90 m²",
+    "room": "BOX 72.90 m²",
+    "x": 502.9,
+    "y": 285.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-46",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AMENITIES",
+    "room": "AMENITIES",
+    "x": 549.7,
+    "y": 269.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-47",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CATERING",
+    "room": "CATERING",
+    "x": 784.3,
+    "y": 260.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-48",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - HOSPITALITY",
+    "room": "HOSPITALITY",
+    "x": 825.3,
+    "y": 243.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-49",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BAR",
+    "room": "BAR",
+    "x": 825.3,
+    "y": 282.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-50",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - HOSPITALITY",
+    "room": "HOSPITALITY",
+    "x": 939.4,
+    "y": 238.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-51",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BAR",
+    "room": "BAR",
+    "x": 939.4,
+    "y": 283.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-52",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 4.51 m²",
+    "room": "ASEO 4.51 m²",
+    "x": 990.9,
+    "y": 257.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-53",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CATERING",
+    "room": "CATERING",
+    "x": 976.8,
+    "y": 257.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-54",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AMENITIES",
+    "room": "AMENITIES",
+    "x": 1212.1,
+    "y": 269.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-55",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BOX 77.54 m²",
+    "room": "BOX 77.54 m²",
+    "x": 1267.9,
+    "y": 281.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-56",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - LOBBY WC",
+    "room": "LOBBY WC",
+    "x": 1295.6,
+    "y": 287.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-57",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC PMR",
+    "room": "WC PMR",
+    "x": 1343.4,
+    "y": 303.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-58",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1329.9,
+    "y": 327.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-59",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - TANQUE SUBTERRÁNEO",
+    "room": "TANQUE SUBTERRÁNEO",
+    "x": 1380.4,
+    "y": 345.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-60",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 1417.6,
+    "y": 366.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-61",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1561.6,
+    "y": 562.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-62",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA HINCHAS",
+    "room": "BODEGA HINCHAS",
+    "x": 1528.3,
+    "y": 597.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-63",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - HINCHAS",
+    "room": "HINCHAS",
+    "x": 1559.5,
+    "y": 600.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-64",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1539.9,
+    "y": 640.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-65",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1571.8,
+    "y": 635.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-66",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1544.8,
+    "y": 667.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-67",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 1575.1,
+    "y": 662.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-68",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AMENITIES",
+    "room": "AMENITIES",
+    "x": 972.2,
+    "y": 1149.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-69",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES 106.29 m² PRIMEROS",
+    "room": "WC MUJERES 106.29 m² PRIMEROS",
+    "x": 925.6,
+    "y": 1149.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-S-70",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Detector Humo",
+    "room": "Detector Humo",
+    "x": 1789.9,
+    "y": 784.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-CAN-AR-01",
+    "symbol": "AR",
+    "type": "facp",
+    "name": "Anunciador Remoto LCD - Anunciador remoto AR",
+    "room": "Anunciador remoto AR",
+    "x": 1790.0,
+    "y": 1045.8,
+    "color": "#7c3aed"
+  }
+]

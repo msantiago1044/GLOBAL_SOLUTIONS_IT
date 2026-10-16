@@ -11,11 +11,14 @@ import {
   X,
   Maximize2,
   Minimize2,
-  Eye,
-  SlidersHorizontal,
-  MapPin,
   Flame,
+  CheckCircle2,
 } from 'lucide-react';
+
+import canchaDevices from '@/src/data/estadio-cancha-devices.json';
+import nivel1Devices from '@/src/data/estadio-nivel-1-devices.json';
+import mezanineDevices from '@/src/data/estadio-mezanine-devices.json';
+import nivel3Devices from '@/src/data/estadio-nivel-3-devices.json';
 
 interface Props {
   items: FloorItem[];
@@ -27,19 +30,18 @@ interface Props {
 
 interface HotspotNode {
   code: string;
-  name: string;
+  symbol: string;
   type: FloorItem['type'];
+  name: string;
+  room: string;
   x: number;
   y: number;
-  symbol: string;
-  badge: string;
   color: string;
 }
 
 export default function EstadioBlueprint({
   items,
   currentZone,
-  isEditable,
   selectedItemId,
   onSelectItem,
 }: Props) {
@@ -55,13 +57,12 @@ export default function EstadioBlueprint({
   // View mode: 'cadgray' (Arquitectura en gris bloqueado + Tubería y equipos en rojo) vs 'original' (Plano original PDF)
   const [viewMode, setViewMode] = useState<'cadgray' | 'original'>('cadgray');
 
-  // Interactive filter toggles
-  const [showPipes, setShowPipes] = useState(true);
-  const [showDetectors, setShowDetectors] = useState(true);
-  const [showPalancas, setShowPalancas] = useState(true);
-  const [showSirenas, setShowSirenas] = useState(true);
-  const [showPaneles, setShowPaneles] = useState(true);
+  // Interactive layer filter toggles
   const [showHotspots, setShowHotspots] = useState(true);
+  const [filterS, setFilterS] = useState(true);
+  const [filterF, setFilterF] = useState(true);
+  const [filterH, setFilterH] = useState(true);
+  const [filterOther, setFilterOther] = useState(true);
 
   // Selection state
   const [internalSelected, setInternalSelected] = useState<FloorItem | null>(null);
@@ -84,6 +85,7 @@ export default function EstadioBlueprint({
         scale: '1:350',
         srcCadGray: '/planos/cancha-cadgray.png',
         srcOriginal: '/planos/cancha.png',
+        devices: canchaDevices as HotspotNode[],
       }
     : isMezanine
     ? {
@@ -94,6 +96,7 @@ export default function EstadioBlueprint({
         scale: '1:500',
         srcCadGray: '/planos/mezanine-cadgray.png',
         srcOriginal: '/planos/mezanine.png',
+        devices: mezanineDevices as HotspotNode[],
       }
     : isNivel3
     ? {
@@ -104,6 +107,7 @@ export default function EstadioBlueprint({
         scale: '1:350',
         srcCadGray: '/planos/nivel-3-cadgray.png',
         srcOriginal: '/planos/nivel-3.png',
+        devices: nivel3Devices as HotspotNode[],
       }
     : {
         key: 'nivel-1',
@@ -113,6 +117,7 @@ export default function EstadioBlueprint({
         scale: '1:350',
         srcCadGray: '/planos/nivel-1-cadgray.png',
         srcOriginal: '/planos/nivel-1.png',
+        devices: nivel1Devices as HotspotNode[],
       };
 
   // Reset pan/zoom on floor change
@@ -121,6 +126,23 @@ export default function EstadioBlueprint({
     setPanOffset({ x: 0, y: 0 });
     setInternalSelected(null);
   }, [currentZone]);
+
+  const allLevelNodes = levelMeta.devices;
+
+  // Compute breakdown of devices in this level
+  const counts = allLevelNodes.reduce<Record<string, number>>((acc, node) => {
+    acc[node.symbol] = (acc[node.symbol] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Filtered devices for SVG overlay
+  const visibleNodes = allLevelNodes.filter((node) => {
+    if (!showHotspots) return false;
+    if (node.symbol === 'S') return filterS;
+    if (node.symbol === 'F') return filterF;
+    if (node.symbol === 'H') return filterH;
+    return filterOther;
+  });
 
   const activeSelected = selectedItemId
     ? items.find((i) => i.code === selectedItemId || i.id === selectedItemId) || internalSelected
@@ -132,79 +154,6 @@ export default function EstadioBlueprint({
       onSelectItem(item);
     }
   };
-
-  // Hotspots mapped directly to the actual CAD coordinates (3006 x 2126 px)
-  const getHotspotsForLevel = (): HotspotNode[] => {
-    if (isCancha) {
-      return [
-        { code: 'EST-CAN-SEN-01', name: 'Detector Humo (S) Túnel Acceso Sur', type: 'detector-autonomo', x: 260, y: 1100, symbol: 'S', badge: 'Túnel Sur', color: '#dc2626' },
-        { code: 'EST-CAN-SEN-02', name: 'Detector Humo (S) Túnel Acceso Norte', type: 'detector-autonomo', x: 2260, y: 1100, symbol: 'S', badge: 'Túnel Norte', color: '#dc2626' },
-        { code: 'EST-CAN-SEN-03', name: 'Detector Humo (S) Hospitality A', type: 'detector-autonomo', x: 570, y: 550, symbol: 'S', badge: 'Hosp. A', color: '#dc2626' },
-        { code: 'EST-CAN-SEN-04', name: 'Detector Humo (S) Hospitality B', type: 'detector-autonomo', x: 1950, y: 550, symbol: 'S', badge: 'Hosp. B', color: '#dc2626' },
-        { code: 'EST-CAN-SEN-05', name: 'Detector Térmico (T) Cuarto Técnico', type: 'detector-autonomo', x: 1260, y: 390, symbol: 'T', badge: 'Técnico', color: '#dc2626' },
-        { code: 'EST-CAN-PAL-01', name: 'Estación Manual (F) Boca Túnel Sur', type: 'palanca', x: 450, y: 1060, symbol: 'F', badge: 'Palanca Sur', color: '#dc2626' },
-        { code: 'EST-CAN-PAL-02', name: 'Estación Manual (F) Boca Túnel Norte', type: 'palanca', x: 2070, y: 1060, symbol: 'F', badge: 'Palanca Norte', color: '#dc2626' },
-        { code: 'EST-CAN-SIR-01', name: 'Sirena Estrobo (⚡) Túnel Sur', type: 'sirena', x: 350, y: 1040, symbol: '⚡', badge: 'Sirena', color: '#dc2626' },
-        { code: 'EST-CAN-SIR-02', name: 'Sirena Estrobo (⚡) Túnel Norte', type: 'sirena', x: 2170, y: 1040, symbol: '⚡', badge: 'Sirena', color: '#dc2626' },
-      ];
-    }
-
-    if (isMezanine) {
-      return [
-        { code: 'EST-MEZ-SEN-01', name: 'Detector Humo (S) Área VIP Central', type: 'detector-autonomo', x: 1260, y: 440, symbol: 'S', badge: 'VIP 518m²', color: '#dc2626' },
-        { code: 'EST-MEZ-SEN-02', name: 'Detector Humo (S) Museo Selección', type: 'detector-autonomo', x: 1970, y: 420, symbol: 'S', badge: 'Museo', color: '#dc2626' },
-        { code: 'EST-MEZ-SEN-03', name: 'Detector Humo (S) Puente Conexión', type: 'detector-autonomo', x: 1550, y: 470, symbol: 'S', badge: 'Puente', color: '#dc2626' },
-        { code: 'EST-MEZ-SEN-04', name: 'Detector Humo (S) Jefatura Escenarios', type: 'detector-autonomo', x: 990, y: 460, symbol: 'S', badge: 'Jefatura', color: '#dc2626' },
-        { code: 'EST-MEZ-SEN-05', name: 'Detector Humo (S) Sala Juntas VIP', type: 'detector-autonomo', x: 1120, y: 410, symbol: 'S', badge: 'Juntas', color: '#dc2626' },
-        { code: 'EST-MEZ-PAL-01', name: 'Estación Manual (F) Palcos VIP', type: 'palanca', x: 1260, y: 350, symbol: 'F', badge: 'Palanca VIP', color: '#dc2626' },
-        { code: 'EST-MEZ-PAL-02', name: 'Estación Manual (F) Escalera Mezanine Sur', type: 'palanca', x: 680, y: 560, symbol: 'F', badge: 'Palanca Sur', color: '#dc2626' },
-        { code: 'EST-MEZ-SIR-01', name: 'Sirena Estrobo (⚡) VIP Mezanine', type: 'sirena', x: 1390, y: 420, symbol: '⚡', badge: 'Sirena VIP', color: '#dc2626' },
-        { code: 'EST-MEZ-MOD-REL', name: 'Módulo Relevo Control Audio/AC', type: 'cuadro-bomba', x: 890, y: 480, symbol: 'CR', badge: 'Relevo', color: '#dc2626' },
-      ];
-    }
-
-    if (isNivel3) {
-      return [
-        { code: 'EST-N3-SEN-01', name: 'Detector Humo (S) Baños Occidental', type: 'detector-autonomo', x: 1000, y: 330, symbol: 'S', badge: 'Baños Occ', color: '#dc2626' },
-        { code: 'EST-N3-SEN-02', name: 'Detector Humo (S) Gradería Prensa Alta', type: 'detector-autonomo', x: 1300, y: 420, symbol: 'S', badge: 'Prensa 80m²', color: '#dc2626' },
-        { code: 'EST-N3-SEN-03', name: 'Detector Humo (S) Puntos Fijos Occ.', type: 'detector-autonomo', x: 1580, y: 330, symbol: 'S', badge: 'Puntos Fijos', color: '#dc2626' },
-        { code: 'EST-N3-SEN-04', name: 'Detector Humo (S) Baños Oriental', type: 'detector-autonomo', x: 1260, y: 1770, symbol: 'S', badge: 'Baños Orie', color: '#dc2626' },
-        { code: 'EST-N3-PAL-01', name: 'Estación Manual (F) Caracola 1', type: 'palanca', x: 2160, y: 550, symbol: 'F', badge: 'Caracola 1', color: '#dc2626' },
-        { code: 'EST-N3-PAL-02', name: 'Estación Manual (F) Caracola 2', type: 'palanca', x: 420, y: 550, symbol: 'F', badge: 'Caracola 2', color: '#dc2626' },
-        { code: 'EST-N3-PAL-03', name: 'Estación Manual (F) Caracola 3', type: 'palanca', x: 2160, y: 1530, symbol: 'F', badge: 'Caracola 3', color: '#dc2626' },
-        { code: 'EST-N3-PAL-04', name: 'Estación Manual (F) Caracola 4', type: 'palanca', x: 420, y: 1530, symbol: 'F', badge: 'Caracola 4', color: '#dc2626' },
-        { code: 'EST-N3-SIR-01', name: 'Sirena Estrobo (⚡) Corona Occidental', type: 'sirena', x: 1260, y: 280, symbol: '⚡', badge: 'Sirena Occ', color: '#dc2626' },
-        { code: 'EST-N3-SIR-02', name: 'Sirena Estrobo (⚡) Corona Oriental', type: 'sirena', x: 1260, y: 1850, symbol: '⚡', badge: 'Sirena Orie', color: '#dc2626' },
-      ];
-    }
-
-    // Default: NIVEL 1 (+42.08 m)
-    return [
-      { code: 'EST-N1-FACP-02', name: 'Panel de Incendio Notifier No. 2', type: 'facp', x: 1040, y: 380, symbol: 'FACP', badge: 'Control FACP-2', color: '#b91c1c' },
-      { code: 'EST-N1-FACP-03', name: 'Panel de Incendio Notifier No. 3', type: 'facp', x: 1680, y: 370, symbol: 'FACP', badge: 'Subestación FACP-3', color: '#b91c1c' },
-      { code: 'EST-N1-AR-01', name: 'Anunciador Remoto LCD AR', type: 'facp', x: 2170, y: 1040, symbol: 'AR', badge: 'Taquillas AR', color: '#b91c1c' },
-      { code: 'EST-N1-SEN-COL', name: 'Detector Humo (S) Camerino Colombia', type: 'detector-autonomo', x: 1085, y: 433, symbol: 'S', badge: 'Camerino Colombia', color: '#dc2626' },
-      { code: 'EST-N1-SEN-JUN', name: 'Detector Humo (S) Camerino Junior', type: 'detector-autonomo', x: 904, y: 351, symbol: 'S', badge: 'Camerino Junior', color: '#dc2626' },
-      { code: 'EST-N1-SEN-VIS1', name: 'Detector Humo (S) Camerino Visitantes 1', type: 'detector-autonomo', x: 780, y: 390, symbol: 'S', badge: 'Visitante 1', color: '#dc2626' },
-      { code: 'EST-N1-SEN-VIS2', name: 'Detector Humo (S) Camerino Visitantes 2', type: 'detector-autonomo', x: 1220, y: 450, symbol: 'S', badge: 'Visitante 2', color: '#dc2626' },
-      { code: 'EST-N1-SEN-PREN', name: 'Detector Humo (S) Sala de Prensa', type: 'detector-autonomo', x: 580, y: 610, symbol: 'S', badge: 'Prensa 252m²', color: '#dc2626' },
-      { code: 'EST-N1-SEN-MED', name: 'Detector Humo (S) Médica & Antidopaje', type: 'detector-autonomo', x: 670, y: 430, symbol: 'S', badge: 'Médica', color: '#dc2626' },
-      { code: 'EST-N1-SEN-BOX', name: 'Detector Humo (S) Liga de Boxeo', type: 'detector-autonomo', x: 814, y: 1691, symbol: 'S', badge: 'Boxeo 705m²', color: '#dc2626' },
-      { code: 'EST-N1-SEN-GIM', name: 'Detector Humo (S) Liga de Gimnasia', type: 'detector-autonomo', x: 1281, y: 1752, symbol: 'S', badge: 'Gimnasia', color: '#dc2626' },
-      { code: 'EST-N1-SEN-HCO1', name: 'Detector Térmico y CO (H·CO) Subestación Occ.', type: 'detector-doble', x: 620, y: 1613, symbol: 'H·CO', badge: 'Subestación', color: '#dc2626' },
-      { code: 'EST-N1-SEN-HCO2', name: 'Detector Térmico y CO (H·CO) Planta Generación', type: 'detector-doble', x: 540, y: 1680, symbol: 'H·CO', badge: 'Generadores', color: '#dc2626' },
-      { code: 'EST-N1-SEN-SH1', name: 'Detector Humo y Térmico (S·H) Taller Mant.', type: 'detector-doble', x: 1988, y: 1562, symbol: 'S·H', badge: 'Taller', color: '#dc2626' },
-      { code: 'EST-N1-PAL-01', name: 'Estación Manual (F) Acceso Occidental', type: 'palanca', x: 1040, y: 260, symbol: 'F', badge: 'Palanca Occ.', color: '#dc2626' },
-      { code: 'EST-N1-PAL-02', name: 'Estación Manual (F) Pasillo Camerinos', type: 'palanca', x: 960, y: 410, symbol: 'F', badge: 'Palanca Cam.', color: '#dc2626' },
-      { code: 'EST-N1-PAL-03', name: 'Estación Manual (F) Acceso Oriental', type: 'palanca', x: 1260, y: 1820, symbol: 'F', badge: 'Palanca Orie.', color: '#dc2626' },
-      { code: 'EST-N1-SIR-01', name: 'Sirena Estrobo (⚡) Camerinos', type: 'sirena', x: 1020, y: 460, symbol: '⚡', badge: 'Sirena Cam.', color: '#dc2626' },
-      { code: 'EST-N1-SIR-02', name: 'Sirena Estrobo (⚡) Sala de Prensa', type: 'sirena', x: 520, y: 640, symbol: '⚡', badge: 'Sirena Prensa', color: '#dc2626' },
-      { code: 'EST-N1-SIR-03', name: 'Sirena Estrobo (⚡) Ligas Deportivas', type: 'sirena', x: 950, y: 1720, symbol: '⚡', badge: 'Sirena Ligas', color: '#dc2626' },
-      { code: 'EST-N1-REG-PAS', name: 'Registro Pasante Vertical (⤊/⤋) Riser', type: 'tuberia', x: 1520, y: 420, symbol: '⤊⤋', badge: 'Riser Cancha', color: '#dc2626' },
-    ];
-  };
-
-  const hotspots = getHotspotsForLevel();
 
   // Mouse pan event handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -228,7 +177,7 @@ export default function EstadioBlueprint({
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.15 : -0.15;
-    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.6), 3.5));
+    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.6), 4.0));
   };
 
   const currentImageSrc = viewMode === 'cadgray' ? levelMeta.srcCadGray : levelMeta.srcOriginal;
@@ -257,7 +206,7 @@ export default function EstadioBlueprint({
               </span>
             </div>
             <p className="text-[11px] text-slate-500 font-mono mt-0.5">
-              Copia fiel y directa del plano PDF oficial &middot; Tubería y cableado en rojo técnico
+              Copia fiel y directa del plano PDF oficial &middot; Tubería y detectores ubicados en coordenadas reales
             </p>
           </div>
         </div>
@@ -273,7 +222,7 @@ export default function EstadioBlueprint({
                   ? 'bg-brand-deep text-white shadow-sm'
                   : 'text-slate-600 hover:text-brand-deep'
               }`}
-              title="Arquitectura en gris bloqueado y redes en rojo para máxima claridad en obra"
+              title="Arquitectura en gris bloqueado con tubería y cableado en rojo continuo"
             >
               Arquitectura en Gris + Tubería Roja
             </button>
@@ -293,7 +242,7 @@ export default function EstadioBlueprint({
           {/* Zoom & Pan Controls */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 text-slate-700">
             <button
-              onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 3.5))}
+              onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 4.0))}
               className="p-1.5 rounded-lg hover:bg-white transition-all"
               title="Acercar plano (+)"
             >
@@ -328,72 +277,92 @@ export default function EstadioBlueprint({
         </div>
       </div>
 
-      {/* Convenciones Bar & Layer Filters */}
+      {/* Convenciones NFPA 72 & Layer Filters */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono">
         <div className="flex items-center gap-1.5 text-slate-700 font-bold uppercase text-[11px]">
           <Layers className="w-4 h-4 text-red-600" />
           <span>Convenciones NFPA 72:</span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-4 text-slate-700 text-[11px]">
-          <label className="flex items-center gap-1.5 cursor-pointer">
+        <div className="flex flex-wrap items-center gap-3 text-slate-700 text-[11px]">
+          {/* Global Hotspot Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer bg-white px-2 py-1 rounded-lg border border-slate-300 shadow-2xs">
             <input
               type="checkbox"
               checked={showHotspots}
               onChange={(e) => setShowHotspots(e.target.checked)}
-              className="rounded text-red-600 focus:ring-0"
+              className="rounded text-red-600 focus:ring-0 cursor-pointer"
             />
-            <span className="font-bold text-red-700">Puntos Interactivos de Obra</span>
+            <span className="font-bold text-red-700">Puntos de Obra ({allLevelNodes.length})</span>
           </label>
 
           <div className="h-4 w-px bg-slate-300"></div>
 
-          <div className="flex items-center gap-1.5">
+          {/* Conduit Legend Indicator */}
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-white rounded-lg border border-slate-200">
             <span className="w-4 h-1 bg-red-600 rounded inline-block"></span>
             <span>Tubería EMT 3/4" & 1"</span>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            <span className="w-4 h-4 rounded-full border-2 border-red-600 bg-white text-[9px] font-bold text-red-600 flex items-center justify-center">
+          {/* Detector Humo Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
+            <input
+              type="checkbox"
+              checked={filterS}
+              onChange={(e) => setFilterS(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0 cursor-pointer"
+            />
+            <span className="w-3.5 h-3.5 rounded-full border border-red-600 bg-white text-[8px] font-bold text-red-600 flex items-center justify-center">
               S
             </span>
-            <span>Detector Humo</span>
-          </div>
+            <span>Humo ({counts['S'] || 0})</span>
+          </label>
 
-          <div className="flex items-center gap-1.5">
-            <span className="w-4 h-4 rounded-full border-2 border-red-600 bg-white text-[9px] font-bold text-red-600 flex items-center justify-center">
-              T
-            </span>
-            <span>Detector Térmico</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
+          {/* Estación Manual Toggle */}
+          <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
+            <input
+              type="checkbox"
+              checked={filterF}
+              onChange={(e) => setFilterF(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0 cursor-pointer"
+            />
+            <span className="w-3.5 h-3.5 rounded bg-red-700 text-white text-[8px] font-bold flex items-center justify-center">
               F
             </span>
-            <span>Estación Manual</span>
-          </div>
+            <span>Manual ({counts['F'] || 0})</span>
+          </label>
 
-          <div className="flex items-center gap-1.5">
-            <span className="w-4 h-3 rounded bg-red-600 text-amber-200 text-[8px] font-bold flex items-center justify-center">
-              ⚡
-            </span>
-            <span>Sirena Estrobo</span>
-          </div>
+          {/* Detector Térmico Toggle (if present) */}
+          {Boolean(counts['H']) && (
+            <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={filterH}
+                onChange={(e) => setFilterH(e.target.checked)}
+                className="rounded text-orange-600 focus:ring-0 cursor-pointer"
+              />
+              <span className="w-3.5 h-3.5 rounded-full border border-orange-600 bg-white text-[8px] font-bold text-orange-600 flex items-center justify-center">
+                H
+              </span>
+              <span>Térmico ({counts['H'] || 0})</span>
+            </label>
+          )}
 
-          <div className="flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-bold">
-              FACP
-            </span>
-            <span>Panel de Incendio</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <span className="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-bold">
-              AR
-            </span>
-            <span>Anunciador Remoto</span>
-          </div>
+          {/* Special Equipment Toggle (AR, CO, FACP) */}
+          {Boolean((counts['AR'] || 0) + (counts['co'] || 0) + (counts['CR'] || 0) + (counts['FACP'] || 0)) && (
+            <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={filterOther}
+                onChange={(e) => setFilterOther(e.target.checked)}
+                className="rounded text-purple-600 focus:ring-0 cursor-pointer"
+              />
+              <span className="px-1 py-0.5 rounded bg-purple-700 text-white text-[7px] font-bold">
+                AR/CO
+              </span>
+              <span>Especiales ({(counts['AR'] || 0) + (counts['co'] || 0) + (counts['CR'] || 0) + (counts['FACP'] || 0)})</span>
+            </label>
+          )}
         </div>
       </div>
 
@@ -421,20 +390,20 @@ export default function EstadioBlueprint({
             draggable={false}
           />
 
-          {/* 2. INTERACTIVE SVG HOTSPOT OVERLAY */}
+          {/* 2. INTERACTIVE SVG PRECISION CAD RETICLES (2004 x 1417 pt EXACT NATIVE PDF COORD) */}
           {showHotspots && (
             <svg
-              viewBox="0 0 3006 2126"
+              viewBox="0 0 2004 1417"
               className="absolute inset-0 w-full h-full pointer-events-auto"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {hotspots.map((node) => {
+              {visibleNodes.map((node) => {
                 const isSelected =
                   activeSelected?.code === node.code ||
                   activeSelected?.name.toLowerCase().includes(node.name.toLowerCase());
                 const isHovered = hoveredNode?.code === node.code;
 
-                // Match with FloorItem from props
+                // Match with FloorItem from props or create exact item
                 const matchedItem = items.find(
                   (i) => i.code === node.code || i.name.toLowerCase().includes(node.name.toLowerCase())
                 ) || {
@@ -449,8 +418,11 @@ export default function EstadioBlueprint({
                   quantity: 1,
                   unit: 'Unidad',
                   unitPrice: 385000,
-                  notes: 'Componente identificado en plano oficial de detección.',
+                  notes: `Componente identificado en plano oficial de detección: ${node.room}`,
                 };
+
+                const isSquare = node.symbol === 'F';
+                const isRect = node.symbol === 'AR' || node.symbol === 'FACP';
 
                 return (
                   <g
@@ -463,39 +435,69 @@ export default function EstadioBlueprint({
                       handleSelect(matchedItem);
                     }}
                   >
-                    {/* Pulsing Selection Aura */}
+                    {/* Generous invisible target for smooth hit testing */}
+                    <circle cx={node.x} cy={node.y} r="9" fill="transparent" />
+
+                    {/* Pulsing Selection Radar Aura */}
                     {isSelected && (
                       <circle
                         cx={node.x}
                         cy={node.y}
-                        r="45"
-                        fill="#dc2626"
+                        r="12"
+                        fill={node.color}
                         fillOpacity="0.25"
-                        stroke="#dc2626"
-                        strokeWidth="5"
-                        strokeDasharray="8,4"
+                        stroke={node.color}
+                        strokeWidth="1.2"
+                        strokeDasharray="3,1.5"
                         className="animate-spin"
                         style={{ transformOrigin: `${node.x}px ${node.y}px` }}
                       />
                     )}
 
-                    {/* Interactive Marker Pin */}
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r={isSelected || isHovered ? '28' : '22'}
-                      fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : '#dc2626'}
-                      stroke="#ffffff"
-                      strokeWidth="4"
-                      className="drop-shadow-md transition-all duration-150"
-                    />
+                    {/* Precision Reticle Shape */}
+                    {isSquare ? (
+                      <rect
+                        x={node.x - (isSelected || isHovered ? 4.5 : 3.5)}
+                        y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
+                        width={isSelected || isHovered ? 9 : 7}
+                        height={isSelected || isHovered ? 9 : 7}
+                        rx="1.5"
+                        fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                        stroke="#ffffff"
+                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                        className="drop-shadow-sm transition-all duration-150"
+                      />
+                    ) : isRect ? (
+                      <rect
+                        x={node.x - (isSelected || isHovered ? 7 : 5.5)}
+                        y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
+                        width={isSelected || isHovered ? 14 : 11}
+                        height={isSelected || isHovered ? 9 : 7}
+                        rx="1.5"
+                        fill={isSelected ? '#991b1b' : isHovered ? '#7c3aed' : node.color}
+                        stroke="#ffffff"
+                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                        className="drop-shadow-sm transition-all duration-150"
+                      />
+                    ) : (
+                      <circle
+                        cx={node.x}
+                        cy={node.y}
+                        r={isSelected || isHovered ? 5.8 : 4.2}
+                        fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                        stroke="#ffffff"
+                        strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                        className="drop-shadow-sm transition-all duration-150"
+                      />
+                    )}
 
                     {/* Symbol Text */}
                     <text
                       x={node.x}
-                      y={node.y + 7}
+                      y={node.y}
+                      dy={node.symbol.length > 2 ? 0.9 : 1.1}
                       fill="#ffffff"
-                      fontSize={node.symbol.length > 2 ? '13' : '17'}
+                      fontSize={node.symbol.length > 2 ? 2.3 : 3.2}
                       fontWeight="bold"
                       fontFamily="monospace"
                       textAnchor="middle"
@@ -504,31 +506,41 @@ export default function EstadioBlueprint({
                       {node.symbol}
                     </text>
 
-                    {/* Label Badge on Hover or Selection */}
+                    {/* Engineering HUD Tooltip Card on Hover or Selection */}
                     {(isHovered || isSelected) && (
                       <g className="pointer-events-none animate-in fade-in duration-100">
                         <rect
-                          x={node.x - 90}
-                          y={node.y - 65}
-                          width="180"
-                          height="36"
-                          rx="8"
+                          x={node.x - 70}
+                          y={node.y - 28}
+                          width="140"
+                          height="22"
+                          rx="4"
                           fill="#0f172a"
                           stroke="#ffffff"
-                          strokeWidth="2"
+                          strokeWidth="0.8"
                           opacity="0.95"
                           className="drop-shadow-lg"
                         />
                         <text
                           x={node.x}
-                          y={node.y - 42}
+                          y={node.y - 17}
                           fill="#ffffff"
-                          fontSize="14"
+                          fontSize="3.6"
                           fontWeight="bold"
                           fontFamily="monospace"
                           textAnchor="middle"
                         >
-                          {node.badge}
+                          {node.code} · {node.symbol}
+                        </text>
+                        <text
+                          x={node.x}
+                          y={node.y - 9}
+                          fill="#cbd5e1"
+                          fontSize="2.8"
+                          fontFamily="sans-serif"
+                          textAnchor="middle"
+                        >
+                          {node.room.length > 28 ? `${node.room.slice(0, 26)}...` : node.room}
                         </text>
                       </g>
                     )}
@@ -583,7 +595,11 @@ export default function EstadioBlueprint({
                     : 'text-amber-700'
                 }`}
               >
-                <Clock className="w-3.5 h-3.5" />
+                {activeSelected.status === 'inspected' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : (
+                  <Clock className="w-3.5 h-3.5" />
+                )}
                 {activeSelected.status === 'inspected'
                   ? 'Inspeccionado'
                   : activeSelected.status === 'installed'

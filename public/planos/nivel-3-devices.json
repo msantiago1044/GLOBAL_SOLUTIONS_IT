@@ -1,0 +1,592 @@
+[
+  {
+    "code": "EST-N3-S-01",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 352.0,
+    "y": 1104.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-02",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO PRIMEROS",
+    "room": "PUNTO PRIMEROS",
+    "x": 216.1,
+    "y": 897.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-03",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 227.6,
+    "y": 564.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-04",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Nivel 3 (+52.45 m)",
+    "room": "Nivel 3 (+52.45 m)",
+    "x": 241.0,
+    "y": 534.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-05",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 336.1,
+    "y": 397.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-06",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 361.4,
+    "y": 372.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-07",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 606.3,
+    "y": 256.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-08",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 633.3,
+    "y": 252.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-09",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Not Enclosed",
+    "room": "Not Enclosed",
+    "x": 668.8,
+    "y": 250.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-10",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Not Enclosed",
+    "room": "Not Enclosed",
+    "x": 701.0,
+    "y": 249.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-11",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Not Enclosed",
+    "room": "Not Enclosed",
+    "x": 746.0,
+    "y": 249.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-12",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Not Enclosed",
+    "room": "Not Enclosed",
+    "x": 779.2,
+    "y": 250.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-13",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Not Enclosed",
+    "room": "Not Enclosed",
+    "x": 817.1,
+    "y": 250.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-14",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - GRADERÍA",
+    "room": "GRADERÍA",
+    "x": 852.3,
+    "y": 250.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-15",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - GRADERÍA",
+    "room": "GRADERÍA",
+    "x": 899.2,
+    "y": 249.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-16",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - GRADERÍA",
+    "room": "GRADERÍA",
+    "x": 932.0,
+    "y": 250.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-17",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEV ELEV",
+    "room": "ELEV ELEV",
+    "x": 968.3,
+    "y": 249.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-18",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEVADOR",
+    "room": "ELEVADOR",
+    "x": 1002.7,
+    "y": 249.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-19",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEVADOR",
+    "room": "ELEVADOR",
+    "x": 1048.7,
+    "y": 250.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-20",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - SERVICIO",
+    "room": "SERVICIO",
+    "x": 1095.1,
+    "y": 250.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-21",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1183.7,
+    "y": 260.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-22",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 1331.5,
+    "y": 328.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-23",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 1400.1,
+    "y": 381.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-24",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 1444.4,
+    "y": 428.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-25",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Nivel 3 (+52.45 m)",
+    "room": "Nivel 3 (+52.45 m)",
+    "x": 1495.5,
+    "y": 504.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-26",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 1523.7,
+    "y": 919.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-27",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 1510.6,
+    "y": 951.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-28",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1273.6,
+    "y": 1193.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-29",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - 47.71 m² WC HOMBRES",
+    "room": "47.71 m² WC HOMBRES",
+    "x": 972.4,
+    "y": 1236.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-30",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - 47.71 m² WC HOMBRES",
+    "room": "47.71 m² WC HOMBRES",
+    "x": 922.9,
+    "y": 1237.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-31",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - 47.71 m² WC HOMBRES",
+    "room": "47.71 m² WC HOMBRES",
+    "x": 785.8,
+    "y": 1237.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-32",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 607.1,
+    "y": 1236.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-33",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - AUXILIOS",
+    "room": "AUXILIOS",
+    "x": 476.3,
+    "y": 1193.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-34",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO",
+    "room": "ASEO",
+    "x": 756.4,
+    "y": 197.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-35",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 771.4,
+    "y": 170.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-36",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 787.7,
+    "y": 157.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-37",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 810.8,
+    "y": 157.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-38",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 767.9,
+    "y": 69.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-39",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 803.5,
+    "y": 69.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-40",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 765.1,
+    "y": 94.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-41",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 764.9,
+    "y": 137.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-42",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 830.7,
+    "y": 96.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-43",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEV ELEV",
+    "room": "ELEV ELEV",
+    "x": 959.9,
+    "y": 84.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-44",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEV ELEV",
+    "room": "ELEV ELEV",
+    "x": 959.6,
+    "y": 126.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-45",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ELEV ELEV",
+    "room": "ELEV ELEV",
+    "x": 959.6,
+    "y": 171.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-46",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 916.9,
+    "y": 82.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-47",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 916.9,
+    "y": 126.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-48",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 882.7,
+    "y": 65.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-49",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 882.7,
+    "y": 108.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-50",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 843.4,
+    "y": 146.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-51",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 843.4,
+    "y": 191.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-52",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 882.5,
+    "y": 149.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-53",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 883.3,
+    "y": 191.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-54",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUNTO FIJO",
+    "room": "PUNTO FIJO",
+    "x": 806.6,
+    "y": 94.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-55",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 806.5,
+    "y": 137.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-56",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - CUARTO TÉCNICO",
+    "room": "CUARTO TÉCNICO",
+    "x": 772.4,
+    "y": 197.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-57",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - 47.71 m² WC HOMBRES",
+    "room": "47.71 m² WC HOMBRES",
+    "x": 820.0,
+    "y": 1237.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-S-58",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - Detector Humo",
+    "room": "Detector Humo",
+    "x": 1789.9,
+    "y": 784.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-N3-AR-01",
+    "symbol": "AR",
+    "type": "facp",
+    "name": "Anunciador Remoto LCD - Anunciador remoto AR",
+    "room": "Anunciador remoto AR",
+    "x": 1790.0,
+    "y": 1045.7,
+    "color": "#7c3aed"
+  }
+]

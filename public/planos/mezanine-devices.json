@@ -1,0 +1,692 @@
+[
+  {
+    "code": "EST-MEZ-S-01",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO SELECCIÓN COLOMBIA",
+    "room": "MUSEO SELECCIÓN COLOMBIA",
+    "x": 223.3,
+    "y": 916.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-02",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO SELECCIÓN COLOMBIA",
+    "room": "MUSEO SELECCIÓN COLOMBIA",
+    "x": 209.3,
+    "y": 881.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-03",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO SELECCIÓN COLOMBIA",
+    "room": "MUSEO SELECCIÓN COLOMBIA",
+    "x": 197.9,
+    "y": 845.1,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-04",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 864.3,
+    "y": 240.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-05",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - 45.57 MUSEO SELECCIÓN COLOMBIA",
+    "room": "45.57 MUSEO SELECCIÓN COLOMBIA",
+    "x": 169.1,
+    "y": 762.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-06",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUSEO",
+    "room": "WC MUSEO",
+    "x": 197.3,
+    "y": 797.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-07",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - LOBBY 22.36 m²",
+    "room": "LOBBY 22.36 m²",
+    "x": 133.3,
+    "y": 784.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-08",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ALMACENAJE",
+    "room": "ALMACENAJE",
+    "x": 154.6,
+    "y": 799.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-09",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ENTRE MUSEOS 97.59 m²",
+    "room": "ENTRE MUSEOS 97.59 m²",
+    "x": 170.7,
+    "y": 724.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-10",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PUENTE CONEXIÓN",
+    "room": "PUENTE CONEXIÓN",
+    "x": 170.7,
+    "y": 686.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-11",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - LOBBY 22.55 m²",
+    "room": "LOBBY 22.55 m²",
+    "x": 131.1,
+    "y": 633.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-12",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO JUNIOR 173.49 m²",
+    "room": "MUSEO JUNIOR 173.49 m²",
+    "x": 169.6,
+    "y": 652.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-13",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUSEO",
+    "room": "WC MUSEO",
+    "x": 196.6,
+    "y": 621.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-14",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO JUNIOR 173.49 m²",
+    "room": "MUSEO JUNIOR 173.49 m²",
+    "x": 186.7,
+    "y": 580.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-15",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MUSEO JUNIOR 173.49 m²",
+    "room": "MUSEO JUNIOR 173.49 m²",
+    "x": 199.1,
+    "y": 541.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-16",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - VESTIER HOMBRES",
+    "room": "VESTIER HOMBRES",
+    "x": 249.9,
+    "y": 499.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-17",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DESCANSO",
+    "room": "DESCANSO",
+    "x": 273.3,
+    "y": 456.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-18",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WARENA 10.36 m²",
+    "room": "WARENA 10.36 m²",
+    "x": 290.5,
+    "y": 409.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-19",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - JUNTAS 27.14 m²",
+    "room": "JUNTAS 27.14 m²",
+    "x": 317.2,
+    "y": 429.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-20",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - SALA DE ESPERA 31.07 m²",
+    "room": "SALA DE ESPERA 31.07 m²",
+    "x": 316.1,
+    "y": 383.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-21",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - SALA DE",
+    "room": "SALA DE",
+    "x": 340.0,
+    "y": 399.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-22",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ADMINISTRACIÓN",
+    "room": "ADMINISTRACIÓN",
+    "x": 337.1,
+    "y": 363.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-23",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - RECONOCIMIENTO",
+    "room": "RECONOCIMIENTO",
+    "x": 353.5,
+    "y": 353.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-24",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ARCHIVO",
+    "room": "ARCHIVO",
+    "x": 373.6,
+    "y": 366.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-25",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ARCHIVO",
+    "room": "ARCHIVO",
+    "x": 380.5,
+    "y": 360.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-26",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ZONA DE IMPRESIÓN",
+    "room": "ZONA DE IMPRESIÓN",
+    "x": 367.0,
+    "y": 327.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-27",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ZONA DE IMPRESIÓN",
+    "room": "ZONA DE IMPRESIÓN",
+    "x": 377.9,
+    "y": 344.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-28",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - OFICINA",
+    "room": "OFICINA",
+    "x": 399.4,
+    "y": 309.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-29",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - MIXTA 83.87 m²",
+    "room": "MIXTA 83.87 m²",
+    "x": 413.6,
+    "y": 326.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-30",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - UMA",
+    "room": "UMA",
+    "x": 494.8,
+    "y": 268.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-31",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - BODEGA",
+    "room": "BODEGA",
+    "x": 490.6,
+    "y": 288.3,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-32",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - UMA",
+    "room": "UMA",
+    "x": 472.6,
+    "y": 269.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-33",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - COCINA 64.53 m²",
+    "room": "COCINA 64.53 m²",
+    "x": 426.2,
+    "y": 285.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-34",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - OFICINA",
+    "room": "OFICINA",
+    "x": 443.3,
+    "y": 308.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-35",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ASEO 1.57 m²",
+    "room": "ASEO 1.57 m²",
+    "x": 484.4,
+    "y": 291.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-36",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - JEFATURA ESCENARIOS DEPORTIVOS",
+    "room": "JEFATURA ESCENARIOS DEPORTIVOS",
+    "x": 507.9,
+    "y": 245.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-37",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - JUNTAS 23.42 m²",
+    "room": "JUNTAS 23.42 m²",
+    "x": 519.3,
+    "y": 269.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-38",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - DE DEPORTES",
+    "room": "DE DEPORTES",
+    "x": 542.6,
+    "y": 237.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-39",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ARCHIVO",
+    "room": "ARCHIVO",
+    "x": 556.1,
+    "y": 262.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-40",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ARCHIVO",
+    "room": "ARCHIVO",
+    "x": 585.1,
+    "y": 252.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-41",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 623.5,
+    "y": 245.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-42",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 735.9,
+    "y": 239.4,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-43",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 747.3,
+    "y": 213.7,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-44",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC MUJERES",
+    "room": "WC MUJERES",
+    "x": 860.2,
+    "y": 239.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-45",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PROYECCIÓN NIVEL 2",
+    "room": "PROYECCIÓN NIVEL 2",
+    "x": 911.0,
+    "y": 238.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-46",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PROYECCIÓN NIVEL 2",
+    "room": "PROYECCIÓN NIVEL 2",
+    "x": 983.2,
+    "y": 238.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-47",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - PROYECCIÓN NIVEL 2",
+    "room": "PROYECCIÓN NIVEL 2",
+    "x": 948.9,
+    "y": 238.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-48",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1021.6,
+    "y": 239.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-49",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1147.7,
+    "y": 216.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-50",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1315.0,
+    "y": 261.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-51",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1296.9,
+    "y": 291.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-52",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1355.9,
+    "y": 276.8,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-53",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1329.7,
+    "y": 310.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-54",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1400.1,
+    "y": 310.2,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-55",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1372.1,
+    "y": 344.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-56",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1410.8,
+    "y": 378.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-57",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1453.3,
+    "y": 417.6,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-58",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1481.9,
+    "y": 397.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-59",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1484.6,
+    "y": 469.0,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-60",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1517.1,
+    "y": 450.9,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-F-01",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - 45.57 MUSEO SELECCIÓN COLOMBIA",
+    "room": "45.57 MUSEO SELECCIÓN COLOMBIA",
+    "x": 151.4,
+    "y": 783.9,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-02",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - ALMACENAJE",
+    "room": "ALMACENAJE",
+    "x": 156.3,
+    "y": 633.2,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-03",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - DESCANSO",
+    "room": "DESCANSO",
+    "x": 263.2,
+    "y": 431.8,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-04",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - WARENA 10.36 m²",
+    "room": "WARENA 10.36 m²",
+    "x": 294.4,
+    "y": 394.4,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-05",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - SECRETARIO",
+    "room": "SECRETARIO",
+    "x": 533.1,
+    "y": 210.8,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-06",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1309.8,
+    "y": 242.2,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-F-07",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1324.7,
+    "y": 321.0,
+    "color": "#b91c1c"
+  },
+  {
+    "code": "EST-MEZ-S-61",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - WC HOMBRES",
+    "room": "WC HOMBRES",
+    "x": 1078.3,
+    "y": 212.5,
+    "color": "#dc2626"
+  },
+  {
+    "code": "EST-MEZ-S-62",
+    "symbol": "S",
+    "type": "detector-autonomo",
+    "name": "Detector Humo (S) - ÁREA VIP 518.32 m²",
+    "room": "ÁREA VIP 518.32 m²",
+    "x": 1441.3,
+    "y": 348.7,
+    "color": "#dc2626"
+  }
+]
