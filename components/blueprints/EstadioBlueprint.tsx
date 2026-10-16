@@ -484,7 +484,9 @@ export default function EstadioBlueprint({
             {showPipes && (
               <g className="conduit-sections-layer">
                 {sections.map((sec) => {
-                  const isSelected = selectedSection?.id === sec.id;
+                  const isSelected =
+                    selectedSection?.id === sec.id ||
+                    (activeSelected?.code ? activeSelected.code.includes(sec.code) : false);
                   const isHovered = hoveredSection?.id === sec.id;
                   return (
                     <g
