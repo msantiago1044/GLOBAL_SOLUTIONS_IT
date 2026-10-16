@@ -2,7 +2,14 @@
 
 import React, { useState } from 'react';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
-import { X, Wrench, Cable, GitBranch, BatteryCharging, ShieldAlert } from 'lucide-react';
+import {
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Clock,
+  Layers,
+  X,
+} from 'lucide-react';
 
 interface Props {
   items: FloorItem[];
@@ -19,6 +26,7 @@ export interface BlueprintSection {
   fromCode: string;
   toCode: string;
   lengthMeters: number;
+  conduitDiameter: string;
   pathD: string;
   labelPos: { x: number; y: number };
 }
@@ -34,7 +42,21 @@ export default function EstadioBlueprint({
   const [hoveredNode, setHoveredNode] = useState<FloorItem | null>(null);
   const [selectedSection, setSelectedSection] = useState<BlueprintSection | null>(null);
   const [hoveredSection, setHoveredSection] = useState<BlueprintSection | null>(null);
-  const [showTramoPrompt, setShowTramoPrompt] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  // Filter toggles
+  const [showPipes, setShowPipes] = useState(true);
+  const [showDetectors, setShowDetectors] = useState(true);
+  const [showPalancas, setShowPalancas] = useState(true);
+  const [showSirenas, setShowSirenas] = useState(true);
+  const [showPaneles, setShowPaneles] = useState(true);
+
+  // Identify active level from currentZone string
+  const zoneNormalized = currentZone.toLowerCase();
+  const isCancha = zoneNormalized.includes('cancha');
+  const isMezanine = zoneNormalized.includes('mezzanine') || zoneNormalized.includes('mezanine');
+  const isNivel3 = zoneNormalized.includes('nivel 3');
+  const isNivel1 = !isCancha && !isMezanine && !isNivel3; // default or explicit "nivel 1"
 
   const activeSelected = selectedItemId
     ? items.find((i) => i.code === selectedItemId || i.id === selectedItemId) || internalSelected
@@ -42,422 +64,376 @@ export default function EstadioBlueprint({
 
   const handleSelect = (item: FloorItem) => {
     setInternalSelected(item);
-    setShowTramoPrompt(false);
+    setSelectedSection(null);
     if (onSelectItem) {
       onSelectItem(item);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'inspected':
-        return '#10B981'; // emerald-500
-      case 'installed':
-        return '#0077B6'; // brand-primary blue
-      case 'pending':
-      default:
-        return '#F59E0B'; // amber-500 (PLANIFICADO)
-    }
+  const handleZoom = (delta: number) => {
+    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.7), 2.5));
   };
 
-  const isAutonomous = (item: FloorItem) => {
-    const text = `${item.code} ${item.name} ${item.type} ${item.notes || ''}`.toLowerCase();
-    return text.includes('aut-') || (text.includes('autónomo') && !text.includes('direccionable'));
+  const handleResetZoom = () => {
+    setZoomScale(1);
   };
 
-  const mainTuberia: FloorItem = (items.find((i) => i.type === 'tuberia' || i.code.includes('TUB')) as FloorItem) || {
-    id: 'default-tub',
-    projectId: 'estadio-metropolitano',
-    code: 'EST-TUB-01',
-    type: 'tuberia',
-    name: 'Tubería Conduit EMT 1" Galvanizada en Caliente',
-    model: 'Conduit EMT 1 pulg Heavy Duty C-80',
-    zone: currentZone,
-    status: 'pending',
-    quantity: 380,
-    unit: 'Metros Lineales',
-    unitPrice: 46000,
-    notes: '',
-  };
-
-  const mainCable: FloorItem = (items.find((i) => i.type === 'cableado' || i.code.includes('CAB')) as FloorItem) || {
-    id: 'default-cab',
-    projectId: 'estadio-metropolitano',
-    code: 'EST-CAB-01',
-    type: 'cableado',
-    name: 'Cable FPLR Blindado 2x14 AWG Lazo SLC Dirección FACP',
-    model: 'Honeywell Genesis UV-Resistant FPLR',
-    zone: currentZone,
-    status: 'pending',
-    quantity: 750,
-    unit: 'Metros',
-    unitPrice: 14500,
-    notes: '',
-  };
-
-  const isZ2 = currentZone.includes('Oriental') || currentZone.includes('Zona 2');
-  const isZ3 = currentZone.includes('Norte') || currentZone.includes('Zona 3');
-  const isZ4 = currentZone.includes('Sur') || currentZone.includes('Zona 4');
-  const isZ1 = !isZ2 && !isZ3 && !isZ4;
-
-  const getSectionsForZone = (): BlueprintSection[] => {
-    if (isZ4) {
+  // Sections of conduit (Tubería roja con cable FPLR) for active level
+  const getSectionsForLevel = (): BlueprintSection[] => {
+    if (isCancha) {
       return [
         {
-          id: 'z4-sec-1',
-          code: 'SEC-01',
-          name: 'Tramo 1: FACP ➔ PAL-01',
-          fromCode: 'EST-FACP-01',
-          toCode: 'EST-Z4-PAL-01',
-          lengthMeters: 15,
-          pathD: 'M 855 82 L 855 230',
-          labelPos: { x: 810, y: 155 },
+          id: 'can-sec-1',
+          code: 'CAN-SEC-01',
+          name: 'Cárcamo Tramo Sur: Boca Sur ➔ Túnel Sur',
+          fromCode: 'EST-CAN-PAL-01',
+          toCode: 'EST-CAN-SEN-01',
+          lengthMeters: 45,
+          conduitDiameter: '3/4"',
+          pathD: 'M 290 400 L 250 400 L 200 400',
+          labelPos: { x: 245, y: 390 },
         },
         {
-          id: 'z4-sec-2',
-          code: 'SEC-02',
-          name: 'Tramo 2: PAL-01 ➔ SIR-01',
-          fromCode: 'EST-Z4-PAL-01',
-          toCode: 'EST-Z4-SIR-01',
-          lengthMeters: 8,
-          pathD: 'M 855 230 L 855 270 L 815 270',
-          labelPos: { x: 835, y: 255 },
+          id: 'can-sec-2',
+          code: 'CAN-SEC-02',
+          name: 'Cárcamo Anillo Suroccidental: Túnel Sur ➔ Hospitality A',
+          fromCode: 'EST-CAN-SEN-01',
+          toCode: 'EST-CAN-SEN-03',
+          lengthMeters: 65,
+          conduitDiameter: '3/4"',
+          pathD: 'M 200 400 Q 220 320 250 260',
+          labelPos: { x: 220, y: 320 },
         },
         {
-          id: 'z4-sec-3',
-          code: 'SEC-03',
-          name: 'Tramo 3: SIR-01 ➔ SEN-01',
-          fromCode: 'EST-Z4-SIR-01',
-          toCode: 'EST-Z4-SEN-01',
-          lengthMeters: 7.5,
-          pathD: 'M 815 270 L 855 270 L 855 305',
-          labelPos: { x: 835, y: 288 },
+          id: 'can-sec-3',
+          code: 'CAN-SEC-03',
+          name: 'Cárcamo Anillo Occidental: Hospitality A ➔ Cuarto Técnico',
+          fromCode: 'EST-CAN-SEN-03',
+          toCode: 'EST-CAN-SEN-05',
+          lengthMeters: 90,
+          conduitDiameter: '3/4"',
+          pathD: 'M 250 260 Q 420 180 600 185',
+          labelPos: { x: 420, y: 195 },
         },
         {
-          id: 'z4-sec-4',
-          code: 'SEC-04',
-          name: 'Tramo 4: SEN-01 ➔ SEN-02',
-          fromCode: 'EST-Z4-SEN-01',
-          toCode: 'EST-Z4-SEN-02',
-          lengthMeters: 4,
-          pathD: 'M 855 305 L 855 345',
-          labelPos: { x: 815, y: 325 },
+          id: 'can-sec-4',
+          code: 'CAN-SEC-04',
+          name: 'Cárcamo Anillo Noroccidental: Cuarto Técnico ➔ Hospitality B',
+          fromCode: 'EST-CAN-SEN-05',
+          toCode: 'EST-CAN-SEN-04',
+          lengthMeters: 90,
+          conduitDiameter: '3/4"',
+          pathD: 'M 600 185 Q 780 180 950 260',
+          labelPos: { x: 780, y: 195 },
         },
         {
-          id: 'z4-sec-5',
-          code: 'SEC-05',
-          name: 'Tramo 5: SEN-02 ➔ PAL-02',
-          fromCode: 'EST-Z4-SEN-02',
-          toCode: 'EST-Z4-PAL-02',
-          lengthMeters: 6.5,
-          pathD: 'M 855 345 L 855 370 L 815 370',
-          labelPos: { x: 835, y: 358 },
+          id: 'can-sec-5',
+          code: 'CAN-SEC-05',
+          name: 'Cárcamo Tramo Norte: Hospitality B ➔ Túnel Norte',
+          fromCode: 'EST-CAN-SEN-04',
+          toCode: 'EST-CAN-SEN-02',
+          lengthMeters: 65,
+          conduitDiameter: '3/4"',
+          pathD: 'M 950 260 Q 980 320 1000 400',
+          labelPos: { x: 980, y: 320 },
         },
         {
-          id: 'z4-sec-6',
-          code: 'SEC-06',
-          name: 'Tramo 6: PAL-02 ➔ SEN-03',
-          fromCode: 'EST-Z4-PAL-02',
-          toCode: 'EST-Z4-SEN-03',
-          lengthMeters: 6.5,
-          pathD: 'M 815 370 L 855 370 L 855 395',
-          labelPos: { x: 835, y: 383 },
-        },
-        {
-          id: 'z4-sec-7',
-          code: 'SEC-07',
-          name: 'Tramo 7: SEN-03 ➔ SIR-02',
-          fromCode: 'EST-Z4-SEN-03',
-          toCode: 'EST-Z4-SIR-02',
-          lengthMeters: 7,
-          pathD: 'M 855 395 L 855 425 L 815 425',
-          labelPos: { x: 835, y: 410 },
+          id: 'can-sec-6',
+          code: 'CAN-SEC-06',
+          name: 'Cárcamo Anillo Oriental: Túnel Norte ➔ Túnel Sur (Retorno)',
+          fromCode: 'EST-CAN-SEN-02',
+          toCode: 'EST-CAN-PAL-01',
+          lengthMeters: 280,
+          conduitDiameter: '3/4"',
+          pathD: 'M 1000 400 Q 950 620 600 625 Q 250 620 200 400',
+          labelPos: { x: 600, y: 640 },
         },
       ];
     }
-    if (isZ3) {
+
+    if (isMezanine) {
       return [
         {
-          id: 'z3-sec-1',
-          code: 'SEC-01',
-          name: 'Tramo 1: FACP ➔ PAL-01',
-          fromCode: 'EST-FACP-01',
-          toCode: 'EST-Z3-PAL-01',
-          lengthMeters: 70,
-          pathD: 'M 855 82 L 855 125 Q 500 95 160 140 L 160 230',
-          labelPos: { x: 500, y: 105 },
+          id: 'mez-sec-1',
+          code: 'MEZ-SEC-01',
+          name: 'Anillo VIP Occidental: Escalera Sur ➔ Palcos VIP',
+          fromCode: 'EST-MEZ-PAL-02',
+          toCode: 'EST-MEZ-PAL-01',
+          lengthMeters: 55,
+          conduitDiameter: '3/4"',
+          pathD: 'M 280 270 Q 440 140 600 140',
+          labelPos: { x: 440, y: 160 },
         },
         {
-          id: 'z3-sec-2',
-          code: 'SEC-02',
-          name: 'Tramo 2: PAL-01 ➔ SIR-01',
-          fromCode: 'EST-Z3-PAL-01',
-          toCode: 'EST-Z3-SIR-01',
-          lengthMeters: 8.5,
-          pathD: 'M 160 230 L 160 270 L 205 270',
-          labelPos: { x: 182, y: 255 },
+          id: 'mez-sec-2',
+          code: 'MEZ-SEC-02',
+          name: 'Ramal Salón VIP Central: Palcos VIP ➔ Área VIP Central',
+          fromCode: 'EST-MEZ-PAL-01',
+          toCode: 'EST-MEZ-SEN-01',
+          lengthMeters: 18,
+          conduitDiameter: '3/4"',
+          pathD: 'M 600 140 L 600 170',
+          labelPos: { x: 615, y: 155 },
         },
         {
-          id: 'z3-sec-3',
-          code: 'SEC-03',
-          name: 'Tramo 3: SIR-01 ➔ SEN-01',
-          fromCode: 'EST-Z3-SIR-01',
-          toCode: 'EST-Z3-SEN-01',
-          lengthMeters: 8,
-          pathD: 'M 205 270 L 160 270 L 160 305',
-          labelPos: { x: 182, y: 288 },
+          id: 'mez-sec-3',
+          code: 'MEZ-SEC-03',
+          name: 'Ramal Prensa & Escenarios: Área VIP ➔ Jefatura Escenarios',
+          fromCode: 'EST-MEZ-SEN-01',
+          toCode: 'EST-MEZ-SEN-04',
+          lengthMeters: 28,
+          conduitDiameter: '3/4"',
+          pathD: 'M 600 170 L 520 170 L 450 190',
+          labelPos: { x: 485, y: 175 },
         },
         {
-          id: 'z3-sec-4',
-          code: 'SEC-04',
-          name: 'Tramo 4: SEN-01 ➔ SEN-02',
-          fromCode: 'EST-Z3-SEN-01',
-          toCode: 'EST-Z3-SEN-02',
-          lengthMeters: 4,
-          pathD: 'M 160 305 L 160 345',
-          labelPos: { x: 135, y: 325 },
-        },
-        {
-          id: 'z3-sec-5',
-          code: 'SEC-05',
-          name: 'Tramo 5: SEN-02 ➔ PAL-02',
-          fromCode: 'EST-Z3-SEN-02',
-          toCode: 'EST-Z3-PAL-02',
-          lengthMeters: 7,
-          pathD: 'M 160 345 L 160 370 L 205 370',
-          labelPos: { x: 182, y: 358 },
-        },
-        {
-          id: 'z3-sec-6',
-          code: 'SEC-06',
-          name: 'Tramo 6: PAL-02 ➔ SEN-03',
-          fromCode: 'EST-Z3-PAL-02',
-          toCode: 'EST-Z3-SEN-03',
-          lengthMeters: 7,
-          pathD: 'M 205 370 L 160 370 L 160 395',
-          labelPos: { x: 182, y: 383 },
-        },
-        {
-          id: 'z3-sec-7',
-          code: 'SEC-07',
-          name: 'Tramo 7: SEN-03 ➔ SIR-02',
-          fromCode: 'EST-Z3-SEN-03',
-          toCode: 'EST-Z3-SIR-02',
-          lengthMeters: 7.5,
-          pathD: 'M 160 395 L 160 425 L 205 425',
-          labelPos: { x: 182, y: 410 },
-        },
-      ];
-    }
-    if (isZ2) {
-      return [
-        {
-          id: 'z2-sec-1',
-          code: 'SEC-01',
-          name: 'Tramo 1: FACP ➔ SIR-01',
-          fromCode: 'EST-FACP-01',
-          toCode: 'EST-Z2-SIR-01',
+          id: 'mez-sec-4',
+          code: 'MEZ-SEC-04',
+          name: 'Ramal Museos: Área VIP ➔ Puente Museos ➔ Museo Selección',
+          fromCode: 'EST-MEZ-SEN-01',
+          toCode: 'EST-MEZ-SEN-02',
           lengthMeters: 42,
-          pathD: 'M 855 82 L 855 450 Q 820 485 740 485',
-          labelPos: { x: 805, y: 460 },
+          conduitDiameter: '3/4"',
+          pathD: 'M 600 170 L 600 225 L 740 190',
+          labelPos: { x: 670, y: 215 },
         },
         {
-          id: 'z2-sec-2',
-          code: 'SEC-02',
-          name: 'Tramo 2: SIR-01 ➔ PAL-02',
-          fromCode: 'EST-Z2-SIR-01',
-          toCode: 'EST-Z2-PAL-02',
-          lengthMeters: 8,
-          pathD: 'M 740 485 L 670 460',
-          labelPos: { x: 705, y: 460 },
-        },
-        {
-          id: 'z2-sec-3',
-          code: 'SEC-03',
-          name: 'Tramo 3: PAL-02 ➔ SEN-03',
-          fromCode: 'EST-Z2-PAL-02',
-          toCode: 'EST-Z2-SEN-03',
-          lengthMeters: 9,
-          pathD: 'M 670 460 L 610 520',
-          labelPos: { x: 645, y: 495 },
-        },
-        {
-          id: 'z2-sec-4',
-          code: 'SEC-04',
-          name: 'Tramo 4: SEN-03 ➔ SEN-02',
-          fromCode: 'EST-Z2-SEN-03',
-          toCode: 'EST-Z2-SEN-02',
-          lengthMeters: 11,
-          pathD: 'M 610 520 Q 555 535 500 535',
-          labelPos: { x: 555, y: 545 },
-        },
-        {
-          id: 'z2-sec-5',
-          code: 'SEC-05',
-          name: 'Tramo 5: SEN-02 ➔ SEN-01',
-          fromCode: 'EST-Z2-SEN-02',
-          toCode: 'EST-Z2-SEN-01',
-          lengthMeters: 11,
-          pathD: 'M 500 535 Q 445 535 390 520',
-          labelPos: { x: 445, y: 545 },
-        },
-        {
-          id: 'z2-sec-6',
-          code: 'SEC-06',
-          name: 'Tramo 6: SEN-01 ➔ SIR-02',
-          fromCode: 'EST-Z2-SEN-01',
-          toCode: 'EST-Z2-SIR-02',
-          lengthMeters: 9,
-          pathD: 'M 390 520 L 330 460',
-          labelPos: { x: 355, y: 495 },
-        },
-        {
-          id: 'z2-sec-7',
-          code: 'SEC-07',
-          name: 'Tramo 7: SIR-02 ➔ PAL-01',
-          fromCode: 'EST-Z2-SIR-02',
-          toCode: 'EST-Z2-PAL-01',
-          lengthMeters: 10,
-          pathD: 'M 330 460 L 240 485',
-          labelPos: { x: 285, y: 460 },
+          id: 'mez-sec-5',
+          code: 'MEZ-SEC-05',
+          name: 'Anillo Mezanine Oriental: Museo Selección ➔ Retorno Sur',
+          fromCode: 'EST-MEZ-SEN-02',
+          toCode: 'EST-MEZ-PAL-02',
+          lengthMeters: 210,
+          conduitDiameter: '3/4"',
+          pathD: 'M 740 190 Q 950 320 920 460 Q 600 660 280 460 L 280 270',
+          labelPos: { x: 600, y: 645 },
         },
       ];
     }
-    // Default: Zona 1 (Occidental)
+
+    if (isNivel3) {
+      return [
+        {
+          id: 'n3-sec-1',
+          code: 'N3-SEC-01',
+          name: 'Corona Occidental: Caracola Suroccidental ➔ Gradería Prensa',
+          fromCode: 'EST-N3-PAL-02',
+          toCode: 'EST-N3-SEN-02',
+          lengthMeters: 75,
+          conduitDiameter: '3/4"',
+          pathD: 'M 320 230 Q 460 120 600 120 L 600 180',
+          labelPos: { x: 460, y: 135 },
+        },
+        {
+          id: 'n3-sec-2',
+          code: 'N3-SEC-02',
+          name: 'Corona Noroccidental: Gradería Prensa ➔ Caracola Noroccidental',
+          fromCode: 'EST-N3-SEN-02',
+          toCode: 'EST-N3-PAL-01',
+          lengthMeters: 75,
+          conduitDiameter: '3/4"',
+          pathD: 'M 600 180 L 600 120 Q 740 120 880 230',
+          labelPos: { x: 740, y: 135 },
+        },
+        {
+          id: 'n3-sec-3',
+          code: 'N3-SEC-03',
+          name: 'Corona Oriental Norte: Caracola Noroccidental ➔ Caracola Nororiental',
+          fromCode: 'EST-N3-PAL-01',
+          toCode: 'EST-N3-PAL-03',
+          lengthMeters: 90,
+          conduitDiameter: '3/4"',
+          pathD: 'M 880 230 Q 1060 400 880 570',
+          labelPos: { x: 990, y: 400 },
+        },
+        {
+          id: 'n3-sec-4',
+          code: 'N3-SEC-04',
+          name: 'Corona Oriental Sur: Caracola Nororiental ➔ Baños Oriental ➔ Caracola Suroriental',
+          fromCode: 'EST-N3-PAL-03',
+          toCode: 'EST-N3-PAL-04',
+          lengthMeters: 140,
+          conduitDiameter: '3/4"',
+          pathD: 'M 880 570 Q 600 700 320 570',
+          labelPos: { x: 600, y: 680 },
+        },
+        {
+          id: 'n3-sec-5',
+          code: 'N3-SEC-05',
+          name: 'Corona Sur Cierre: Caracola Suroriental ➔ Caracola Suroccidental',
+          fromCode: 'EST-N3-PAL-04',
+          toCode: 'EST-N3-PAL-02',
+          lengthMeters: 90,
+          conduitDiameter: '3/4"',
+          pathD: 'M 320 570 Q 140 400 320 230',
+          labelPos: { x: 210, y: 400 },
+        },
+      ];
+    }
+
+    // Default: NIVEL 1 (+42.08 m) — Plancha SDI A101 (Cerebro Operativo)
     return [
       {
-        id: 'z1-sec-1',
-        code: 'SEC-01',
-        name: 'Tramo 1: FACP ➔ SIR-01',
-        fromCode: 'EST-FACP-01',
-        toCode: 'EST-Z1-SIR-01',
-        lengthMeters: 16,
-        pathD: 'M 855 82 L 855 125 L 740 155',
-        labelPos: { x: 805, y: 130 },
+        id: 'n1-sec-1',
+        code: 'N1-SEC-01',
+        name: 'Troncal 1" EMT: Centro de Control FACP-02 ➔ Subestación Occ. FACP-03',
+        fromCode: 'EST-N1-FACP-02',
+        toCode: 'EST-N1-FACP-03',
+        lengthMeters: 85,
+        conduitDiameter: '1"',
+        pathD: 'M 420 140 Q 600 110 780 140',
+        labelPos: { x: 600, y: 115 },
       },
       {
-        id: 'z1-sec-2',
-        code: 'SEC-02',
-        name: 'Tramo 2: SIR-01 ➔ PAL-02',
-        fromCode: 'EST-Z1-SIR-01',
-        toCode: 'EST-Z1-PAL-02',
-        lengthMeters: 8,
-        pathD: 'M 740 155 L 670 180',
-        labelPos: { x: 705, y: 180 },
+        id: 'n1-sec-2',
+        code: 'N1-SEC-02',
+        name: 'Ramal 3/4" EMT: Camerinos Selección Colombia & Junior',
+        fromCode: 'EST-N1-FACP-02',
+        toCode: 'EST-N1-SEN-JUN',
+        lengthMeters: 45,
+        conduitDiameter: '3/4"',
+        pathD: 'M 420 140 L 480 155 L 600 155 L 720 155',
+        labelPos: { x: 550, y: 165 },
       },
       {
-        id: 'z1-sec-3',
-        code: 'SEC-03',
-        name: 'Tramo 3: PAL-02 ➔ SEN-03',
-        fromCode: 'EST-Z1-PAL-02',
-        toCode: 'EST-Z1-SEN-03',
-        lengthMeters: 9,
-        pathD: 'M 670 180 L 610 115',
-        labelPos: { x: 645, y: 155 },
+        id: 'n1-sec-3',
+        code: 'N1-SEC-03',
+        name: 'Ramal 3/4" EMT: Sala de Prensa & Médica',
+        fromCode: 'EST-N1-PAL-02',
+        toCode: 'EST-N1-SEN-PREN',
+        lengthMeters: 30,
+        conduitDiameter: '3/4"',
+        pathD: 'M 530 140 L 540 175 L 600 155',
+        labelPos: { x: 570, y: 185 },
       },
       {
-        id: 'z1-sec-4',
-        code: 'SEC-04',
-        name: 'Tramo 4: SEN-03 ➔ SEN-02',
-        fromCode: 'EST-Z1-SEN-03',
-        toCode: 'EST-Z1-SEN-02',
-        lengthMeters: 11,
-        pathD: 'M 610 115 Q 555 100 500 100',
-        labelPos: { x: 555, y: 90 },
+        id: 'n1-sec-4',
+        code: 'N1-SEC-04',
+        name: 'Troncal 1" EMT: FACP-02 ➔ Liga de Boxeo (Sur)',
+        fromCode: 'EST-N1-FACP-02',
+        toCode: 'EST-N1-SEN-BOX',
+        lengthMeters: 75,
+        conduitDiameter: '1"',
+        pathD: 'M 420 140 Q 240 220 160 400',
+        labelPos: { x: 260, y: 260 },
       },
       {
-        id: 'z1-sec-5',
-        code: 'SEC-05',
-        name: 'Tramo 5: SEN-02 ➔ SEN-01',
-        fromCode: 'EST-Z1-SEN-02',
-        toCode: 'EST-Z1-SEN-01',
-        lengthMeters: 11,
-        pathD: 'M 500 100 Q 445 100 390 115',
-        labelPos: { x: 445, y: 90 },
+        id: 'n1-sec-5',
+        code: 'N1-SEC-05',
+        name: 'Troncal 1" EMT: FACP-03 ➔ Liga de Gimnasia (Norte)',
+        fromCode: 'EST-N1-FACP-03',
+        toCode: 'EST-N1-SEN-GIM',
+        lengthMeters: 75,
+        conduitDiameter: '1"',
+        pathD: 'M 780 140 Q 960 220 1040 400',
+        labelPos: { x: 940, y: 260 },
       },
       {
-        id: 'z1-sec-6',
-        code: 'SEC-06',
-        name: 'Tramo 6: SEN-01 ➔ SIR-02',
-        fromCode: 'EST-Z1-SEN-01',
-        toCode: 'EST-Z1-SIR-02',
-        lengthMeters: 9,
-        pathD: 'M 390 115 L 330 180',
-        labelPos: { x: 355, y: 155 },
+        id: 'n1-sec-6',
+        code: 'N1-SEC-06',
+        name: 'Troncal 1" EMT: Sur ➔ Oriental ➔ Anunciador Remoto AR',
+        fromCode: 'EST-N1-SEN-BOX',
+        toCode: 'EST-N1-AR-01',
+        lengthMeters: 130,
+        conduitDiameter: '1"',
+        pathD: 'M 160 400 Q 250 640 600 685',
+        labelPos: { x: 380, y: 620 },
       },
       {
-        id: 'z1-sec-7',
-        code: 'SEC-07',
-        name: 'Tramo 7: SIR-02 ➔ PAL-01',
-        fromCode: 'EST-Z1-SIR-02',
-        toCode: 'EST-Z1-PAL-01',
-        lengthMeters: 10,
-        pathD: 'M 330 180 L 240 155',
-        labelPos: { x: 285, y: 180 },
+        id: 'n1-sec-7',
+        code: 'N1-SEC-07',
+        name: 'Troncal 1" EMT: Norte ➔ Oriental ➔ Anunciador Remoto AR',
+        fromCode: 'EST-N1-SEN-GIM',
+        toCode: 'EST-N1-AR-01',
+        lengthMeters: 130,
+        conduitDiameter: '1"',
+        pathD: 'M 1040 400 Q 950 640 600 685',
+        labelPos: { x: 820, y: 620 },
+      },
+      {
+        id: 'n1-sec-8',
+        code: 'N1-SEC-08',
+        name: 'Ramal 3/4" EMT: Riser Subida/Bajada RCI Bombas',
+        fromCode: 'EST-N1-FACP-02',
+        toCode: 'EST-N1-REG-PAS',
+        lengthMeters: 25,
+        conduitDiameter: '3/4"',
+        pathD: 'M 420 140 L 340 230',
+        labelPos: { x: 365, y: 185 },
       },
     ];
   };
 
-  const sections = getSectionsForZone();
+  const sections = getSectionsForLevel();
 
-  const getCoordinatesForZone = (item: FloorItem, index: number) => {
+  // Coordinates for discrete equipment nodes per level
+  const getNodeCoordinates = (item: FloorItem) => {
     const code = item.code.toUpperCase();
 
-    // Central FACP always in Control Room
-    if (code.includes('FACP')) {
-      return { cx: 855, cy: 82, label: 'Sala de Control FACP (Sistema Central)' };
-    }
-    // Cuarto de Bombas
-    if (code.includes('BOM')) {
-      return { cx: 145, cy: 565, label: 'Cuarto de Bombas RCI' };
-    }
-
-    if (isZ4) {
-      if (code.includes('PAL-01')) return { cx: 855, cy: 230, label: 'Zona 4 · Estación Manual 1' };
-      if (code.includes('SIR-01')) return { cx: 815, cy: 270, label: 'Zona 4 · Sirena 1' };
-      if (code.includes('SEN-01')) return { cx: 855, cy: 305, label: 'Zona 4 · Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 855, cy: 345, label: 'Zona 4 · Sensor Térmico 2' };
-      if (code.includes('PAL-02')) return { cx: 815, cy: 370, label: 'Zona 4 · Estación Manual 2' };
-      if (code.includes('SEN-03')) return { cx: 855, cy: 395, label: 'Zona 4 · Sensor 3' };
-      if (code.includes('SIR-02')) return { cx: 815, cy: 425, label: 'Zona 4 · Sirena 2' };
-      if (code.includes('AUT')) return { cx: 900, cy: 330, label: 'Zona 4 · Equipo Autónomo (Inalámbrico)' };
-      return { cx: 855, cy: 250 + ((index * 30) % 150), label: 'Zona 4 · Dispositivo' };
+    if (isCancha) {
+      if (code.includes('SEN-01')) return { cx: 200, cy: 400, label: 'Túnel Acceso Sur' };
+      if (code.includes('SEN-02')) return { cx: 1000, cy: 400, label: 'Túnel Acceso Norte' };
+      if (code.includes('SEN-03')) return { cx: 250, cy: 260, label: 'Túnel Hospitality A' };
+      if (code.includes('SEN-04')) return { cx: 950, cy: 260, label: 'Túnel Hospitality B' };
+      if (code.includes('SEN-05')) return { cx: 600, cy: 185, label: 'Cuarto Técnico Cárcamo' };
+      if (code.includes('PAL-01')) return { cx: 290, cy: 400, label: 'Boca Túnel Sur' };
+      if (code.includes('PAL-02')) return { cx: 910, cy: 400, label: 'Boca Túnel Norte' };
+      if (code.includes('SIR-01')) return { cx: 240, cy: 370, label: 'Sirena Túnel Sur' };
+      if (code.includes('SIR-02')) return { cx: 960, cy: 370, label: 'Sirena Túnel Norte' };
+      return { cx: 600, cy: 400, label: item.name };
     }
 
-    if (isZ3) {
-      if (code.includes('PAL-01')) return { cx: 160, cy: 230, label: 'Zona 3 · Estación Manual 1' };
-      if (code.includes('SIR-01')) return { cx: 205, cy: 270, label: 'Zona 3 · Sirena 1' };
-      if (code.includes('SEN-01')) return { cx: 160, cy: 305, label: 'Zona 3 · Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 160, cy: 345, label: 'Zona 3 · Sensor Térmico 2' };
-      if (code.includes('PAL-02')) return { cx: 205, cy: 370, label: 'Zona 3 · Estación Manual 2' };
-      if (code.includes('SEN-03')) return { cx: 160, cy: 395, label: 'Zona 3 · Sensor 3' };
-      if (code.includes('SIR-02')) return { cx: 205, cy: 425, label: 'Zona 3 · Sirena 2' };
-      if (code.includes('AUT')) return { cx: 115, cy: 330, label: 'Zona 3 · Equipo Autónomo (Inalámbrico)' };
-      return { cx: 160, cy: 250 + ((index * 30) % 150), label: 'Zona 3 · Dispositivo' };
+    if (isMezanine) {
+      if (code.includes('SEN-01')) return { cx: 600, cy: 170, label: 'Área VIP Central' };
+      if (code.includes('SEN-02')) return { cx: 740, cy: 190, label: 'Museo Selección Mezanine' };
+      if (code.includes('SEN-03')) return { cx: 600, cy: 225, label: 'Puente Conexión Museos' };
+      if (code.includes('SEN-04')) return { cx: 450, cy: 190, label: 'Jefatura Escenarios' };
+      if (code.includes('SEN-05')) return { cx: 520, cy: 170, label: 'Sala de Juntas VIP' };
+      if (code.includes('PAL-01')) return { cx: 600, cy: 140, label: 'Acceso Palcos VIP' };
+      if (code.includes('PAL-02')) return { cx: 280, cy: 270, label: 'Escalera Mezanine Sur' };
+      if (code.includes('SIR-01')) return { cx: 650, cy: 170, label: 'Sirena Estrobo VIP' };
+      if (code.includes('MOD-REL')) return { cx: 380, cy: 210, label: 'Módulo Relevo Audio/AC' };
+      return { cx: 600, cy: 400, label: item.name };
     }
 
-    if (isZ2) {
-      if (code.includes('PAL-01')) return { cx: 240, cy: 485, label: 'Zona 2 · Estación Manual 1' };
-      if (code.includes('SIR-01')) return { cx: 740, cy: 485, label: 'Zona 2 · Sirena 1' };
-      if (code.includes('SEN-01')) return { cx: 390, cy: 520, label: 'Zona 2 · Sensor Óptico 1' };
-      if (code.includes('SEN-02')) return { cx: 500, cy: 535, label: 'Zona 2 · Sensor Térmico 2' };
-      if (code.includes('SEN-03')) return { cx: 610, cy: 520, label: 'Zona 2 · Sensor 3' };
-      if (code.includes('PAL-02')) return { cx: 670, cy: 460, label: 'Zona 2 · Estación Manual 2' };
-      if (code.includes('SIR-02')) return { cx: 330, cy: 460, label: 'Zona 2 · Sirena 2' };
-      if (code.includes('AUT')) return { cx: 500, cy: 470, label: 'Zona 2 · Equipo Autónomo (Inalámbrico)' };
-      return { cx: 500, cy: 535, label: 'Zona 2 · Dispositivo' };
+    if (isNivel3) {
+      if (code.includes('SEN-01')) return { cx: 460, cy: 150, label: 'Baños Occidental Alta' };
+      if (code.includes('SEN-02')) return { cx: 600, cy: 180, label: 'Gradería Prensa Alta' };
+      if (code.includes('SEN-03')) return { cx: 740, cy: 150, label: 'Puntos Fijos Occ.' };
+      if (code.includes('SEN-04')) return { cx: 600, cy: 650, label: 'Baños Oriental Alta' };
+      if (code.includes('PAL-01')) return { cx: 880, cy: 230, label: 'Caracola Noroccidental' };
+      if (code.includes('PAL-02')) return { cx: 320, cy: 230, label: 'Caracola Suroccidental' };
+      if (code.includes('PAL-03')) return { cx: 880, cy: 570, label: 'Caracola Nororiental' };
+      if (code.includes('PAL-04')) return { cx: 320, cy: 570, label: 'Caracola Suroriental' };
+      if (code.includes('SIR-01')) return { cx: 600, cy: 130, label: 'Sirena Corona Occidental' };
+      if (code.includes('SIR-02')) return { cx: 600, cy: 675, label: 'Sirena Corona Oriental' };
+      return { cx: 600, cy: 400, label: item.name };
     }
 
-    // Default: ZONA 1 (Gradería Occidental & Prensa)
-    if (code.includes('PAL-01')) return { cx: 240, cy: 155, label: 'Zona 1 · Estación Manual 1' };
-    if (code.includes('SIR-01')) return { cx: 740, cy: 155, label: 'Zona 1 · Sirena 1' };
-    if (code.includes('SEN-01')) return { cx: 390, cy: 115, label: 'Zona 1 · Sensor Óptico 1' };
-    if (code.includes('SEN-02')) return { cx: 500, cy: 100, label: 'Zona 1 · Sensor Térmico 2' };
-    if (code.includes('SEN-03')) return { cx: 610, cy: 115, label: 'Zona 1 · Sensor Haz Beam 3' };
-    if (code.includes('PAL-02')) return { cx: 670, cy: 180, label: 'Zona 1 · Estación Manual 2' };
-    if (code.includes('SIR-02')) return { cx: 330, cy: 180, label: 'Zona 1 · Sirena 2' };
-    if (code.includes('AUT')) return { cx: 500, cy: 170, label: 'Zona 1 · Equipo Autónomo (Inalámbrico)' };
-    return { cx: 500, cy: 100, label: 'Zona 1 · Dispositivo' };
+    // Default: NIVEL 1 (+42.08 m)
+    if (code.includes('FACP-02')) return { cx: 420, cy: 140, label: 'Panel No. 2 (Centro Control)' };
+    if (code.includes('FACP-03')) return { cx: 780, cy: 140, label: 'Panel No. 3 (Subestación Occ.)' };
+    if (code.includes('AR-01')) return { cx: 600, cy: 685, label: 'Anunciador Remoto AR (Taquillas)' };
+    if (code.includes('SEN-COL')) return { cx: 480, cy: 155, label: 'Camerino Selección Colombia' };
+    if (code.includes('SEN-JUN')) return { cx: 720, cy: 155, label: 'Camerino Junior' };
+    if (code.includes('SEN-VIS1')) return { cx: 360, cy: 175, label: 'Camerino Visitantes 1' };
+    if (code.includes('SEN-VIS2')) return { cx: 840, cy: 175, label: 'Camerino Visitantes 2' };
+    if (code.includes('SEN-PREN')) return { cx: 600, cy: 155, label: 'Sala de Prensa (252 m²)' };
+    if (code.includes('SEN-MED')) return { cx: 540, cy: 175, label: 'Sala Médica & Antidopaje' };
+    if (code.includes('SEN-BOX')) return { cx: 160, cy: 400, label: 'Liga de Boxeo' };
+    if (code.includes('SEN-GIM')) return { cx: 1040, cy: 400, label: 'Liga de Gimnasia' };
+    if (code.includes('SEN-HCO1')) return { cx: 300, cy: 200, label: 'Subestación Eléctrica' };
+    if (code.includes('SEN-HCO2')) return { cx: 270, cy: 240, label: 'Central Generación Diésel' };
+    if (code.includes('SEN-SH1')) return { cx: 900, cy: 200, label: 'Taller de Mantenimiento' };
+    if (code.includes('PAL-01')) return { cx: 600, cy: 120, label: 'Acceso Occidental Principal' };
+    if (code.includes('PAL-02')) return { cx: 530, cy: 140, label: 'Pasillo Camerinos' };
+    if (code.includes('PAL-03')) return { cx: 600, cy: 660, label: 'Acceso Oriental' };
+    if (code.includes('SIR-01')) return { cx: 450, cy: 180, label: 'Sirena Estrobo Camerinos' };
+    if (code.includes('SIR-02')) return { cx: 650, cy: 180, label: 'Sirena Estrobo Prensa' };
+    if (code.includes('SIR-03')) return { cx: 160, cy: 460, label: 'Sirena Ligas Deportivas' };
+    if (code.includes('REG-PAS')) return { cx: 340, cy: 230, label: 'Riser Cancha/Mezanine' };
+
+    return { cx: 600, cy: 400, label: item.name };
   };
 
   const discreteDevices = items.filter((i) => i.type !== 'tuberia' && i.type !== 'cableado');
@@ -465,658 +441,671 @@ export default function EstadioBlueprint({
 
   const handleSectionClick = (sec: BlueprintSection) => {
     setSelectedSection(sec);
-    setShowTramoPrompt(true);
-  };
-
-  const getSectionTuberiaItem = (sec: BlueprintSection): FloorItem => {
-    return {
-      id: `em-tub-${sec.id}`,
-      projectId: 'estadio-metropolitano',
-      code: `EST-TUB-${sec.code}`,
-      type: 'tuberia',
-      name: `Tubería Conduit EMT 1" · ${sec.name}`,
-      model: 'Conduit EMT 1 pulg Heavy Duty C-80 Galvanizada',
-      zone: currentZone,
-      status: 'pending',
-      quantity: sec.lengthMeters,
-      unit: 'Metros Lineales',
-      unitPrice: 46000,
-      notes: `Canalización física rígida por tramo desde ${sec.fromCode} hasta ${sec.toCode}.`,
-    };
-  };
-
-  const getSectionCableItem = (sec: BlueprintSection): FloorItem => {
-    return {
-      id: `em-cab-${sec.id}`,
-      projectId: 'estadio-metropolitano',
-      code: `EST-CAB-${sec.code}`,
-      type: 'cableado',
-      name: `Cable FPLR Blindado 2x14 AWG · ${sec.name}`,
-      model: 'Honeywell Genesis UV-Resistant FPLR 300V',
-      zone: currentZone,
-      status: 'pending',
-      quantity: Math.round(sec.lengthMeters * 1.05),
-      unit: 'Metros',
-      unitPrice: 14500,
-      notes: `Lazo SLC direccionable tendido en tubería Conduit desde ${sec.fromCode} hasta ${sec.toCode}.`,
-    };
+    setInternalSelected(null);
   };
 
   return (
     <div className="relative w-full rounded-2xl border border-surface-border bg-white p-5 overflow-hidden shadow-sm">
-      {/* Blueprint Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 pb-3 border-b border-surface-border text-xs">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-          <span className="font-mono font-bold uppercase text-brand-deep">
-            Esquema Técnico de Canalización &middot; Estadio Metropolitano
-          </span>
-          <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-brand-ice text-brand-deep font-mono font-bold border border-brand-light">
-            {currentZone}
-          </span>
+      {/* Top Header & Level Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-surface-border text-xs">
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse"></div>
+          <div>
+            <h3 className="font-mono font-bold uppercase text-brand-deep tracking-wide flex items-center gap-2">
+              <span>Plano Técnico de Red Contra Incendios &middot; SDI</span>
+              <span className="text-[11px] px-2 py-0.5 rounded bg-red-50 text-red-700 font-mono font-bold border border-red-200">
+                {currentZone}
+              </span>
+            </h3>
+            <p className="text-[11px] text-slate-500 font-mono">
+              Arquitectura bloqueada en gris &middot; Canalización y cableado en rojo técnico NFPA 72
+            </p>
+          </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex flex-wrap items-center gap-4 text-[11px] font-mono text-gsitText-secondary">
-          <div className="flex items-center gap-1.5">
-            <span className="w-5 h-2 rounded bg-cyan-400 border border-slate-900 inline-block"></span>
-            <span>Tubería Conduit EMT (Por Secciones)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 inline-block"></span>
-            <span>Equipo Autónomo (Sin Tubería / Batería)</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 inline-block"></span>
-            <span>Planificado</span>
-          </div>
+        {/* View Controls & Zoom */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200 text-slate-700">
+          <button
+            onClick={() => handleZoom(0.15)}
+            className="p-1.5 rounded-lg hover:bg-white transition-all"
+            title="Acercar plano (+)"
+          >
+            <ZoomIn className="w-4 h-4 text-slate-700" />
+          </button>
+          <button
+            onClick={() => handleZoom(-0.15)}
+            className="p-1.5 rounded-lg hover:bg-white transition-all"
+            title="Alejar plano (-)"
+          >
+            <ZoomOut className="w-4 h-4 text-slate-700" />
+          </button>
+          <button
+            onClick={handleResetZoom}
+            className="p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[10px] px-2"
+            title="Restablecer vista 100%"
+          >
+            <RotateCcw className="w-3.5 h-3.5 inline mr-1 text-slate-500" />
+            {Math.round(zoomScale * 100)}%
+          </button>
+        </div>
+      </div>
+
+      {/* Blueprint Legend Bar (Convenciones SDI exactas del plano) */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-[11px] font-mono">
+        <div className="flex items-center gap-1 text-slate-700 font-bold uppercase">
+          <Layers className="w-3.5 h-3.5 text-red-600" />
+          <span>Convenciones:</span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 text-slate-700">
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPipes}
+              onChange={(e) => setShowPipes(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0"
+            />
+            <span className="w-4 h-1 bg-red-600 rounded inline-block"></span>
+            <span>Tubería EMT & Cable (Rojo)</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showDetectors}
+              onChange={(e) => setShowDetectors(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0"
+            />
+            <span className="w-4 h-4 rounded-full border-2 border-red-600 bg-white text-[9px] font-bold text-red-600 flex items-center justify-center">
+              S
+            </span>
+            <span>Detector Humo / Térmico</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPalancas}
+              onChange={(e) => setShowPalancas(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0"
+            />
+            <span className="w-3.5 h-3.5 rounded bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
+              F
+            </span>
+            <span>Estación Manual</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showSirenas}
+              onChange={(e) => setShowSirenas(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0"
+            />
+            <span className="w-4 h-3 rounded bg-red-600 text-amber-200 text-[8px] font-bold flex items-center justify-center">
+              ⚡
+            </span>
+            <span>Sirena Estrobo</span>
+          </label>
+
+          <label className="flex items-center gap-1.5 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={showPaneles}
+              onChange={(e) => setShowPaneles(e.target.checked)}
+              className="rounded text-red-600 focus:ring-0"
+            />
+            <span className="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-bold">
+              FACP
+            </span>
+            <span>Panel de Incendio / AR</span>
+          </label>
         </div>
       </div>
 
       {/* SVG Canvas Container */}
-      <div className="relative w-full overflow-x-auto bg-slate-950 rounded-xl border border-slate-800 p-3 flex justify-center shadow-inner">
+      <div className="relative w-full overflow-hidden bg-white rounded-xl border border-slate-300 flex justify-center shadow-inner">
         <svg
-          viewBox="0 0 1000 650"
-          className="w-full max-w-[950px] h-auto select-none"
+          viewBox="0 0 1200 800"
+          className="w-full max-w-[1150px] h-auto select-none transition-transform duration-150"
+          style={{ transform: `scale(${zoomScale})` }}
           xmlns="http://www.w3.org/2000/svg"
         >
-          <defs>
-            <radialGradient id="stadiumGlow" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#1e293b" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#090d16" stopOpacity="0.95" />
-            </radialGradient>
-            <pattern id="gridPattern" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" strokeWidth="0.5" strokeOpacity="0.6" />
-            </pattern>
-          </defs>
+          {/* ========================================================================= */}
+          {/* CAPA 1: ARQUITECTURA BLOQUEADA EN TONOS GRISES (LOCKED CAD ARCHITECTURE) */}
+          {/* ========================================================================= */}
+          <g className="pointer-events-none select-none">
+            {/* Background Sheet Tint */}
+            <rect width="1200" height="800" fill="#fdfdfd" />
 
-          <rect width="1000" height="650" fill="url(#gridPattern)" />
+            {/* Subtle Drafting Grid */}
+            <defs>
+              <pattern id="cadGrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" strokeWidth="1" />
+              </pattern>
+            </defs>
+            <rect width="1200" height="800" fill="url(#cadGrid)" opacity="0.8" />
 
-          {/* Exterior Stadium Contour */}
-          <ellipse
-            cx="500"
-            cy="325"
-            rx="460"
-            ry="290"
-            fill="url(#stadiumGlow)"
-            stroke="#334155"
-            strokeWidth="3"
-          />
+            {/* Radiating Column Axes (Ejes 1 al 56) */}
+            <g stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4,4">
+              <line x1="600" y1="400" x2="600" y2="40" />
+              <line x1="600" y1="400" x2="600" y2="760" />
+              <line x1="600" y1="400" x2="60" y2="400" />
+              <line x1="600" y1="400" x2="1140" y2="400" />
+              <line x1="600" y1="400" x2="200" y2="150" />
+              <line x1="600" y1="400" x2="1000" y2="150" />
+              <line x1="600" y1="400" x2="200" y2="650" />
+              <line x1="600" y1="400" x2="1000" y2="650" />
+            </g>
 
-          {/* Grandstand Tiers Background */}
-          <ellipse cx="500" cy="325" rx="420" ry="255" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="5,3" />
-          <ellipse cx="500" cy="325" rx="380" ry="220" fill="none" stroke="#1e293b" strokeWidth="1" strokeDasharray="5,3" />
+            {/* Outer Stadium Elliptical Boundary */}
+            <ellipse
+              cx="600"
+              cy="400"
+              rx="540"
+              ry="350"
+              fill="#f8fafc"
+              stroke="#94a3b8"
+              strokeWidth="2.5"
+            />
 
-          {/* Gradería Labels & Sectors */}
-          {/* Zona 1: Occidental (Superior) */}
-          <path
-            d="M 200 130 Q 500 70 800 130"
-            fill="none"
-            stroke={isZ1 ? '#38bdf8' : '#334155'}
-            strokeWidth={isZ1 ? '4' : '2'}
-            strokeOpacity={isZ1 ? 0.9 : 0.4}
-          />
-          <text
-            x="500"
-            y="70"
-            fill={isZ1 ? '#38bdf8' : '#64748b'}
-            fontSize="11"
-            fontWeight="bold"
-            fontFamily="monospace"
-            textAnchor="middle"
-          >
-            ZONA 1 &middot; TRIBUNA OCCIDENTAL &amp; CABINAS PRENSA
-          </text>
+            {/* Concentric Grandstands Rings (Anillos de Graderías) */}
+            <ellipse cx="600" cy="400" rx="490" ry="315" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="6,4" />
+            <ellipse cx="600" cy="400" rx="440" ry="280" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="6,4" />
 
-          {/* Zona 2: Oriental (Inferior) */}
-          <path
-            d="M 200 520 Q 500 580 800 520"
-            fill="none"
-            stroke={isZ2 ? '#38bdf8' : '#334155'}
-            strokeWidth={isZ2 ? '4' : '2'}
-            strokeOpacity={isZ2 ? 0.9 : 0.4}
-          />
-          <text
-            x="500"
-            y="595"
-            fill={isZ2 ? '#38bdf8' : '#64748b'}
-            fontSize="11"
-            fontWeight="bold"
-            fontFamily="monospace"
-            textAnchor="middle"
-          >
-            ZONA 2 &middot; TRIBUNA ORIENTAL &amp; ACCESOS GENERALES
-          </text>
+            {/* Sector Orientation Labels (Occidental, Oriental, Sur, Norte) */}
+            <text x="600" y="70" fill="#64748b" fontSize="13" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+              TRIBUNA OCCIDENTAL &middot; MÓDULO OCCIDENTAL (CABINAS / PRENSA / CAMERINOS)
+            </text>
+            <text x="600" y="760" fill="#64748b" fontSize="13" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+              TRIBUNA ORIENTAL &middot; MÓDULO ORIENTAL (ACCESOS GENERALES / MUSEOS)
+            </text>
+            <text x="95" y="400" fill="#64748b" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(-90, 95, 400)">
+              TRIBUNA SUR &middot; MÓDULO SUR
+            </text>
+            <text x="1105" y="400" fill="#64748b" fontSize="12" fontWeight="bold" fontFamily="monospace" textAnchor="middle" transform="rotate(90, 1105, 400)">
+              TRIBUNA NORTE &middot; MÓDULO NORTE
+            </text>
 
-          {/* Zona 3: Norte (Izquierda) */}
-          <path
-            d="M 160 170 Q 110 325 160 480"
-            fill="none"
-            stroke={isZ3 ? '#38bdf8' : '#334155'}
-            strokeWidth={isZ3 ? '4' : '2'}
-            strokeOpacity={isZ3 ? 0.9 : 0.4}
-          />
-          <text
-            x="115"
-            y="325"
-            fill={isZ3 ? '#38bdf8' : '#64748b'}
-            fontSize="11"
-            fontWeight="bold"
-            fontFamily="monospace"
-            textAnchor="middle"
-            transform="rotate(-90, 115, 325)"
-          >
-            ZONA 3 &middot; TRIBUNA NORTE
-          </text>
+            {/* Athletic Track (Pista Atlética en Gris) */}
+            <ellipse cx="600" cy="400" rx="380" ry="235" fill="#f1f5f9" stroke="#cbd5e1" strokeWidth="1.5" />
 
-          {/* Zona 4: Sur (Derecha) */}
-          <path
-            d="M 840 170 Q 890 325 840 480"
-            fill="none"
-            stroke={isZ4 ? '#38bdf8' : '#334155'}
-            strokeWidth={isZ4 ? '4' : '2'}
-            strokeOpacity={isZ4 ? 0.9 : 0.4}
-          />
-          <text
-            x="885"
-            y="325"
-            fill={isZ4 ? '#38bdf8' : '#64748b'}
-            fontSize="11"
-            fontWeight="bold"
-            fontFamily="monospace"
-            textAnchor="middle"
-            transform="rotate(90, 885, 325)"
-          >
-            ZONA 4 &middot; TRIBUNA SUR
-          </text>
+            {/* Central Football Pitch (Cancha 7,140 m² en Gris Bloqueado) */}
+            <rect
+              x="320"
+              y="260"
+              width="560"
+              height="280"
+              rx="6"
+              fill="#e2e8f0"
+              stroke="#94a3b8"
+              strokeWidth="2"
+            />
+            {/* Center Line and Circle */}
+            <line x1="600" y1="260" x2="600" y2="540" stroke="#94a3b8" strokeWidth="1.5" />
+            <circle cx="600" cy="400" r="50" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+            <circle cx="600" cy="400" r="3" fill="#64748b" />
+            {/* Penalty Boxes & Goals */}
+            <rect x="320" y="330" width="70" height="140" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
+            <rect x="810" y="330" width="70" height="140" fill="none" stroke="#94a3b8" strokeWidth="1.5" />
 
-          {/* Athletic Running Track */}
-          <ellipse cx="500" cy="325" rx="330" ry="175" fill="#7f1d1d" fillOpacity="0.25" stroke="#991b1b" strokeWidth="2" />
-          <ellipse cx="500" cy="325" rx="310" ry="155" fill="none" stroke="#b91c1c" strokeWidth="1" strokeDasharray="6,4" />
+            <text x="600" y="390" fill="#64748b" fontSize="13" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+              CANCHA
+            </text>
+            <text x="600" y="415" fill="#94a3b8" fontSize="11" fontFamily="monospace" textAnchor="middle">
+              7,140.00 m²
+            </text>
 
-          {/* Soccer Grass Pitch */}
-          <rect
-            x="240"
-            y="190"
-            width="520"
-            height="270"
-            rx="8"
-            fill="#064e3b"
-            fillOpacity="0.45"
-            stroke="#059669"
-            strokeWidth="2"
-          />
-          <line x1="500" y1="190" x2="500" y2="460" stroke="#059669" strokeWidth="1.5" />
-          <circle cx="500" cy="325" r="45" fill="none" stroke="#059669" strokeWidth="1.5" />
-          <circle cx="500" cy="325" r="3" fill="#10b981" />
+            {/* Architectural Spatial Dividers specific to Active Level */}
+            {isCancha && (
+              <g stroke="#94a3b8" strokeWidth="1" fill="#f8fafc">
+                {/* Cárcamo Perimetral */}
+                <ellipse cx="600" cy="400" rx="350" ry="215" fill="none" stroke="#64748b" strokeWidth="1.5" strokeDasharray="5,3" />
+                <text x="600" y="240" fill="#64748b" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                  NIVEL CÁRCAMO PERIMETRAL +37.35m
+                </text>
+                {/* Benches */}
+                <rect x="510" y="225" width="80" height="25" rx="3" stroke="#94a3b8" fill="#e2e8f0" />
+                <text x="550" y="241" fill="#475569" fontSize="8" fontFamily="monospace" textAnchor="middle">BANCO JUGADORES</text>
+                <rect x="610" y="225" width="80" height="25" rx="3" stroke="#94a3b8" fill="#e2e8f0" />
+                <text x="650" y="241" fill="#475569" fontSize="8" fontFamily="monospace" textAnchor="middle">BANCO 4TO ÁRB.</text>
+                {/* Tunnels */}
+                <rect x="130" y="380" width="120" height="40" rx="4" stroke="#64748b" />
+                <text x="190" y="405" fill="#475569" fontSize="8.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">TÚNEL ACCESO SUR</text>
+                <rect x="950" y="380" width="120" height="40" rx="4" stroke="#64748b" />
+                <text x="1010" y="405" fill="#475569" fontSize="8.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">TÚNEL ACCESO NORTE</text>
+              </g>
+            )}
 
-          {/* Pitch Goals and Boxes */}
-          <rect x="240" y="250" width="60" height="150" fill="none" stroke="#059669" strokeWidth="1.5" />
-          <rect x="700" y="250" width="60" height="150" fill="none" stroke="#059669" strokeWidth="1.5" />
+            {isNivel1 && (
+              <g stroke="#94a3b8" strokeWidth="1" fill="#f8fafc">
+                {/* Occidental Operational Core (Camerinos, Prensa, Museos, etc.) */}
+                <rect x="440" y="130" width="75" height="40" rx="3" />
+                <text x="477" y="154" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">COLOMBIA</text>
 
-          {/* Control Room / Central FACP */}
-          <rect
-            x="805"
-            y="55"
-            width="100"
-            height="45"
-            rx="6"
-            fill="#0f172a"
-            stroke="#10b981"
-            strokeWidth="2"
-          />
-          <text x="855" y="73" fill="#10b981" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
-            SISTEMA CENTRAL
-          </text>
-          <text x="855" y="87" fill="#6ee7b7" fontSize="8" fontFamily="monospace" textAnchor="middle">
-            SALA FACP &bull; NFPA 72
-          </text>
+                <rect x="680" y="130" width="75" height="40" rx="3" />
+                <text x="717" y="154" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">JUNIOR</text>
 
-          {/* ============================================================ */}
-          {/* SECCIONES DISCRIMINADAS DE TUBERÍA Y CABLEADO (DE EQUIPO A EQUIPO) */}
-          {/* ============================================================ */}
-          {sections.map((sec) => {
-            const isHovered = hoveredSection?.id === sec.id;
-            const isSelected = selectedSection?.id === sec.id;
+                <rect x="340" y="150" width="75" height="40" rx="3" />
+                <text x="377" y="174" fill="#475569" fontSize="8" fontFamily="monospace" textAnchor="middle">VISITANTE 1</text>
 
-            return (
-              <g
-                key={sec.id}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredSection(sec)}
-                onMouseLeave={() => setHoveredSection(null)}
-                onClick={() => handleSectionClick(sec)}
-              >
-                {/* Section Glow / Hover AURA */}
-                <path
-                  d={sec.pathD}
-                  fill="none"
-                  stroke="#38bdf8"
-                  strokeWidth="14"
-                  strokeOpacity={isSelected ? 0.35 : isHovered ? 0.25 : 0}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <rect x="785" y="150" width="75" height="40" rx="3" />
+                <text x="822" y="174" fill="#475569" fontSize="8" fontFamily="monospace" textAnchor="middle">VISITANTE 2</text>
 
-                {/* Tubería Conduit EMT Body */}
-                <path
-                  d={sec.pathD}
-                  fill="none"
-                  stroke={isSelected ? '#38bdf8' : isHovered ? '#00b4d8' : '#0284c7'}
-                  strokeWidth="4.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <rect x="530" y="130" width="140" height="40" rx="3" fill="#e2e8f0" />
+                <text x="600" y="154" fill="#1e293b" fontSize="8.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">SALA DE PRENSA (252 m²)</text>
 
-                {/* Cableado FPLR SLC Centerline */}
-                <path
-                  d={sec.pathD}
-                  fill="none"
-                  stroke="#ffffff"
-                  strokeWidth="1.2"
-                  strokeDasharray="4,3"
-                  opacity={isSelected ? 1 : 0.85}
-                />
+                {/* Subestaciones & Technical */}
+                <rect x="250" y="180" width="80" height="35" rx="3" />
+                <text x="290" y="202" fill="#475569" fontSize="7.5" fontFamily="monospace" textAnchor="middle">SUBESTACIÓN</text>
 
-                {/* Section interactive badge pill */}
-                <rect
-                  x={sec.labelPos.x - 24}
-                  y={sec.labelPos.y - 9}
-                  width="48"
-                  height="18"
-                  rx="6"
-                  fill="#090d16"
-                  stroke={isSelected ? '#38bdf8' : isHovered ? '#00b4d8' : '#334155'}
-                  strokeWidth={isSelected ? '1.5' : '1'}
-                />
-                <text
-                  x={sec.labelPos.x}
-                  y={sec.labelPos.y + 3.5}
-                  fill={isSelected ? '#38bdf8' : isHovered ? '#e0f2fe' : '#94a3b8'}
-                  fontSize="7.5"
-                  fontWeight="bold"
-                  fontFamily="monospace"
-                  textAnchor="middle"
-                >
-                  {sec.code} ({sec.lengthMeters}m)
+                <rect x="870" y="180" width="80" height="35" rx="3" />
+                <text x="910" y="202" fill="#475569" fontSize="7.5" fontFamily="monospace" textAnchor="middle">TALLERES</text>
+
+                {/* Sur & Norte Sporting Halls */}
+                <rect x="110" y="360" width="100" height="90" rx="4" fill="#f1f5f9" />
+                <text x="160" y="410" fill="#334155" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">LIGA DE BOXEO</text>
+                <text x="160" y="425" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="middle">705.37 m²</text>
+
+                <rect x="990" y="360" width="100" height="90" rx="4" fill="#f1f5f9" />
+                <text x="1040" y="410" fill="#334155" fontSize="9" fontWeight="bold" fontFamily="monospace" textAnchor="middle">LIGA GIMNASIA</text>
+              </g>
+            )}
+
+            {isMezanine && (
+              <g stroke="#94a3b8" strokeWidth="1" fill="#f8fafc">
+                {/* VIP Lounges, Suites and Press Hub */}
+                <rect x="420" y="130" width="360" height="70" rx="6" fill="#f1f5f9" stroke="#64748b" strokeWidth="1.5" />
+                <text x="600" y="165" fill="#1e293b" fontSize="10" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+                  ÁREA VIP MEZANINE &middot; PALCOS DE HONOR (518 m²)
+                </text>
+                <text x="600" y="185" fill="#64748b" fontSize="8.5" fontFamily="monospace" textAnchor="middle">
+                  Puente Conexión Museos &middot; Cabinas Transmisión &middot; Secretaría
                 </text>
               </g>
-            );
-          })}
+            )}
 
-          {/* ============================================================ */}
-          {/* TECHNICAL NODES: FACP, 3 SENSORES, 1 AUTÓNOMO, 2 PULL, 2 SIRENS */}
-          {/* ============================================================ */}
-          {discreteDevices.map((item, index) => {
-            const coords = getCoordinatesForZone(item, index);
-            const color = getStatusColor(item.status);
-            const isSelected = activeSelected?.id === item.id || activeSelected?.code === item.code;
-            const isHovered = hoveredNode?.id === item.id;
-            const autonomous = isAutonomous(item);
+            {isNivel3 && (
+              <g stroke="#94a3b8" strokeWidth="1" fill="#f8fafc">
+                {/* Upper Tier Perimeter Gallery & Staircase Caracolas */}
+                <circle cx="320" cy="230" r="22" stroke="#64748b" strokeWidth="1.5" fill="#e2e8f0" />
+                <text x="320" y="234" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">CAR. 2</text>
 
-            return (
-              <g
-                key={item.id}
-                className="cursor-pointer"
-                onClick={() => handleSelect(item)}
-                onMouseEnter={() => setHoveredNode(item)}
-                onMouseLeave={() => setHoveredNode(null)}
-              >
-                {/* In-line Condulet connection box behind non-autonomous device */}
-                {!autonomous && (
-                  <rect
-                    x={coords.cx - 7}
-                    y={coords.cy - 7}
-                    width="14"
-                    height="14"
-                    rx="2"
-                    fill="#0f172a"
-                    stroke="#38bdf8"
-                    strokeWidth="1.5"
-                  />
-                )}
+                <circle cx="880" cy="230" r="22" stroke="#64748b" strokeWidth="1.5" fill="#e2e8f0" />
+                <text x="880" y="234" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">CAR. 1</text>
 
-                {/* Hover / Selection Aura */}
-                {(isSelected || isHovered) && (
-                  <circle
-                    cx={coords.cx}
-                    cy={coords.cy}
-                    r="18"
-                    fill={autonomous ? '#a855f7' : color}
-                    fillOpacity="0.25"
-                    stroke={autonomous ? '#c084fc' : color}
-                    strokeWidth="1.5"
-                  />
-                )}
+                <circle cx="880" cy="570" r="22" stroke="#64748b" strokeWidth="1.5" fill="#e2e8f0" />
+                <text x="880" y="574" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">CAR. 3</text>
 
-                {/* Node Ring */}
-                <circle
-                  cx={coords.cx}
-                  cy={coords.cy}
-                  r="9.5"
-                  fill="#090d16"
-                  stroke={isSelected ? '#ffffff' : autonomous ? '#a855f7' : color}
-                  strokeWidth={isSelected ? '2.5' : '2'}
-                />
+                <circle cx="320" cy="570" r="22" stroke="#64748b" strokeWidth="1.5" fill="#e2e8f0" />
+                <text x="320" y="574" fill="#334155" fontSize="8" fontWeight="bold" fontFamily="monospace" textAnchor="middle">CAR. 4</text>
 
-                {/* Status Dot */}
-                <circle cx={coords.cx} cy={coords.cy} r="4" fill={autonomous ? '#a855f7' : color} />
-
-                {item.status === 'inspected' && !autonomous && (
-                  <text
-                    x={coords.cx}
-                    y={coords.cy + 2.5}
-                    fill="#ffffff"
-                    fontSize="7"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    ✓
-                  </text>
-                )}
-
-                {/* Autonomous Icon badge */}
-                {autonomous && (
-                  <text
-                    x={coords.cx}
-                    y={coords.cy + 2.5}
-                    fill="#ffffff"
-                    fontSize="7"
-                    fontWeight="bold"
-                    textAnchor="middle"
-                  >
-                    ⚡
-                  </text>
-                )}
-
-                {/* Tag Rect and Label */}
-                <rect
-                  x={coords.cx - 28}
-                  y={coords.cy - 24}
-                  width="56"
-                  height="13"
-                  rx="3"
-                  fill="#090d16"
-                  fillOpacity="0.95"
-                  stroke={isSelected ? '#38bdf8' : autonomous ? '#a855f7' : '#334155'}
-                  strokeWidth={isSelected ? '1.2' : '0.8'}
-                />
-                <text
-                  x={coords.cx}
-                  y={coords.cy - 14.5}
-                  fill={isSelected ? '#38bdf8' : autonomous ? '#d8b4fe' : '#f1f5f9'}
-                  fontSize="7.5"
-                  fontWeight="bold"
-                  fontFamily="monospace"
-                  textAnchor="middle"
-                >
-                  {item.code}
+                <rect x="520" y="145" width="160" height="40" rx="4" stroke="#64748b" fill="#f1f5f9" />
+                <text x="600" y="170" fill="#334155" fontSize="8.5" fontWeight="bold" fontFamily="monospace" textAnchor="middle">
+                  GRADERÍA PRENSA ALTA (80 m²)
                 </text>
               </g>
-            );
-          })}
+            )}
+          </g>
+
+          {/* ========================================================================= */}
+          {/* CAPA 2: TUBERÍAS EMT EN ROJO TÉCNICO & CABLEADO FPLR (RED CONDUIT RUNS) */}
+          {/* ========================================================================= */}
+          {showPipes && (
+            <g>
+              {sections.map((sec) => {
+                const isHovered = hoveredSection?.id === sec.id;
+                const isSelected = selectedSection?.id === sec.id;
+                const isThick = sec.conduitDiameter === '1"';
+
+                return (
+                  <g
+                    key={sec.id}
+                    className="cursor-pointer"
+                    onMouseEnter={() => setHoveredSection(sec)}
+                    onMouseLeave={() => setHoveredSection(null)}
+                    onClick={() => handleSectionClick(sec)}
+                  >
+                    {/* Hover/Selection Halo */}
+                    <path
+                      d={sec.pathD}
+                      fill="none"
+                      stroke="#dc2626"
+                      strokeWidth={isThick ? '16' : '14'}
+                      strokeOpacity={isSelected ? 0.35 : isHovered ? 0.22 : 0}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Tubería Conduit EMT (Línea Roja Sólida del Plano) */}
+                    <path
+                      d={sec.pathD}
+                      fill="none"
+                      stroke={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : '#dc2626'}
+                      strokeWidth={isThick ? '4' : '2.8'}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Cableado FPLR Interior (Línea blanca discontinua SLC) */}
+                    <path
+                      d={sec.pathD}
+                      fill="none"
+                      stroke="#ffffff"
+                      strokeWidth="1"
+                      strokeDasharray="4,3"
+                      opacity={isSelected ? 1 : 0.8}
+                    />
+
+                    {/* Badge interactivo con metrado y diámetro de tubería */}
+                    <rect
+                      x={sec.labelPos.x - 30}
+                      y={sec.labelPos.y - 10}
+                      width="60"
+                      height="20"
+                      rx="5"
+                      fill="#ffffff"
+                      stroke={isSelected ? '#b91c1c' : isHovered ? '#dc2626' : '#f87171'}
+                      strokeWidth={isSelected ? '2' : '1.2'}
+                      className="drop-shadow-sm"
+                    />
+                    <text
+                      x={sec.labelPos.x}
+                      y={sec.labelPos.y + 3.5}
+                      fill="#b91c1c"
+                      fontSize="9"
+                      fontWeight="bold"
+                      fontFamily="monospace"
+                      textAnchor="middle"
+                    >
+                      {sec.lengthMeters}m &middot; {sec.conduitDiameter}
+                    </text>
+                  </g>
+                );
+              })}
+            </g>
+          )}
+
+          {/* ========================================================================= */}
+          {/* CAPA 3: EQUIPOS CON CONVENCIONES EXACTAS DEL PLANO (FACP, S, T, F, ⚡)    */}
+          {/* ========================================================================= */}
+          <g>
+            {discreteDevices.map((item) => {
+              const { cx, cy } = getNodeCoordinates(item);
+              const isSelected = activeSelected?.id === item.id || activeSelected?.code === item.code;
+              const isHovered = hoveredNode?.id === item.id;
+              const code = item.code.toUpperCase();
+              const type = item.type;
+
+              // Type checks
+              const isFACP = type === 'facp' || code.includes('FACP') || code.includes('AR');
+              const isPalanca = type === 'palanca' || code.includes('PAL');
+              const isSirena = type === 'sirena' || code.includes('SIR');
+              const isDetectorDoble = type === 'detector-doble' || code.includes('HCO') || code.includes('SH');
+              const isDetector = !isFACP && !isPalanca && !isSirena && !isDetectorDoble;
+
+              // Visibility filters
+              if (isFACP && !showPaneles) return null;
+              if (isPalanca && !showPalancas) return null;
+              if (isSirena && !showSirenas) return null;
+              if ((isDetector || isDetectorDoble) && !showDetectors) return null;
+
+              return (
+                <g
+                  key={item.id}
+                  className="cursor-pointer transition-transform"
+                  onMouseEnter={() => setHoveredNode(item)}
+                  onMouseLeave={() => setHoveredNode(null)}
+                  onClick={() => handleSelect(item)}
+                >
+                  {/* Selection Ring */}
+                  {isSelected && (
+                    <circle
+                      cx={cx}
+                      cy={cy}
+                      r="18"
+                      fill="none"
+                      stroke="#dc2626"
+                      strokeWidth="2.5"
+                      strokeDasharray="4,2"
+                      className="animate-spin"
+                      style={{ transformOrigin: `${cx}px ${cy}px` }}
+                    />
+                  )}
+
+                  {/* 1. PANEL DE INCENDIO (FACP) / ANUNCIADOR REMOTO (AR) */}
+                  {isFACP && (
+                    <g>
+                      <rect
+                        x={cx - 24}
+                        y={cy - 12}
+                        width="48"
+                        height="24"
+                        rx="4"
+                        fill="#b91c1c"
+                        stroke="#ffffff"
+                        strokeWidth="2"
+                        className="drop-shadow"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 4.5}
+                        fill="#ffffff"
+                        fontSize="9.5"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        {code.includes('AR') ? 'AR' : 'FACP'}
+                      </text>
+                    </g>
+                  )}
+
+                  {/* 2. ESTACIÓN MANUAL DE ALARMA (F / M en cuadrado rojo) */}
+                  {isPalanca && (
+                    <g>
+                      <rect
+                        x={cx - 10}
+                        y={cy - 10}
+                        width="20"
+                        height="20"
+                        rx="3"
+                        fill="#dc2626"
+                        stroke="#991b1b"
+                        strokeWidth="2"
+                        className="drop-shadow-sm"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 4.5}
+                        fill="#ffffff"
+                        fontSize="11"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        F
+                      </text>
+                    </g>
+                  )}
+
+                  {/* 3. SIRENA / PARLANTE ESTROBO (⚡ en rectángulo rojo) */}
+                  {isSirena && (
+                    <g>
+                      <rect
+                        x={cx - 12}
+                        y={cy - 8}
+                        width="24"
+                        height="16"
+                        rx="3"
+                        fill="#dc2626"
+                        stroke="#ffffff"
+                        strokeWidth="1.5"
+                        className="drop-shadow-sm"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 4}
+                        fill="#fef08a"
+                        fontSize="10"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        ⚡
+                      </text>
+                    </g>
+                  )}
+
+                  {/* 4. DETECTOR TÉRMICO Y CO (H·CO) O HUMO Y TÉRMICO (S·H) */}
+                  {isDetectorDoble && (
+                    <g>
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="11"
+                        fill="#ffffff"
+                        stroke="#dc2626"
+                        strokeWidth="2"
+                        className="drop-shadow-sm"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 3.5}
+                        fill="#b91c1c"
+                        fontSize="7.5"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        {code.includes('HCO') ? 'H·CO' : 'S·H'}
+                      </text>
+                    </g>
+                  )}
+
+                  {/* 5. DETECTOR DE HUMO (S) O TÉRMICO (T) ESTÁNDAR */}
+                  {isDetector && (
+                    <g>
+                      <circle
+                        cx={cx}
+                        cy={cy}
+                        r="10"
+                        fill="#ffffff"
+                        stroke="#dc2626"
+                        strokeWidth="2"
+                        className="drop-shadow-sm"
+                      />
+                      <text
+                        x={cx}
+                        y={cy + 4}
+                        fill="#b91c1c"
+                        fontSize="9"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        {code.includes('SEN-05') || code.includes('TER') ? 'T' : 'S'}
+                      </text>
+                    </g>
+                  )}
+
+                  {/* Hover or selected tooltip badge */}
+                  {(isHovered || isSelected) && (
+                    <g className="pointer-events-none">
+                      <rect
+                        x={cx - 45}
+                        y={cy - 30}
+                        width="90"
+                        height="17"
+                        rx="4"
+                        fill="#0f172a"
+                        opacity="0.9"
+                      />
+                      <text
+                        x={cx}
+                        y={cy - 18}
+                        fill="#ffffff"
+                        fontSize="8.5"
+                        fontWeight="bold"
+                        fontFamily="monospace"
+                        textAnchor="middle"
+                      >
+                        {item.code}
+                      </text>
+                    </g>
+                  )}
+                </g>
+              );
+            })}
+          </g>
         </svg>
+      </div>
 
-        {/* ============================================================ */}
-        {/* MODAL DISCRIMINADOR DE SECCIÓN (TUBERÍA O CABLEADO DEL TRAMO) */}
-        {/* ============================================================ */}
-        {showTramoPrompt && selectedSection && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-200">
-            <div className="max-w-md w-full rounded-2xl border border-sky-500/30 bg-slate-900 p-5 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-2.5 h-2.5 rounded-full bg-sky-400 animate-ping"></div>
-                  <h4 className="font-mono text-xs font-bold text-white uppercase tracking-wider">
-                    Control de Sección Técnica &middot; {selectedSection.code}
-                  </h4>
-                </div>
-                <button
-                  onClick={() => setShowTramoPrompt(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+      {/* Selected Element or Conduit Section Inspection Footer */}
+      {(activeDisplayNode || selectedSection) && (
+        <div className="mt-4 p-4 rounded-xl border border-red-200 bg-red-50/50 flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-150">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-bold text-sm font-mono shadow-sm">
+              {selectedSection ? 'TUB' : activeDisplayNode?.code.split('-').pop() || 'EQ'}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-xs text-brand-deep">
+                  {selectedSection ? selectedSection.name : activeDisplayNode?.name}
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-white text-red-700 border border-red-200">
+                  {selectedSection ? selectedSection.code : activeDisplayNode?.code}
+                </span>
               </div>
-
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-1 font-mono text-xs">
-                <div className="flex items-center justify-between text-slate-400">
-                  <span>Trayectoria:</span>
-                  <strong className="text-white">
-                    {selectedSection.fromCode} ➔ {selectedSection.toCode}
-                  </strong>
-                </div>
-                <div className="flex items-center justify-between text-slate-400">
-                  <span>Longitud de Sección:</span>
-                  <strong className="text-sky-300">{selectedSection.lengthMeters} metros lineales</strong>
-                </div>
-              </div>
-
-              <div className="text-[11px] font-bold text-sky-300 uppercase tracking-wide font-mono">
-                ¿Qué componente de esta sección deseas seleccionar?
-              </div>
-
-              <div className="grid grid-cols-1 gap-2.5 font-mono">
-                {/* Option 1: Tubería Conduit */}
-                <button
-                  onClick={() => handleSelect(getSectionTuberiaItem(selectedSection))}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-cyan-500/40 hover:border-cyan-400 text-left transition-all group"
-                >
-                  <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400 group-hover:scale-105 transition-transform mt-0.5">
-                    <Wrench className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-white block">
-                      Tubería Conduit EMT 1" (Sección {selectedSection.code})
-                    </span>
-                    <span className="text-[11px] text-slate-400 block font-sans">
-                      Canalización física rígida de {selectedSection.lengthMeters}m entre {selectedSection.fromCode} y {selectedSection.toCode}.
-                    </span>
-                    <span className="text-[10px] text-cyan-400 font-bold block pt-0.5">
-                      Código: EST-TUB-{selectedSection.code} &bull; {selectedSection.lengthMeters} m
-                    </span>
-                  </div>
-                </button>
-
-                {/* Option 2: Cableado FPLR */}
-                <button
-                  onClick={() => handleSelect(getSectionCableItem(selectedSection))}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-sky-500/40 hover:border-sky-400 text-left transition-all group"
-                >
-                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform mt-0.5">
-                    <Cable className="w-4 h-4" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-white block">
-                      Cableado FPLR / Lazo SLC (Sección {selectedSection.code})
-                    </span>
-                    <span className="text-[11px] text-slate-400 block font-sans">
-                      Conductor blindado 2x14 AWG de {Math.round(selectedSection.lengthMeters * 1.05)}m dentro del tramo.
-                    </span>
-                    <span className="text-[10px] text-sky-400 font-bold block pt-0.5">
-                      Código: EST-CAB-{selectedSection.code} &bull; {Math.round(selectedSection.lengthMeters * 1.05)} m
-                    </span>
-                  </div>
-                </button>
-              </div>
+              <p className="text-xs text-slate-600 mt-0.5">
+                {selectedSection
+                  ? `Tramo en tubería EMT ${selectedSection.conduitDiameter} con cable SLC tendido (${selectedSection.lengthMeters} metros).`
+                  : activeDisplayNode?.model || 'Componente NFPA 72'}
+              </p>
             </div>
           </div>
-        )}
 
-        {/* Technical Detail Card */}
-        {activeDisplayNode && (
-          <div className="absolute bottom-5 right-5 max-w-sm w-full rounded-2xl border border-slate-700 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-md animate-in fade-in duration-150 z-20">
-            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-2 mb-3">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[10px] font-bold text-cyan-400">
-                    {activeDisplayNode.code}
-                  </span>
-                  <span
-                    className={`text-[9px] px-2 py-0.5 rounded font-mono font-bold uppercase border ${
-                      activeDisplayNode.status === 'inspected'
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                        : activeDisplayNode.status === 'installed'
-                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/40'
-                        : 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                    }`}
-                  >
-                    {activeDisplayNode.status === 'inspected'
-                      ? 'Conforme / Aprobado'
-                      : activeDisplayNode.status === 'installed'
-                      ? 'Instalado en Obra'
-                      : 'Planificado'}
-                  </span>
-                </div>
-                <h5 className="text-xs font-bold text-white mt-1 leading-snug">
-                  {activeDisplayNode.name}
-                </h5>
+          <div className="flex items-center gap-3 text-xs font-mono">
+            {selectedSection ? (
+              <div className="text-right">
+                <span className="text-slate-500 block text-[10px]">Longitud Tramo</span>
+                <strong className="text-brand-deep text-sm">{selectedSection.lengthMeters} Metros</strong>
               </div>
-
-              {internalSelected && (
-                <button
-                  onClick={() => setInternalSelected(null)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                  title="Cerrar ficha"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Quick Toggle if inspecting either Tubería or Cable */}
-            {(activeDisplayNode.type === 'tuberia' || activeDisplayNode.type === 'cableado') && (
-              <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 mb-2.5 text-[10px] font-mono">
-                <button
-                  onClick={() =>
-                    handleSelect(
-                      selectedSection
-                        ? getSectionTuberiaItem(selectedSection)
-                        : mainTuberia
-                    )
-                  }
-                  className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
-                    activeDisplayNode.type === 'tuberia'
-                      ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                      : 'text-slate-400 hover:text-white'
+            ) : (
+              <div className="text-right">
+                <span className="text-slate-500 block text-[10px]">Estado de Obra</span>
+                <span
+                  className={`inline-flex items-center gap-1 font-bold text-xs ${
+                    activeDisplayNode?.status === 'inspected'
+                      ? 'text-emerald-700'
+                      : activeDisplayNode?.status === 'installed'
+                      ? 'text-blue-700'
+                      : 'text-amber-700'
                   }`}
                 >
-                  <Wrench className="w-3 h-3" />
-                  <span>Ver Tubería</span>
-                </button>
-                <button
-                  onClick={() =>
-                    handleSelect(
-                      selectedSection
-                        ? getSectionCableItem(selectedSection)
-                        : mainCable
-                    )
-                  }
-                  className={`flex-1 py-1 rounded-lg font-bold flex items-center justify-center gap-1 transition-all ${
-                    activeDisplayNode.type === 'cableado'
-                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                      : 'text-slate-400 hover:text-white'
-                  }`}
-                >
-                  <Cable className="w-3 h-3" />
-                  <span>Ver Cable</span>
-                </button>
+                  <Clock className="w-3.5 h-3.5" />
+                  {activeDisplayNode?.status === 'inspected'
+                    ? 'Inspeccionado'
+                    : activeDisplayNode?.status === 'installed'
+                    ? 'Instalado'
+                    : 'Planificado'}
+                </span>
               </div>
             )}
 
-            <div className="space-y-2 text-[11px] font-mono text-slate-300">
-              <div className="flex items-center justify-between text-slate-400">
-                <span>Modelo:</span>
-                <span className="text-slate-200 font-bold">{activeDisplayNode.model}</span>
-              </div>
-              <div className="flex items-center justify-between text-slate-400">
-                <span>Ubicación:</span>
-                <span className="text-slate-200">{activeDisplayNode.zone}</span>
-              </div>
-
-              <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 space-y-1.5 mt-2">
-                {isAutonomous(activeDisplayNode) ? (
-                  <div className="flex items-start gap-2 text-purple-300">
-                    <BatteryCharging className="w-4 h-4 shrink-0 text-purple-400 mt-0.5" />
-                    <span className="text-[10px] leading-relaxed">
-                      <strong>Equipo Autónomo:</strong> Batería interna de litio (10 años). Dispositivo independiente que no requiere canalización de tubería ni cable exterior.
-                    </span>
-                  </div>
-                ) : activeDisplayNode.code.includes('FACP') ? (
-                  <div className="flex items-start gap-2 text-emerald-300">
-                    <ShieldAlert className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
-                    <span className="text-[10px] leading-relaxed">
-                      <strong>Sistema Central:</strong> Panel Central FACP. Todos los lazos direccionables SLC (3 sensores, 2 palancas y 2 sirenas) convergen aquí.
-                    </span>
-                  </div>
-                ) : activeDisplayNode.type === 'tuberia' || activeDisplayNode.type === 'cableado' ? (
-                  <div className="flex items-start gap-2 text-cyan-300">
-                    <GitBranch className="w-4 h-4 shrink-0 text-cyan-400 mt-0.5" />
-                    <span className="text-[10px] leading-relaxed">
-                      <strong>Control de Sección:</strong> Canalización y cableado discriminado por tramo entre equipos para control de metraje e instalación.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-start gap-2 text-sky-300">
-                    <Wrench className="w-4 h-4 shrink-0 text-sky-400 mt-0.5" />
-                    <span className="text-[10px] leading-relaxed">
-                      <strong>Equipo Conectado:</strong> Tubería Conduit EMT y Cable SLC conectados directamente al circuito general.
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between pt-1 text-slate-400">
-                <span>Cantidad:</span>
-                <span className="text-white font-bold">
-                  {activeDisplayNode.quantity} {activeDisplayNode.unit} &bull; ${(activeDisplayNode.quantity * activeDisplayNode.unitPrice).toLocaleString('es-CO')}
-                </span>
-              </div>
-
-              {activeDisplayNode.notes && (
-                <p className="text-[10px] text-slate-400 italic pt-1 border-t border-slate-800">
-                  "{activeDisplayNode.notes}"
-                </p>
-              )}
-            </div>
+            <button
+              onClick={() => {
+                setInternalSelected(null);
+                setSelectedSection(null);
+              }}
+              className="p-1.5 rounded-lg hover:bg-red-100 text-slate-500 hover:text-slate-700 transition-all"
+              title="Cerrar ficha"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
-        )}
-      </div>
-
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-gsitText-secondary pt-2 border-t border-surface-border">
-        <div className="flex items-center gap-3">
-          <span>
-            Zona Activa: <strong className="text-brand-deep">{currentZone}</strong>
-          </span>
-          <span className="text-slate-300">|</span>
-          <span>
-            7 Secciones Técnicas &bull; 3 Sensores SLC &bull; 1 Autónomo (Sin Tubería) &bull; 2 Palancas &bull; 2 Sirenas &bull; Sistema Central FACP
-          </span>
         </div>
-
-        <div className="flex items-center gap-2 text-brand-primary font-bold">
-          <span>{discreteDevices.length} Equipos en Plano</span>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
