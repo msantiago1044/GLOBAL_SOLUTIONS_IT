@@ -11,14 +11,10 @@ Plataforma web para la supervisión y control operativo de sistemas de redes de 
    - **Consulta Pública (Solo Lectura)**: Acceso libre para supervisores, clientes e interventoría para inspeccionar los 34 pisos, planos técnicos, especificaciones y actas de facturación sin alterar registros.
    - **Administrador de Obra**: Autenticación para ingenieros autorizados con permisos exclusivos de edición de estados, fechas, cuadrillas y adjunto de evidencias fotográficas.
 3. **Portafolio de Proyectos**:
-   - **Torre Grand Titanium (33 Pisos)**: Proyecto en ejecución activa con un avance global certificado del **90.4%**.
-   - **Estadio Metropolitano Roberto Meléndez**: Infraestructura deportiva en fase de diseño con esquema interactivo editable.
-4. **Estudio Técnico por Pisos (0 al 33)**:
-   - **Piso 0**: Sótano y parqueaderos (100% OK).
-   - **Piso 1**: **CEREBRO DE LA OPERACIÓN** con Central FACP Notifier NFS2-3030, baterías y riser vertical.
-   - **Pisos 2 al 6**: Oficinas corporativas (100% OK).
-   - **Pisos 7 al 29**: Habitaciones residenciales (100% OK).
-   - **Pisos 30 al 33**: En ejecución activa (78% a 89%) con elementos pendientes para interactuar.
+   - **Estadio Metropolitano Roberto Meléndez**: Infraestructura deportiva con esquema técnico interactivo para redes contra incendio NFPA 72.
+4. **Estudio Técnico por Zonas y Niveles**:
+   - Supervisión detallada por niveles y áreas operativas (Cancha, Nivel 1, Mezanine, Nivel 3).
+   - Componentes direccionables, tubería conduit y cableado estructurado.
 5. **Diferenciación Técnica de Redes**:
    - **Tubería Conduit EMT 3/4"**: Trazado y metrado independiente.
    - **Cableado FPLR Contra Incendio**: Rutas y metrado independiente de lazo SLC.

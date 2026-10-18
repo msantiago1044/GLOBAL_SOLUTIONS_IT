@@ -5,7 +5,6 @@ import { Project } from '@/src/schemas/project.schema';
 import { FloorZone, addItem, removeItem } from '@/src/lib/projects-data';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import EstadioBlueprint from '@/components/blueprints/EstadioBlueprint';
-import TitaniumBlueprint from '@/components/blueprints/TitaniumBlueprint';
 import { Lock, Plus, Trash2, Wrench, MapPin } from 'lucide-react';
 
 interface Props {
@@ -306,23 +305,13 @@ export default function BlueprintTab({
 
       {/* Blueprint Visual Rendering */}
       <div>
-        {project.id === 'estadio-metropolitano' ? (
-          <EstadioBlueprint
-            items={floorItems}
-            currentZone={currentFloor?.name || 'Zona General'}
-            isEditable={canModifySchema}
-            selectedItemId={selectedItemId}
-            onSelectItem={(item) => setSelectedItemId(item.code)}
-          />
-        ) : (
-          <TitaniumBlueprint
-            items={floorItems}
-            currentFloorName={currentFloor?.name || 'Piso 1'}
-            isEditable={canModifySchema}
-            selectedItemId={selectedItemId}
-            onSelectItem={(item) => setSelectedItemId(item.code)}
-          />
-        )}
+        <EstadioBlueprint
+          items={floorItems}
+          currentZone={currentFloor?.name || 'Zona General'}
+          isEditable={canModifySchema}
+          selectedItemId={selectedItemId}
+          onSelectItem={(item) => setSelectedItemId(item.code)}
+        />
       </div>
 
       {/* Items list in current zone */}

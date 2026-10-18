@@ -8,7 +8,7 @@ describe('Validación de Esquemas de Elementos de Red (NFPA 72)', () => {
   it('debe validar un elemento de tubería conduit correctamente', () => {
     const validPipe = {
       id: 'TUB-P33-S01',
-      projectId: 'torre-titanium',
+      projectId: 'estadio-metropolitano',
       code: 'TUB-P33-S01',
       type: 'tuberia',
       name: 'Tubería Conduit EMT 3/4" Tramo 1',
@@ -32,7 +32,7 @@ describe('Validación de Esquemas de Elementos de Red (NFPA 72)', () => {
   it('debe rechazar un tipo de componente no contemplado por la norma', () => {
     const invalidType = {
       id: 'INVALID-01',
-      projectId: 'torre-titanium',
+      projectId: 'estadio-metropolitano',
       code: 'INV-01',
       type: 'tipo-inexistente',
       name: 'Elemento Desconocido',

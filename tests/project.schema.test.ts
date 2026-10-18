@@ -28,19 +28,19 @@ describe('Validación de Proyectos y Esquema Técnico NFPA 72', () => {
     }
   });
 
-  it('debe validar un proyecto con esquema bloqueado (Torre Titanium)', () => {
-    const titanium = {
-      id: 'torre-titanium',
-      name: 'Torre Grand Titanium',
-      client: 'Constructora Bolívar',
+  it('debe validar un proyecto con esquema bloqueado', () => {
+    const proyectoBloqueado = {
+      id: 'edificio-corporativo',
+      name: 'Edificio Corporativo Central',
+      client: 'Constructora Central S.A.S.',
       address: 'Cra 15 # 98-42, Bogotá D.C.',
       systemType: 'Notifier NFS2-3030',
-      totalFloors: 34,
+      totalFloors: 10,
       globalProgress: 90.4,
       schemaStatus: 'locked',
     };
 
-    const result = ProjectSchema.safeParse(titanium);
+    const result = ProjectSchema.safeParse(proyectoBloqueado);
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.schemaStatus).toBe('locked');

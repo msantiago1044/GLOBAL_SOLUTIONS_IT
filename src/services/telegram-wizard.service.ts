@@ -133,7 +133,8 @@ export class TelegramWizardService {
     messageId: number,
     categoryFilter?: string
   ): Promise<void> {
-    const projId = session.payload.projectId || 'torre-titanium';
+    const defaultProj = (await this.projectExecution.getProjects())[0]?.id || '';
+    const projId = session.payload.projectId || defaultProj;
     const pendingItems = await this.projectExecution.getPendingItemsByFloor(
       projId,
       floorNumber,
@@ -439,10 +440,10 @@ export class TelegramWizardService {
       [
         {
           text: `➕ Registrar Otro Equipo en Nivel ${floorNumber ?? ''}`,
-          callback_data: `f:${floorNumber ?? 33}`,
+          callback_data: `f:${floorNumber ?? 1}`,
         },
       ],
-      [{ text: '🏢 Cambiar de Piso / Proyecto', callback_data: `p:${projectId || 'torre-titanium'}` }],
+      [{ text: '🏢 Cambiar de Piso / Proyecto', callback_data: `p:${projectId || (await this.projectExecution.getProjects())[0]?.id || ''}` }],
       [{ text: '🏁 Menú Principal', callback_data: 'nav:menu' }],
     ];
 
@@ -479,7 +480,8 @@ export class TelegramWizardService {
       const filePath = await this.telegram.getFilePath(fileId);
       const fileBuffer = await this.telegram.downloadFile(filePath);
 
-      const projId = session.payload.projectId || 'torre-titanium';
+      const defaultProj = (await this.projectExecution.getProjects())[0]?.id || '';
+      const projId = session.payload.projectId || defaultProj;
       const itemId = session.payload.itemId || 'item';
 
       const photoUrl = await this.storage.uploadPhoto(projId, itemId, fileBuffer, 'image/jpeg');

@@ -34,7 +34,7 @@ La plataforma tiene como propósito digitalizar y controlar la ejecución operat
 - Sección Hero con título de alto impacto: "Control de Ejecución de Obras, Redes de Tubería y Cableado en Tiempo Real".
 - Contadores métricos de impacto: Número de pisos en seguimiento, porcentaje global de avance, metros lineales de tubería instalados y digitalización de cortes de cobro.
 - Tarjetas de valor: Planos técnicos interactivos, diferenciación de tubería vs cable, auditoría fotográfica in situ y liquidación de facturación sin demoras.
-- Botones de acción directa: "Explorar Demo Torre Titanium" e "Iniciar Sesión Operativa".
+- Botones de acción directa: "Explorar Demo Estadio Metropolitano" e "Iniciar Sesión Operativa".
 
 #### MÓDULO 2: AUTENTICACIÓN Y SEGURIDAD
 - Modal/Vista de inicio de sesión sobrio y seguro.
@@ -48,9 +48,9 @@ La plataforma tiene como propósito digitalizar y controlar la ejecución operat
 #### MÓDULO 3: PORTAFOLIO DE PROYECTOS EN EJECUCIÓN
 - Grid de tarjetas de proyectos con metadatos: Cliente, tipo de edificación, sistema instalado (ej. Notifier NFS2-3030), total de niveles y barra de avance porcentual.
 - Proyecto principal destacado para la demo:
-  - **Nombre**: Torre Grand Titanium (33 Pisos + Sótano / 34 niveles en total).
-  - **Estado**: 90.4% de ejecución global completado.
-  - **Cliente**: Constructora Bolívar / Inversiones Colpatria.
+  - **Nombre**: Estadio Metropolitano Roberto Meléndez.
+  - **Estado**: Esquema técnico interactivo para redes contra incendio NFPA 72.
+  - **Cliente**: Alcaldía Distrital / Secretaría de Deportes.
 
 #### MÓDULO 4: ESTUDIO DE EJECUCIÓN DE OBRA (VISTA DIVIDIDA / SPLIT VIEW)
 
@@ -131,18 +131,18 @@ Herramienta financiera para cobro a clientes o contratistas:
 ```json
 {
   "project": {
-    "id": "torre-titanium",
-    "name": "Torre Grand Titanium - 33 Pisos",
-    "client": "Constructora Bolívar / Inversiones Colpatria",
-    "systemType": "Sistema Direccionable NFPA 72 - Notifier ONYX NFS2-3030",
-    "totalFloors": 34,
+    "id": "estadio-metropolitano",
+    "name": "Estadio Metropolitano Roberto Meléndez",
+    "client": "Alcaldía Distrital / Secretaría de Deportes",
+    "systemType": "Detección Temprana & Tubería Conduit EMT — NFPA 72 Clase B",
+    "totalFloors": 4,
     "status": "En Ejecución"
   },
   "floors": {
-    "33": {
-      "floorNumber": 33,
-      "name": "Piso 33 - Ático / Penthouse",
-      "type": "habitaciones",
+    "1": {
+      "floorNumber": 1,
+      "name": "Nivel 1 (+42.08 m)",
+      "type": "cerebro",
       "items": [
         {
           "id": "TUB-P33-S04",

@@ -110,9 +110,9 @@ describe('Validación de Máquina de Estados de Sesión (BotSession)', () => {
       username: 'carlos_ing',
       step: 'SELECT_ITEM',
       payload: {
-        projectId: 'torre-titanium',
-        projectName: 'Torre Grand Titanium',
-        floorNumber: 33,
+        projectId: 'estadio-metropolitano',
+        projectName: 'Estadio Metropolitano Roberto Meléndez',
+        floorNumber: 1,
       },
     };
 
@@ -120,7 +120,7 @@ describe('Validación de Máquina de Estados de Sesión (BotSession)', () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.step).toBe('SELECT_ITEM');
-      expect(parsed.data.payload.floorNumber).toBe(33);
+      expect(parsed.data.payload.floorNumber).toBe(1);
     }
   });
 
