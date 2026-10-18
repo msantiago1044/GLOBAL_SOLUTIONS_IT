@@ -1501,7 +1501,7 @@ const STORAGE_KEY_PROJECTS = 'gsit_projects';
 const STORAGE_KEY_FLOORS = 'gsit_floors';
 const STORAGE_KEY_ITEMS = 'gsit_items';
 const STORAGE_KEY_VERSION = 'gsit_data_version';
-const CURRENT_DATA_VERSION = 'v9_production';
+const CURRENT_DATA_VERSION = 'v10_purge_titanium';
 
 
 function checkDataMigration(): void {
@@ -1526,7 +1526,8 @@ export function getProjects(): Project[] {
       localStorage.setItem(STORAGE_KEY_PROJECTS, JSON.stringify(DEFAULT_PROJECTS));
       return DEFAULT_PROJECTS;
     }
-    return JSON.parse(raw) as Project[];
+    const parsed = (JSON.parse(raw) as Project[]).filter((p) => p.id !== 'torre-titanium');
+    return parsed;
   } catch {
     return DEFAULT_PROJECTS;
   }

@@ -39,6 +39,7 @@ export class ProjectExecutionService {
     const { data, error } = await this.supabase
       .from('projects')
       .select('*')
+      .neq('id', 'torre-titanium')
       .order('name');
 
     if (error || !data) {

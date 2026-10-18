@@ -33,9 +33,11 @@ export default function ProjectsPage() {
       try {
         const { getSupabaseClient } = await import('@/src/lib/supabase');
         const supabase = getSupabaseClient();
-        const { data } = await supabase.from('projects').select('*').order('name');
+        const { data } = await supabase.from('projects').select('*').neq('id', 'torre-titanium').order('name');
         if (data && data.length > 0) {
-          const mapped: Project[] = data.map((raw) => ({
+          const mapped: Project[] = data
+            .filter((raw) => raw.id !== 'torre-titanium')
+            .map((raw) => ({
             id: raw.id,
             name: raw.name,
             client: raw.client,
