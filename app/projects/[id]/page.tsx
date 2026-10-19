@@ -72,7 +72,7 @@ export default function ProjectDashboardPage() {
     try {
       const repo = new ItemsRepository();
       const remoteItems = await repo.getItemsByProject(projectId);
-      if (remoteItems && remoteItems.length > 0) {
+      if (remoteItems && remoteItems.length >= 4000) {
         setItems(remoteItems);
         saveProjectItems(projectId, remoteItems);
         recalculateProjectProgress(projectId);

@@ -46,7 +46,7 @@ const STORAGE_KEY_PROJECTS = 'gsit_projects';
 const STORAGE_KEY_FLOORS = 'gsit_floors';
 const STORAGE_KEY_ITEMS = 'gsit_items';
 const STORAGE_KEY_VERSION = 'gsit_data_version';
-const CURRENT_DATA_VERSION = 'v11_complete_inventory_estadio';
+const CURRENT_DATA_VERSION = 'v12_estadio_4317_items_full';
 
 
 function checkDataMigration(): void {

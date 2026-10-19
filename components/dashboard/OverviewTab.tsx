@@ -35,6 +35,13 @@ export default function OverviewTab({ project, floors, items }: Props) {
     .filter((i) => i.status !== 'pending')
     .reduce((acc, curr) => acc + curr.quantity * curr.unitPrice, 0);
 
+  const formatMeters = (val: number) => {
+    return Number(val.toFixed(1)).toLocaleString('es-CO', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Top KPI Cards Grid */}
@@ -66,11 +73,11 @@ export default function OverviewTab({ project, floors, items }: Props) {
             <Wrench className="w-4 h-4 text-network-pipe" strokeWidth={2} />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-brand-deep font-mono">{totalTuberiaMetros}</span>
+            <span className="text-3xl font-black text-brand-deep font-mono">{formatMeters(totalTuberiaMetros)}</span>
             <span className="text-xs text-gsitText-muted font-mono">m lineales</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-gsitText-secondary">
-            <span>Instalado: <strong className="text-network-pipe">{installedTuberiaMetros} m</strong></span>
+            <span>Instalado: <strong className="text-network-pipe">{formatMeters(installedTuberiaMetros)} m</strong></span>
             <span className="font-bold">{totalTuberiaMetros > 0 ? Math.round((installedTuberiaMetros / totalTuberiaMetros) * 100) : 0}%</span>
           </div>
         </div>
@@ -82,11 +89,11 @@ export default function OverviewTab({ project, floors, items }: Props) {
             <Activity className="w-4 h-4 text-network-cable" strokeWidth={2} />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-black text-brand-deep font-mono">{totalCableMetros}</span>
+            <span className="text-3xl font-black text-brand-deep font-mono">{formatMeters(totalCableMetros)}</span>
             <span className="text-xs text-gsitText-muted font-mono">m lineales</span>
           </div>
           <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-gsitText-secondary">
-            <span>Tirado: <strong className="text-network-cable">{installedCableMetros} m</strong></span>
+            <span>Tirado: <strong className="text-network-cable">{formatMeters(installedCableMetros)} m</strong></span>
             <span className="font-bold">{totalCableMetros > 0 ? Math.round((installedCableMetros / totalCableMetros) * 100) : 0}%</span>
           </div>
         </div>

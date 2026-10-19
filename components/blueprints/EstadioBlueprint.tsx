@@ -480,11 +480,12 @@ export default function EstadioBlueprint({
             transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
           }}
         >
-          {/* 1. ACTUAL PDF BLUEPRINT IMAGE (Ultra HD 6012x4251 px rendered at 4400px baseline) */}
+          {/* 1. ACTUAL PDF BLUEPRINT IMAGE (8K Ultra HD 8016x5668 px rendered at 4400px baseline) */}
           <img
             src={currentImageSrc}
             alt={`Plano Oficial Estadio Metropolitano - ${levelMeta.sheetTitle}`}
             className="w-[4400px] h-auto max-w-none block pointer-events-none rounded shadow-md border border-slate-200"
+            style={{ imageRendering: '-webkit-optimize-contrast' }}
             draggable={false}
           />
 
