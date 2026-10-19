@@ -46,7 +46,7 @@ const STORAGE_KEY_PROJECTS = 'gsit_projects';
 const STORAGE_KEY_FLOORS = 'gsit_floors';
 const STORAGE_KEY_ITEMS = 'gsit_items';
 const STORAGE_KEY_VERSION = 'gsit_data_version';
-const CURRENT_DATA_VERSION = 'v13_estadio_legend_removed_corridor_fixed';
+const CURRENT_DATA_VERSION = 'v14_estadio_4606_items_full_conventions';
 
 
 function checkDataMigration(): void {

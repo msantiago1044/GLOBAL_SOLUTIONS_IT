@@ -129,6 +129,8 @@ export default function EstadioBlueprint({
   const [filterS, setFilterS] = useState(true);
   const [filterF, setFilterF] = useState(true);
   const [filterH, setFilterH] = useState(true);
+  const [filterHCO, setFilterHCO] = useState(true);
+  const [filterPE, setFilterPE] = useState(true);
   const [filterOther, setFilterOther] = useState(true);
 
   // Pipe section selection state (Discriminador Tubo vs Cable)
@@ -229,6 +231,8 @@ export default function EstadioBlueprint({
     if (node.symbol === 'S') return filterS;
     if (node.symbol === 'F') return filterF;
     if (node.symbol === 'H') return filterH;
+    if (node.symbol === 'HCO' || node.symbol === 'SH') return filterHCO;
+    if (node.symbol === 'PE') return filterPE;
     return filterOther;
   });
 
@@ -483,6 +487,38 @@ export default function EstadioBlueprint({
             <span>Manual ({counts['F'] || 0})</span>
           </label>
 
+          {/* Detector Térmico y CO Toggle (H/CO) */}
+          {Boolean(counts['HCO'] || counts['SH']) && (
+            <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-sky-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={filterHCO}
+                onChange={(e) => setFilterHCO(e.target.checked)}
+                className="rounded text-sky-600 focus:ring-0 cursor-pointer"
+              />
+              <span className="w-4 h-3.5 rounded-sm bg-sky-600 text-white text-[7px] font-bold flex items-center justify-center">
+                CO
+              </span>
+              <span>Térmico/CO ({(counts['HCO'] || 0) + (counts['SH'] || 0)})</span>
+            </label>
+          )}
+
+          {/* Sirena-Estrobo Toggle (PE) */}
+          {Boolean(counts['PE']) && (
+            <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-orange-300 transition-colors">
+              <input
+                type="checkbox"
+                checked={filterPE}
+                onChange={(e) => setFilterPE(e.target.checked)}
+                className="rounded text-orange-600 focus:ring-0 cursor-pointer"
+              />
+              <span className="w-3.5 h-3.5 rounded bg-orange-600 text-white text-[7px] font-bold flex items-center justify-center">
+                PE
+              </span>
+              <span>Estrobos ({counts['PE'] || 0})</span>
+            </label>
+          )}
+
           {/* Detector Térmico Toggle (if present) */}
           {Boolean(counts['H']) && (
             <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 bg-white rounded-lg border border-slate-200 hover:border-red-300 transition-colors">
@@ -678,6 +714,8 @@ export default function EstadioBlueprint({
                   const isInspected = matchedItem.status === 'inspected';
                   const nodeColor = isInspected ? '#059669' : isInstalled ? '#10b981' : node.color;
                   const isSquare = node.symbol === 'F';
+                  const isPE = node.symbol === 'PE';
+                  const isHCO = node.symbol === 'HCO' || node.symbol === 'SH';
                   const isRect = node.symbol === 'AR' || node.symbol === 'FACP';
 
                   return (
@@ -719,6 +757,30 @@ export default function EstadioBlueprint({
                           height={isSelected || isHovered ? 9 : 7}
                           rx="1.5"
                           fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color)}
+                          stroke="#ffffff"
+                          strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                          className="drop-shadow-sm transition-all duration-150"
+                        />
+                      ) : isPE ? (
+                        <rect
+                          x={node.x - (isSelected || isHovered ? 4.5 : 3.5)}
+                          y={node.y - (isSelected || isHovered ? 4.5 : 3.5)}
+                          width={isSelected || isHovered ? 9 : 7}
+                          height={isSelected || isHovered ? 9 : 7}
+                          rx="2.5"
+                          fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#ea580c' : isHovered ? '#f97316' : node.color)}
+                          stroke="#ffffff"
+                          strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
+                          className="drop-shadow-sm transition-all duration-150"
+                        />
+                      ) : isHCO ? (
+                        <rect
+                          x={node.x - (isSelected || isHovered ? 6.5 : 5.0)}
+                          y={node.y - (isSelected || isHovered ? 4.0 : 3.2)}
+                          width={isSelected || isHovered ? 13 : 10}
+                          height={isSelected || isHovered ? 8 : 6.4}
+                          rx="2"
+                          fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#0284c7' : isHovered ? '#38bdf8' : node.color)}
                           stroke="#ffffff"
                           strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
                           className="drop-shadow-sm transition-all duration-150"
