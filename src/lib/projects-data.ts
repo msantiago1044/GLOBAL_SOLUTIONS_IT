@@ -46,7 +46,7 @@ const STORAGE_KEY_PROJECTS = 'gsit_projects';
 const STORAGE_KEY_FLOORS = 'gsit_floors';
 const STORAGE_KEY_ITEMS = 'gsit_items';
 const STORAGE_KEY_VERSION = 'gsit_data_version';
-const CURRENT_DATA_VERSION = 'v12_estadio_4317_items_full';
+const CURRENT_DATA_VERSION = 'v13_estadio_legend_removed_corridor_fixed';
 
 
 function checkDataMigration(): void {
@@ -242,7 +242,15 @@ export function updateItemStatus(
   notesOrOptions?: string | { notes?: string; installerTeam?: string; photoUrl?: string }
 ): void {
   const items = getProjectItems(projectId);
-  const target = items.find((i) => i.id === itemId || i.code === itemId);
+  const cleanId = itemId.replace(/^hotspot-/, '');
+  const target = items.find(
+    (i) =>
+      i.id === itemId ||
+      i.code === itemId ||
+      i.code?.toUpperCase() === cleanId.toUpperCase() ||
+      i.id?.toLowerCase() === cleanId.toLowerCase()
+  );
+
   if (target) {
     target.status = status;
     if (typeof notesOrOptions === 'string') {
@@ -257,9 +265,27 @@ export function updateItemStatus(
     } else if (status === 'pending') {
       target.installedAt = null;
     }
-    saveProjectItems(projectId, items);
-    recalculateProjectProgress(projectId);
+  } else {
+    // Si el ítem no estaba precargado en la lista, lo agregamos de inmediato
+    const newItem: FloorItem = {
+      id: cleanId.toLowerCase(),
+      projectId,
+      code: cleanId.toUpperCase(),
+      type: cleanId.includes('-F-') ? 'palanca' : cleanId.startsWith('TUB-') ? 'tuberia' : cleanId.startsWith('CAB-') ? 'cableado' : 'detector-autonomo',
+      name: cleanId,
+      model: 'NFPA 72',
+      zone: 'Estadio Metropolitano',
+      status,
+      quantity: 1,
+      unit: 'Unidad',
+      unitPrice: 385000,
+      installedAt: status === 'installed' || status === 'inspected' ? new Date().toISOString() : null,
+    };
+    items.push(newItem);
   }
+
+  saveProjectItems(projectId, items);
+  recalculateProjectProgress(projectId);
 }
 
 export function recalculateProjectProgress(projectId: string): number {

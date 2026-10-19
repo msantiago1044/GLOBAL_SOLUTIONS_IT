@@ -73,8 +73,13 @@ export default function ProjectDashboardPage() {
       const repo = new ItemsRepository();
       const remoteItems = await repo.getItemsByProject(projectId);
       if (remoteItems && remoteItems.length >= 4000) {
-        setItems(remoteItems);
-        saveProjectItems(projectId, remoteItems);
+        const local = getProjectItems(projectId);
+        const merged = remoteItems.map((ri) => {
+          const loc = local.find((li) => li.id === ri.id || li.code === ri.code);
+          return loc && loc.status !== ri.status ? { ...ri, status: loc.status } : ri;
+        });
+        setItems(merged);
+        saveProjectItems(projectId, merged);
         recalculateProjectProgress(projectId);
         const updatedProj = getProject(projectId);
         if (updatedProj) setProject({ ...updatedProj });

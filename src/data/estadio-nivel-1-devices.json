@@ -4018,25 +4018,5 @@
     "x": 818.5,
     "y": 256.9,
     "color": "#7c3aed"
-  },
-  {
-    "code": "EST-N1-S-359",
-    "symbol": "S",
-    "type": "detector-autonomo",
-    "name": "Detector Humo (S) - Detector Humo",
-    "room": "Detector Humo",
-    "x": 1790.0,
-    "y": 784.7,
-    "color": "#dc2626"
-  },
-  {
-    "code": "EST-N1-AR-03",
-    "symbol": "AR",
-    "type": "facp",
-    "name": "Anunciador Remoto LCD - Anunciador remoto AR",
-    "room": "Anunciador remoto AR",
-    "x": 1790.1,
-    "y": 1045.7,
-    "color": "#7c3aed"
   }
 ]

@@ -71,20 +71,44 @@ export default function EstadioBlueprint({
     setLocalItems(items);
   }, [items]);
 
-  const handleUpdateStatus = (itemId: string, newStatus: 'pending' | 'installed' | 'inspected') => {
-    setLocalItems((prev) =>
-      prev.map((i) => (i.id === itemId || i.code === itemId ? { ...i, status: newStatus } : i))
-    );
-    if (internalSelected && (internalSelected.id === itemId || internalSelected.code === itemId)) {
-      setInternalSelected({ ...internalSelected, status: newStatus });
-    }
-    updateItemStatus('estadio-metropolitano', itemId, newStatus);
+  const handleUpdateStatus = (itemIdOrCode: string, newStatus: 'pending' | 'installed' | 'inspected') => {
+    const cleanCode = itemIdOrCode.replace(/^hotspot-/, '');
+
+    setLocalItems((prev) => {
+      const match = (i: FloorItem) =>
+        i.id === itemIdOrCode ||
+        i.code === itemIdOrCode ||
+        i.code?.toUpperCase() === cleanCode.toUpperCase() ||
+        i.id?.toLowerCase() === cleanCode.toLowerCase();
+
+      const exists = prev.some(match);
+      if (exists) {
+        return prev.map((i) => (match(i) ? { ...i, status: newStatus } : i));
+      }
+      if (activeSelected) {
+        return [
+          ...prev,
+          {
+            ...activeSelected,
+            id: cleanCode.toLowerCase(),
+            code: cleanCode.toUpperCase(),
+            status: newStatus,
+          },
+        ];
+      }
+      return prev;
+    });
+
+    setInternalSelected((prev) => (prev ? { ...prev, status: newStatus } : null));
+
+    updateItemStatus('estadio-metropolitano', cleanCode, newStatus);
     try {
       const repo = new ItemsRepository();
-      repo.updateItemStatus(itemId, { status: newStatus }).catch(() => {});
+      repo.updateItemStatus(cleanCode, { status: newStatus }).catch(() => {});
     } catch {}
+
     if (onStatusChange) {
-      onStatusChange(itemId, newStatus);
+      onStatusChange(cleanCode, newStatus);
     }
   };
   const containerRef = useRef<HTMLDivElement>(null);
@@ -189,7 +213,8 @@ export default function EstadioBlueprint({
     setShowTramoPrompt(false);
   }, [currentZone]);
 
-  const allLevelNodes = levelMeta.devices;
+  // Filter out any devices located in the legend box (x >= 1650)
+  const allLevelNodes = levelMeta.devices.filter((node) => node.x < 1650);
 
   // Compute breakdown of devices in this level
   const counts = allLevelNodes.reduce<Record<string, number>>((acc, node) => {
@@ -200,6 +225,7 @@ export default function EstadioBlueprint({
   // Filtered devices for SVG overlay
   const visibleNodes = allLevelNodes.filter((node) => {
     if (!showHotspots) return false;
+    if (node.x >= 1650) return false;
     if (node.symbol === 'S') return filterS;
     if (node.symbol === 'F') return filterF;
     if (node.symbol === 'H') return filterH;
@@ -622,13 +648,17 @@ export default function EstadioBlueprint({
               <g className="devices-layer">
                 {visibleNodes.map((node) => {
                   const isSelected =
-                    activeSelected?.code === node.code ||
-                    activeSelected?.name.toLowerCase().includes(node.name.toLowerCase());
+                    activeSelected?.code?.toUpperCase() === node.code?.toUpperCase() ||
+                    activeSelected?.id === node.code ||
+                    activeSelected?.id === `hotspot-${node.code}`;
                   const isHovered = hoveredNode?.code === node.code;
 
-                  // Match with FloorItem from local state
+                  // Match with FloorItem from local state strictly by code or id
                   const matchedItem = localItems.find(
-                    (i) => i.code === node.code || i.id === `hotspot-${node.code}` || i.name.toLowerCase().includes(node.name.toLowerCase())
+                    (i) =>
+                      i.code?.toUpperCase() === node.code?.toUpperCase() ||
+                      i.id === `hotspot-${node.code}` ||
+                      i.id?.toLowerCase() === node.code?.toLowerCase()
                   ) || {
                     id: `hotspot-${node.code}`,
                     projectId: 'estadio-metropolitano',
@@ -732,41 +762,30 @@ export default function EstadioBlueprint({
                         {node.symbol}
                       </text>
 
-                      {/* Engineering HUD Tooltip Card on Hover or Selection */}
-                      {(isHovered || isSelected) && (
+                      {/* Lightweight HUD Pill only on Hover (Not selected to avoid covering map) */}
+                      {isHovered && !isSelected && (
                         <g className="pointer-events-none animate-in fade-in duration-100">
                           <rect
-                            x={node.x - 70}
-                            y={node.y - 28}
-                            width="140"
-                            height="22"
-                            rx="4"
+                            x={node.x - 30}
+                            y={node.y - 13}
+                            width="60"
+                            height="9"
+                            rx="2"
                             fill="#0f172a"
                             stroke="#ffffff"
-                            strokeWidth="0.8"
+                            strokeWidth="0.5"
                             opacity="0.95"
-                            className="drop-shadow-lg"
                           />
                           <text
                             x={node.x}
-                            y={node.y - 17}
+                            y={node.y - 7}
                             fill="#ffffff"
-                            fontSize="3.6"
+                            fontSize="3"
                             fontWeight="bold"
                             fontFamily="monospace"
                             textAnchor="middle"
                           >
                             {node.code} · {node.symbol}
-                          </text>
-                          <text
-                            x={node.x}
-                            y={node.y - 9}
-                            fill="#cbd5e1"
-                            fontSize="2.8"
-                            fontFamily="sans-serif"
-                            textAnchor="middle"
-                          >
-                            {node.room.length > 28 ? `${node.room.slice(0, 26)}...` : node.room}
                           </text>
                         </g>
                       )}
@@ -955,7 +974,7 @@ export default function EstadioBlueprint({
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
               <button
                 type="button"
-                onClick={() => handleUpdateStatus(activeSelected.id, 'pending')}
+                onClick={() => handleUpdateStatus(activeSelected.code || activeSelected.id, 'pending')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeSelected.status === 'pending'
                     ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
@@ -967,7 +986,7 @@ export default function EstadioBlueprint({
               </button>
               <button
                 type="button"
-                onClick={() => handleUpdateStatus(activeSelected.id, 'installed')}
+                onClick={() => handleUpdateStatus(activeSelected.code || activeSelected.id, 'installed')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   activeSelected.status === 'installed'
                     ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 font-extrabold'
@@ -980,7 +999,7 @@ export default function EstadioBlueprint({
               </button>
               <button
                 type="button"
-                onClick={() => handleUpdateStatus(activeSelected.id, 'inspected')}
+                onClick={() => handleUpdateStatus(activeSelected.code || activeSelected.id, 'inspected')}
                 className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   activeSelected.status === 'inspected'
                     ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300 font-extrabold'

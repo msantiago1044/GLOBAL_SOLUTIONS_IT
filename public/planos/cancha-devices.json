@@ -463,50 +463,50 @@
     "code": "EST-CAN-S-39",
     "symbol": "S",
     "type": "detector-autonomo",
-    "name": "Detector Humo (S) - DISPONIBLE",
-    "room": "DISPONIBLE",
-    "x": 352.3,
-    "y": 365.2,
+    "name": "Detector Humo (S) - DISPONIBLE 12.93 m²",
+    "room": "DISPONIBLE 12.93 m²",
+    "x": 338.7,
+    "y": 316.6,
     "color": "#dc2626"
   },
   {
     "code": "EST-CAN-S-40",
     "symbol": "S",
     "type": "detector-autonomo",
-    "name": "Detector Humo (S) - DISPONIBLE",
-    "room": "DISPONIBLE",
-    "x": 360.9,
-    "y": 345.1,
+    "name": "Detector Humo (S) - A/B 11.10 m²",
+    "room": "A/B 11.10 m²",
+    "x": 359.7,
+    "y": 301.0,
     "color": "#dc2626"
   },
   {
     "code": "EST-CAN-S-41",
     "symbol": "S",
     "type": "detector-autonomo",
-    "name": "Detector Humo (S) - PROYECCION INFERIOR DE",
-    "room": "PROYECCION INFERIOR DE",
-    "x": 381.0,
-    "y": 331.4,
+    "name": "Detector Humo (S) - A/B 13.71 m²",
+    "room": "A/B 13.71 m²",
+    "x": 381.3,
+    "y": 286.5,
     "color": "#dc2626"
   },
   {
     "code": "EST-CAN-S-42",
     "symbol": "S",
     "type": "detector-autonomo",
-    "name": "Detector Humo (S) - AUXILIOS",
-    "room": "AUXILIOS",
-    "x": 401.4,
-    "y": 319.4,
+    "name": "Detector Humo (S) - A/B 12.28 m²",
+    "room": "A/B 12.28 m²",
+    "x": 403.7,
+    "y": 273.3,
     "color": "#dc2626"
   },
   {
     "code": "EST-CAN-S-43",
     "symbol": "S",
     "type": "detector-autonomo",
-    "name": "Detector Humo (S) - AUXILIOS",
-    "room": "AUXILIOS",
-    "x": 422.5,
-    "y": 307.8,
+    "name": "Detector Humo (S) - PRIMEROS AUXILIOS",
+    "room": "PRIMEROS AUXILIOS",
+    "x": 417.6,
+    "y": 265.8,
     "color": "#dc2626"
   },
   {
@@ -770,23 +770,13 @@
     "color": "#dc2626"
   },
   {
-    "code": "EST-CAN-S-70",
-    "symbol": "S",
-    "type": "detector-autonomo",
-    "name": "Detector Humo (S) - Detector Humo",
-    "room": "Detector Humo",
-    "x": 1789.9,
-    "y": 784.5,
-    "color": "#dc2626"
-  },
-  {
-    "code": "EST-CAN-AR-01",
-    "symbol": "AR",
-    "type": "facp",
-    "name": "Anunciador Remoto LCD - Anunciador remoto AR",
-    "room": "Anunciador remoto AR",
-    "x": 1790.0,
-    "y": 1045.8,
-    "color": "#7c3aed"
+    "code": "EST-CAN-F-09",
+    "symbol": "F",
+    "type": "palanca",
+    "name": "Estación Manual (F) - WC MUJERES VIP",
+    "room": "WC MUJERES VIP",
+    "x": 422.3,
+    "y": 280.5,
+    "color": "#b91c1c"
   }
 ]
