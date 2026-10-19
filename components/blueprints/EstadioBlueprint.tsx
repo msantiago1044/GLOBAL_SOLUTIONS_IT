@@ -155,7 +155,7 @@ export default function EstadioBlueprint({
         key: 'cancha',
         plancha: 'SDI A100',
         sheetTitle: 'PLANTA NIVEL DE CANCHA',
-        elevation: '-3.80 m',
+        elevation: '+37.35 m',
         scale: '1:350',
         srcCadGray: '/planos/cancha-cadgray.webp',
         srcOriginal: '/planos/cancha.webp',

@@ -31,7 +31,7 @@ export const DEFAULT_PROJECTS: Project[] = [
 
 export const DEFAULT_FLOORS: Record<string, FloorZone[]> = {
   'estadio-metropolitano': [
-    { id: 'em-cancha', projectId: 'estadio-metropolitano', number: 0, name: 'Nivel de Cancha (-3.80 m)', type: 'sotano', progress: 0 },
+    { id: 'em-cancha', projectId: 'estadio-metropolitano', number: 0, name: 'Nivel de Cancha (+37.35 m)', type: 'sotano', progress: 0 },
     { id: 'em-nivel-1', projectId: 'estadio-metropolitano', number: 1, name: 'Nivel 1 (+42.08 m)', type: 'cerebro', progress: 0 },
     { id: 'em-mezanine', projectId: 'estadio-metropolitano', number: 2, name: 'Mezanine (+45.57 m)', type: 'oficinas', progress: 0 },
     { id: 'em-nivel-3', projectId: 'estadio-metropolitano', number: 3, name: 'Nivel 3 (+52.45 m)', type: 'ejecucion', progress: 0 },
@@ -46,7 +46,7 @@ const STORAGE_KEY_PROJECTS = 'gsit_projects';
 const STORAGE_KEY_FLOORS = 'gsit_floors';
 const STORAGE_KEY_ITEMS = 'gsit_items';
 const STORAGE_KEY_VERSION = 'gsit_data_version';
-const CURRENT_DATA_VERSION = 'v15_estadio_4606_items_full_sync';
+const CURRENT_DATA_VERSION = 'v16_estadio_cota_37_35m';
 
 
 function checkDataMigration(): void {

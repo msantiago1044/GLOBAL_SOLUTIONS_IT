@@ -135,6 +135,55 @@ export class TelegramWizardService {
   ): Promise<void> {
     const defaultProj = (await this.projectExecution.getProjects())[0]?.id || '';
     const projId = session.payload.projectId || defaultProj;
+
+    // Si aún no se ha seleccionado categoría, presentar el menú de segmentación por tipo de equipo
+    if (!categoryFilter) {
+      const allPending = await this.projectExecution.getPendingItemsByFloor(projId, floorNumber);
+      const buttons: InlineKeyboardButton[][] = [
+        [
+          { text: '🚨 Detectores de Humo', callback_data: 'cat:humo' },
+          { text: '🛑 Estaciones Manuales', callback_data: 'cat:palanca' },
+        ],
+        [
+          { text: '🔥 Detectores Térmicos', callback_data: 'cat:termico' },
+          { text: '📢 Sirenas con Estrobo', callback_data: 'cat:sirena' },
+        ],
+        [
+          { text: '💨 Detectores Monóxido CO', callback_data: 'cat:monoxido' },
+          { text: '🔧 Tubería EMT', callback_data: 'cat:tuberia' },
+        ],
+        [
+          { text: '🔴 Cableado FPLR', callback_data: 'cat:cableado' },
+          { text: '📋 Ver Todo el Piso', callback_data: 'cat:all' },
+        ],
+        [
+          { text: '🔙 Cambiar Piso', callback_data: `p:${projId}` },
+          { text: '❌ Cancelar', callback_data: 'nav:cancel' },
+        ],
+      ];
+
+      const text =
+        `<b>🚨 PASO 3: SELECCIONA EL TIPO DE EQUIPO O BUSCA POR NOMBRE</b>\n\n` +
+        `<b>Piso:</b> Nivel ${floorNumber} | <b>Total pendientes:</b> ${allPending.length}\n\n` +
+        `• <b>Opción A (Por Tipo):</b> Toca el botón del tipo específico abajo.\n` +
+        `• <b>Opción B (Búsqueda Libre):</b> O escribe aquí directamente el <b>recinto</b> (ej: <code>ASEO</code>, <code>CATERING</code>, <code>BODEGA</code>) o el <b>código</b> (ej: <code>F-01</code>, <code>S-15</code>, <code>TR-05</code>).`;
+
+      await this.sessionRepo.saveSession({
+        ...session,
+        step: 'SELECT_ITEM',
+        payload: {
+          ...session.payload,
+          floorNumber,
+        },
+      });
+
+      await this.telegram.editMessageText(chatId(session), messageId, text, {
+        reply_markup: { inline_keyboard: buttons },
+      });
+      return;
+    }
+
+    // Filtrar por la categoría seleccionada
     const pendingItems = await this.projectExecution.getPendingItemsByFloor(
       projId,
       floorNumber,
@@ -144,7 +193,7 @@ export class TelegramWizardService {
     if (pendingItems.length === 0) {
       const keyboard: InlineKeyboardMarkup = {
         inline_keyboard: [
-          [{ text: '🔄 Ver Otras Categorías', callback_data: `cat:all` }],
+          [{ text: '🔄 Ver Otras Categorías', callback_data: 'cat:categories' }],
           [{ text: '🔙 Cambiar de Piso', callback_data: `p:${projId}` }],
           [{ text: '❌ Cancelar', callback_data: 'nav:cancel' }],
         ],
@@ -152,19 +201,40 @@ export class TelegramWizardService {
       await this.telegram.editMessageText(
         chatId(session),
         messageId,
-        `✅ <b>¡Todos los elementos de este piso/categoría están al día!</b>\nNo hay equipos pendientes con el filtro actual.`,
+        `✅ <b>¡Todos los elementos de esta categoría están al día!</b>\nNo hay equipos pendientes en esta selección.`,
         { reply_markup: keyboard }
       );
       return;
     }
 
-    // Botones de filtro de categoría si no hay filtro activo y hay variedad de elementos
+    const categoryLabels: Record<string, string> = {
+      humo: 'Detectores de Humo (S)',
+      palanca: 'Estaciones Manuales (F)',
+      termico: 'Detectores Térmicos (H)',
+      sirena: 'Sirenas con Estrobo (PE)',
+      monoxido: 'Detectores Monóxido (CO)',
+      tuberia: 'Tramos Tubería EMT',
+      cableado: 'Tramos Cableado FPLR',
+      all: 'Todos los Componentes',
+    };
+
+    const catTitle = categoryLabels[categoryFilter] || categoryFilter;
     const buttons: InlineKeyboardButton[][] = [];
 
-    // Mostrar los ítems pendientes
-    for (const item of pendingItems.slice(0, 8)) {
-      const icon = item.type === 'tuberia' ? '🔧' : item.type === 'cableado' ? '🔴' : '🚨';
-      const label = `${icon} ${item.code} — ${item.zone.length > 18 ? item.zone.substring(0, 16) + '..' : item.zone}`;
+    // Mostrar hasta 10 ítems de esta categoría
+    for (const item of pendingItems.slice(0, 10)) {
+      let icon = '🚨';
+      if (item.type === 'palanca') icon = '🛑';
+      else if (item.type === 'sirena') icon = '📢';
+      else if (item.type === 'tuberia') icon = '🔧';
+      else if (item.type === 'cableado') icon = '🔴';
+      else if (item.name.toLowerCase().includes('térmico')) icon = '🔥';
+      else if (item.type === 'detector-doble') icon = '💨';
+
+      const roomPart = item.name.includes('-')
+        ? item.name.split('-').slice(1).join('-').trim()
+        : item.zone;
+      const label = `${icon} ${item.code} — ${roomPart.length > 20 ? roomPart.substring(0, 18) + '..' : roomPart}`;
       buttons.push([
         {
           text: label,
@@ -173,24 +243,16 @@ export class TelegramWizardService {
       ]);
     }
 
-    // Filtros rápidos si hay muchos
-    if (pendingItems.length > 8 || categoryFilter) {
-      buttons.push([
-        { text: '🔧 Tubería', callback_data: 'cat:tuberia' },
-        { text: '🔴 Cable', callback_data: 'cat:cableado' },
-        { text: '🚨 Sensores', callback_data: 'cat:detectores' },
-      ]);
-    }
-
     buttons.push([
+      { text: '🔄 Cambiar Categoría', callback_data: 'cat:categories' },
       { text: '🔙 Cambiar Piso', callback_data: `p:${projId}` },
-      { text: '❌ Cancelar', callback_data: 'nav:cancel' },
     ]);
+    buttons.push([{ text: '❌ Cancelar', callback_data: 'nav:cancel' }]);
 
     const text =
-      `<b>🚨 PASO 3: SEÑALA EL EQUIPO / TRAMO A INSTALAR</b>\n\n` +
-      `<b>Piso:</b> Nivel ${floorNumber} | <b>Pendientes:</b> ${pendingItems.length}\n` +
-      `Toca el equipo que estás instalando en este momento:`;
+      `<b>🚨 ${catTitle.toUpperCase()} PENDIENTES</b>\n\n` +
+      `<b>Piso:</b> Nivel ${floorNumber} | <b>Disponibles:</b> ${pendingItems.length}\n` +
+      `Toca el equipo que estás instalando (o escribe su nombre/código en el chat):`;
 
     await this.sessionRepo.saveSession({
       ...session,
@@ -205,6 +267,84 @@ export class TelegramWizardService {
     await this.telegram.editMessageText(chatId(session), messageId, text, {
       reply_markup: { inline_keyboard: buttons },
     });
+  }
+
+  /**
+   * Búsqueda libre de equipos por recinto o código (Fusión Método 1 y 2)
+   */
+  async handleItemSearch(session: BotSession, queryText: string): Promise<void> {
+    const floorNumber = session.payload.floorNumber ?? 0;
+    const defaultProj = (await this.projectExecution.getProjects())[0]?.id || '';
+    const projId = session.payload.projectId || defaultProj;
+
+    const results = await this.projectExecution.searchPendingItemsByFloor(
+      projId,
+      floorNumber,
+      queryText
+    );
+
+    if (results.length === 0) {
+      await this.telegram.sendMessage(
+        chatId(session),
+        `⚠️ No se encontraron equipos pendientes en Nivel ${floorNumber} con el término <b>"${queryText}"</b>.\n\n` +
+          `Prueba escribiendo otra palabra (ej: <i>CATERING</i>, <i>ASEO</i>, <i>F-01</i>, <i>S-02</i>) o toca una categoría abajo:`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '🚨 Humo', callback_data: 'cat:humo' },
+                { text: '🛑 Manuales', callback_data: 'cat:palanca' },
+              ],
+              [
+                { text: '🔧 Tubería EMT', callback_data: 'cat:tuberia' },
+                { text: '🔴 Cableado FPLR', callback_data: 'cat:cableado' },
+              ],
+              [{ text: '🔄 Ver Categorías', callback_data: 'cat:categories' }],
+            ],
+          },
+        }
+      );
+      return;
+    }
+
+    if (results.length === 1) {
+      const sentMsg = await this.telegram.sendMessage(chatId(session), '⏳ Abriendo ficha técnica...');
+      await this.handleItemSelected(session, results[0].id, sentMsg.message_id);
+      return;
+    }
+
+    const buttons: InlineKeyboardButton[][] = results.slice(0, 8).map((item) => {
+      let icon = '🚨';
+      if (item.type === 'palanca') icon = '🛑';
+      else if (item.type === 'sirena') icon = '📢';
+      else if (item.type === 'tuberia') icon = '🔧';
+      else if (item.type === 'cableado') icon = '🔴';
+      else if (item.name.toLowerCase().includes('térmico')) icon = '🔥';
+      else if (item.type === 'detector-doble') icon = '💨';
+
+      const roomPart = item.name.includes('-')
+        ? item.name.split('-').slice(1).join('-').trim()
+        : item.zone;
+      const label = `${icon} ${item.code} — ${roomPart}`;
+      return [
+        {
+          text: label.length > 34 ? label.substring(0, 32) + '..' : label,
+          callback_data: `i:${item.id}`,
+        },
+      ];
+    });
+
+    buttons.push([
+      { text: '🔄 Ver Categorías', callback_data: 'cat:categories' },
+      { text: '❌ Cancelar', callback_data: 'nav:cancel' },
+    ]);
+
+    await this.telegram.sendMessage(
+      chatId(session),
+      `🔍 <b>Resultados para "${queryText}" en Nivel ${floorNumber} (${results.length} encontrados):</b>\n` +
+        `Toca el equipo que estás instalando:`,
+      { reply_markup: { inline_keyboard: buttons } }
+    );
   }
 
   /**

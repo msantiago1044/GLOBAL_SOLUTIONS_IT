@@ -74,11 +74,15 @@ export class TelegramHandlerService {
       }
     }
 
-    // 1.1 Si el usuario está en el paso de ingresar observaciones de campo y no es comando
+    // 1.1 Si el usuario está en el paso interactivo (observaciones o búsqueda libre de equipos)
     if (text && !text.startsWith('/')) {
       const session = await this.sessionRepo.getSession(chatId);
       if (session && session.step === 'AWAITING_NOTES') {
         await this.wizard.handleNotesReceived(session, text);
+        return;
+      }
+      if (session && session.step === 'SELECT_ITEM') {
+        await this.wizard.handleItemSearch(session, text);
         return;
       }
     }
@@ -247,12 +251,12 @@ export class TelegramHandlerService {
 
     if (data.startsWith('cat:')) {
       const category = data.substring(4);
-      const floorNum = session.payload.floorNumber || 1;
+      const floorNum = session.payload.floorNumber ?? 0;
       await this.wizard.handleFloorSelected(
         session,
         floorNum,
         messageId,
-        category === 'all' ? undefined : category
+        category === 'categories' ? undefined : category
       );
       return;
     }

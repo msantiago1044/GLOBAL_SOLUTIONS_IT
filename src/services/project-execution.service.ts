@@ -140,16 +140,84 @@ export class ProjectExecutionService {
       .eq('floor_id', floor.id)
       .eq('status', 'pending');
 
-    if (categoryFilter) {
-      if (categoryFilter === 'tuberia') query = query.eq('type', 'tuberia');
-      else if (categoryFilter === 'cableado') query = query.eq('type', 'cableado');
-      else if (categoryFilter === 'detectores')
+    if (categoryFilter && categoryFilter !== 'all') {
+      if (categoryFilter === 'tuberia') {
+        query = query.eq('type', 'tuberia');
+      } else if (categoryFilter === 'cableado') {
+        query = query.eq('type', 'cableado');
+      } else if (categoryFilter === 'humo') {
+        query = query.eq('type', 'detector-autonomo').ilike('name', '%Humo%');
+      } else if (categoryFilter === 'termico') {
+        query = query.eq('type', 'detector-autonomo').ilike('name', '%Térmico%');
+      } else if (categoryFilter === 'monoxido') {
+        query = query.eq('type', 'detector-doble');
+      } else if (categoryFilter === 'palanca' || categoryFilter === 'manual') {
+        query = query.eq('type', 'palanca');
+      } else if (categoryFilter === 'sirena' || categoryFilter === 'estrobo') {
+        query = query.eq('type', 'sirena');
+      } else if (categoryFilter === 'facp' || categoryFilter === 'panel') {
+        query = query.in('type', ['facp', 'cuadro-bomba']);
+      } else if (categoryFilter === 'detectores') {
         query = query.in('type', ['detector-autonomo', 'detector-doble']);
-      else if (categoryFilter === 'sirenas')
+      } else if (categoryFilter === 'sirenas') {
         query = query.in('type', ['sirena', 'palanca', 'facp', 'cuadro-bomba']);
+      }
     }
 
     const { data: items, error } = await query.order('code');
+
+    if (error || !items) return [];
+
+    return items.map((raw) =>
+      FloorItemSchema.parse({
+        id: raw.id,
+        floorId: raw.floor_id,
+        projectId: raw.project_id,
+        code: raw.code,
+        type: raw.type,
+        name: raw.name,
+        model: raw.model,
+        zone: raw.zone,
+        status: raw.status,
+        quantity: Number(raw.quantity),
+        unit: raw.unit,
+        unitPrice: Number(raw.unit_price),
+        photoUrl: raw.photo_url,
+        notes: raw.notes,
+        installedAt: raw.installed_at,
+        installerTeam: raw.installer_team,
+      })
+    );
+  }
+
+  /**
+   * Busca ítems pendientes de un piso mediante término libre (código, nombre o recinto)
+   */
+  async searchPendingItemsByFloor(
+    projectId: string,
+    floorNumber: number,
+    searchTerm: string
+  ): Promise<FloorItem[]> {
+    const { data: floor } = await this.supabase
+      .from('floors')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('floor_number', floorNumber)
+      .maybeSingle();
+
+    if (!floor) return [];
+
+    const cleanTerm = searchTerm.trim();
+    const { data: items, error } = await this.supabase
+      .from('floor_items')
+      .select('*')
+      .eq('floor_id', floor.id)
+      .eq('status', 'pending')
+      .or(
+        `code.ilike.%${cleanTerm}%,name.ilike.%${cleanTerm}%,model.ilike.%${cleanTerm}%,notes.ilike.%${cleanTerm}%`
+      )
+      .order('code')
+      .limit(12);
 
     if (error || !items) return [];
 
