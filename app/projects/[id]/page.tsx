@@ -72,12 +72,41 @@ export default function ProjectDashboardPage() {
     try {
       const repo = new ItemsRepository();
       const remoteItems = await repo.getItemsByProject(projectId);
-      if (remoteItems && remoteItems.length >= 4000) {
+      if (remoteItems && remoteItems.length > 0) {
         const local = getProjectItems(projectId);
-        const merged = remoteItems.map((ri) => {
-          const loc = local.find((li) => li.id === ri.id || li.code === ri.code);
-          return loc && loc.status !== ri.status ? { ...ri, status: loc.status } : ri;
+        const remoteMap = new Map<string, FloorItem>();
+        remoteItems.forEach((ri) => {
+          if (ri.id) remoteMap.set(ri.id.toLowerCase(), ri);
+          if (ri.code) remoteMap.set(ri.code.toUpperCase(), ri);
         });
+
+        // Partir siempre del catálogo maestro completo de 4.606 ítems
+        const merged: FloorItem[] = local.map((li) => {
+          const rem = remoteMap.get(li.id.toLowerCase()) || (li.code ? remoteMap.get(li.code.toUpperCase()) : undefined);
+          if (!rem) return li;
+          const status = (li.status === 'installed' || li.status === 'inspected')
+            ? li.status
+            : rem.status;
+          return {
+            ...li,
+            status,
+            photoUrl: li.photoUrl || rem.photoUrl,
+            notes: li.notes || rem.notes,
+            installedAt: li.installedAt || rem.installedAt,
+            installerTeam: li.installerTeam || rem.installerTeam,
+          };
+        });
+
+        // Agregar ítems remotos que puedan ser nuevos en la base de datos
+        const localKeys = new Set(local.flatMap((li) => [li.id.toLowerCase(), li.code?.toUpperCase()].filter(Boolean)));
+        for (const rem of remoteItems) {
+          const keyId = rem.id?.toLowerCase();
+          const keyCode = rem.code?.toUpperCase();
+          if ((!keyId || !localKeys.has(keyId)) && (!keyCode || !localKeys.has(keyCode))) {
+            merged.push(rem);
+          }
+        }
+
         setItems(merged);
         saveProjectItems(projectId, merged);
         recalculateProjectProgress(projectId);
