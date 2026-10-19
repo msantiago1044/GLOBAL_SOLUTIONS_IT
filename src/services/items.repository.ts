@@ -73,17 +73,43 @@ export class ItemsRepository {
    * Obtiene todos los elementos de un proyecto específico validados con Zod
    */
   async getItemsByProject(projectId: string): Promise<FloorItem[]> {
-    const { data: items, error: itemsError } = await this.supabase
-      .from('floor_items')
-      .select('*')
-      .eq('project_id', projectId);
+    const allRawItems: Database['public']['Tables']['floor_items']['Row'][] = [];
+    const pageSize = 1000;
+    let page = 0;
 
-    if (itemsError || !items) {
-      console.warn(`Error al consultar elementos del proyecto ${projectId}:`, itemsError?.message);
+    while (true) {
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
+
+      const { data: items, error: itemsError } = await this.supabase
+        .from('floor_items')
+        .select('*')
+        .eq('project_id', projectId)
+        .range(from, to);
+
+      if (itemsError) {
+        console.warn(`Error al consultar elementos del proyecto ${projectId} (página ${page}):`, itemsError?.message);
+        break;
+      }
+
+      if (!items || items.length === 0) {
+        break;
+      }
+
+      allRawItems.push(...items);
+
+      if (items.length < pageSize) {
+        break;
+      }
+
+      page++;
+    }
+
+    if (allRawItems.length === 0) {
       return [];
     }
 
-    return items.map((raw) =>
+    return allRawItems.map((raw) =>
       FloorItemSchema.parse({
         id: raw.id,
         floorId: raw.floor_id,

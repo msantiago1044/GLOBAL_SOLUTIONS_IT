@@ -289,7 +289,13 @@ export default function ProjectDashboardPage() {
           )}
 
           {activeTab === 'kardex' && (
-            <KardexTab project={project} items={items} canEdit={isLoggedIn} onRefresh={loadData} />
+            <KardexTab
+              project={project}
+              items={items}
+              canEdit={isLoggedIn}
+              onRefresh={loadData}
+              onLocateOnBlueprint={handleLocateOnBlueprint}
+            />
           )}
 
           {activeTab === 'inspections' && (

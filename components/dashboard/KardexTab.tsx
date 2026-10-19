@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Project } from '@/src/schemas/project.schema';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
 import { updateItemStatus } from '@/src/lib/projects-data';
@@ -11,12 +11,19 @@ import {
   X,
   FileText,
   Calendar,
-  Users,
   CheckCircle2,
-  Clock,
   ShieldCheck,
   ExternalLink,
   Save,
+  MapPin,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Layers,
+  Wrench,
+  Cable,
+  Flame,
 } from 'lucide-react';
 
 interface Props {
@@ -24,12 +31,22 @@ interface Props {
   items: FloorItem[];
   canEdit?: boolean;
   onRefresh: () => void;
+  onLocateOnBlueprint?: (itemCode: string, zoneName: string) => void;
 }
 
-export default function KardexTab({ project, items, canEdit = false, onRefresh }: Props) {
+export default function KardexTab({
+  project,
+  items,
+  canEdit = false,
+  onRefresh,
+  onLocateOnBlueprint,
+}: Props) {
   const [searchTerm, setSearchTerm] = useState('');
+  const [zoneFilter, setZoneFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'installed' | 'inspected'>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(50);
 
   // Modal de Detalle / Observaciones / Evidencia
   const [activeItem, setActiveItem] = useState<FloorItem | null>(null);
@@ -41,18 +58,75 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.zone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.model.toLowerCase().includes(searchTerm.toLowerCase());
+  // Zonas únicas disponibles en los ítems
+  const availableZones = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((i) => {
+      if (i.zone) set.add(i.zone);
+    });
+    return Array.from(set).sort();
+  }, [items]);
 
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
-    const matchesType = typeFilter === 'all' || item.type === typeFilter;
+  // Métricas globales del proyecto
+  const metrics = useMemo(() => {
+    let tuberiaMeters = 0;
+    let cableadoMeters = 0;
+    let deviceCount = 0;
+    let totalCost = 0;
 
-    return matchesSearch && matchesStatus && matchesType;
-  });
+    items.forEach((item) => {
+      totalCost += item.quantity * item.unitPrice;
+      if (item.type === 'tuberia') {
+        tuberiaMeters += item.quantity;
+      } else if (item.type === 'cableado') {
+        cableadoMeters += item.quantity;
+      } else {
+        deviceCount += item.quantity;
+      }
+    });
+
+    return {
+      totalItems: items.length,
+      tuberiaMeters: Math.round(tuberiaMeters),
+      cableadoMeters: Math.round(cableadoMeters),
+      deviceCount,
+      totalCost,
+    };
+  }, [items]);
+
+  // Filtrado de elementos
+  const filteredItems = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return items.filter((item) => {
+      const matchesSearch =
+        !term ||
+        item.code.toLowerCase().includes(term) ||
+        item.name.toLowerCase().includes(term) ||
+        item.zone.toLowerCase().includes(term) ||
+        item.model.toLowerCase().includes(term) ||
+        (item.notes && item.notes.toLowerCase().includes(term));
+
+      const matchesZone = zoneFilter === 'all' || item.zone === zoneFilter;
+      const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
+      const matchesType = typeFilter === 'all' || item.type === typeFilter;
+
+      return matchesSearch && matchesZone && matchesStatus && matchesType;
+    });
+  }, [items, searchTerm, zoneFilter, statusFilter, typeFilter]);
+
+  // Reset de página al cambiar filtros
+  const handleFilterChange = (setter: (val: any) => void, value: any) => {
+    setter(value);
+    setCurrentPage(1);
+  };
+
+  // Paginación
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedItems = useMemo(() => {
+    const start = (safePage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, safePage, itemsPerPage]);
 
   const handleOpenModal = (item: FloorItem) => {
     setActiveItem(item);
@@ -91,7 +165,7 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
         photoUrl: editPhotoUrl.trim(),
       });
 
-      // 2. Intentar guardar en Supabase si hay conexión activa
+      // 2. Guardar en Supabase si hay conexión activa
       try {
         const repo = new ItemsRepository();
         await repo.updateItemStatus(activeItem.id, {
@@ -105,7 +179,7 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
               : undefined,
         });
       } catch (err) {
-        console.warn('Actualización local realizada; Supabase remoto offline o no disponible:', err);
+        console.warn('Actualización local realizada; Supabase remoto no disponible:', err);
       }
 
       setSaveSuccess(true);
@@ -119,27 +193,112 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      {/* Metrics Banner */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="rounded-xl border border-surface-border bg-white p-3 shadow-xs">
+          <div className="text-[11px] font-mono text-gsitText-muted flex items-center gap-1.5">
+            <Layers className="w-3.5 h-3.5 text-brand-primary" />
+            <span>Total Catálogo</span>
+          </div>
+          <div className="text-lg font-bold font-mono text-brand-deep mt-1">
+            {metrics.totalItems.toLocaleString('es-CO')}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-surface-border bg-white p-3 shadow-xs">
+          <div className="text-[11px] font-mono text-gsitText-muted flex items-center gap-1.5">
+            <Wrench className="w-3.5 h-3.5 text-amber-600" />
+            <span>Tubería EMT</span>
+          </div>
+          <div className="text-lg font-bold font-mono text-brand-deep mt-1">
+            {metrics.tuberiaMeters.toLocaleString('es-CO')} <span className="text-xs font-normal text-gsitText-muted">m</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-surface-border bg-white p-3 shadow-xs">
+          <div className="text-[11px] font-mono text-gsitText-muted flex items-center gap-1.5">
+            <Cable className="w-3.5 h-3.5 text-blue-600" />
+            <span>Cableado FPLR</span>
+          </div>
+          <div className="text-lg font-bold font-mono text-brand-deep mt-1">
+            {metrics.cableadoMeters.toLocaleString('es-CO')} <span className="text-xs font-normal text-gsitText-muted">m</span>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-surface-border bg-white p-3 shadow-xs">
+          <div className="text-[11px] font-mono text-gsitText-muted flex items-center gap-1.5">
+            <Flame className="w-3.5 h-3.5 text-red-600" />
+            <span>Equipos &amp; Puntos</span>
+          </div>
+          <div className="text-lg font-bold font-mono text-brand-deep mt-1">
+            {metrics.deviceCount.toLocaleString('es-CO')} <span className="text-xs font-normal text-gsitText-muted">und</span>
+          </div>
+        </div>
+
+        <div className="col-span-2 sm:col-span-1 rounded-xl border border-surface-border bg-white p-3 shadow-xs">
+          <div className="text-[11px] font-mono text-gsitText-muted">
+            Valoración Total
+          </div>
+          <div className="text-sm sm:text-base font-bold font-mono text-brand-deep mt-1 truncate" title={`$${metrics.totalCost.toLocaleString('es-CO')} COP`}>
+            ${metrics.totalCost.toLocaleString('es-CO')}
+          </div>
+        </div>
+      </div>
+
       {/* Search and Filters Bar */}
-      <div className="rounded-2xl border border-surface-border bg-white p-4 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div className="rounded-2xl border border-surface-border bg-white p-4 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gsitText-muted" strokeWidth={2} />
           <input
             type="text"
-            placeholder="Buscar por código, nombre, zona o modelo..."
+            placeholder="Buscar por código (ej: N1-TR-001, EST-CAN-F-01), nombre, zona o especificación..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleFilterChange(setSearchTerm, e.target.value)}
             className="w-full rounded-xl border border-surface-border bg-surface-main pl-9 pr-3 py-2 text-xs font-mono text-gsitText-main placeholder-gsitText-muted focus:border-brand-primary focus:outline-none"
           />
         </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3">
+        {/* Filters Grid */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Zona / Nivel */}
+          <select
+            value={zoneFilter}
+            onChange={(e) => handleFilterChange(setZoneFilter, e.target.value)}
+            className="rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-xs font-mono text-gsitText-secondary focus:border-brand-primary focus:outline-none"
+          >
+            <option value="all">Todos los Niveles</option>
+            {availableZones.map((z) => (
+              <option key={z} value={z}>
+                {z}
+              </option>
+            ))}
+          </select>
+
+          {/* Categoría Técnica */}
+          <select
+            value={typeFilter}
+            onChange={(e) => handleFilterChange(setTypeFilter, e.target.value)}
+            className="rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-xs font-mono text-gsitText-secondary focus:border-brand-primary focus:outline-none"
+          >
+            <option value="all">Todas las Categorías</option>
+            <option value="tuberia">Tuberías Conduit EMT</option>
+            <option value="cableado">Cableado FPLR</option>
+            <option value="detector-autonomo">Detectores de Humo</option>
+            <option value="detector-doble">Detectores Térmicos / Dobles</option>
+            <option value="palanca">Estaciones Manuales</option>
+            <option value="sirena">Sirenas y Notificación</option>
+            <option value="facp">Paneles FACP &amp; Anunciadores</option>
+            <option value="cuadro-bomba">Módulos de Control &amp; Bombas</option>
+          </select>
+
+          {/* Estado Técnico */}
           <select
             value={statusFilter}
             onChange={(e) =>
-              setStatusFilter(
+              handleFilterChange(
+                setStatusFilter,
                 e.target.value as 'all' | 'pending' | 'installed' | 'inspected'
               )
             }
@@ -151,18 +310,20 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
             <option value="inspected">Comisionado / Aprobado</option>
           </select>
 
+          {/* Items por Página */}
           <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="rounded-xl border border-surface-border bg-surface-main px-3 py-2 text-xs font-mono text-gsitText-secondary focus:border-brand-primary focus:outline-none"
+            value={itemsPerPage}
+            onChange={(e) => {
+              setItemsPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="rounded-xl border border-surface-border bg-surface-main px-2.5 py-2 text-xs font-mono text-gsitText-secondary focus:border-brand-primary focus:outline-none"
+            title="Cantidad de elementos por página"
           >
-            <option value="all">Todas las Categorías</option>
-            <option value="tuberia">Tuberías Conduit EMT</option>
-            <option value="cableado">Cableado FPLR</option>
-            <option value="detector-autonomo">Detectores de Humo</option>
-            <option value="sirena">Sirenas y Notificación</option>
-            <option value="palanca">Estaciones Manuales</option>
-            <option value="facp">Paneles FACP</option>
+            <option value={50}>50 / pág</option>
+            <option value={100}>100 / pág</option>
+            <option value={200}>200 / pág</option>
+            <option value={500}>500 / pág</option>
           </select>
         </div>
       </div>
@@ -180,19 +341,19 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                 <th className="px-4 py-3">Valor Unitario</th>
                 <th className="px-4 py-3">Valor Total</th>
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3 text-center">Evidencia</th>
+                <th className="px-4 py-3 text-center">Acciones</th>
                 {canEdit && <th className="px-4 py-3 text-right">Actualizar Estado</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border text-gsitText-secondary">
-              {filteredItems.length === 0 ? (
+              {paginatedItems.length === 0 ? (
                 <tr>
                   <td colSpan={canEdit ? 9 : 8} className="px-4 py-8 text-center text-gsitText-muted">
                     No se encontraron elementos con los filtros seleccionados.
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
+                paginatedItems.map((item) => (
                   <tr
                     key={item.id}
                     onClick={() => handleOpenModal(item)}
@@ -238,15 +399,27 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
                         {item.status}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center whitespace-nowrap">
-                      {item.photoUrl ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                          <Camera className="w-3 h-3 text-emerald-600" />
-                          <span>Foto</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-gsitText-muted">Sin foto</span>
-                      )}
+                    <td className="px-4 py-3 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                      <div className="inline-flex items-center gap-1.5">
+                        {onLocateOnBlueprint && (
+                          <button
+                            type="button"
+                            onClick={() => onLocateOnBlueprint(item.code, item.zone)}
+                            className="p-1 rounded-md hover:bg-brand-primary/10 text-brand-primary hover:text-brand-deep transition-colors"
+                            title="Ubicar en el plano CAD oficial"
+                          >
+                            <MapPin className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {item.photoUrl ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] text-emerald-700 font-bold bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
+                            <Camera className="w-3 h-3 text-emerald-600" />
+                            <span>Foto</span>
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-gsitText-muted">Sin foto</span>
+                        )}
+                      </div>
                     </td>
                     {canEdit && (
                       <td className="px-4 py-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
@@ -294,17 +467,60 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
           </table>
         </div>
 
-        {/* Table Summary Footer */}
-        <div className="px-4 py-3 bg-surface-subtle border-t border-surface-border flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-gsitText-secondary">
+        {/* Table Summary and Pagination Bar */}
+        <div className="px-4 py-3 bg-surface-subtle border-t border-surface-border flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-gsitText-secondary">
           <div>
-            Total Mostrado: <strong className="text-brand-deep">{filteredItems.length}</strong> de {items.length} ítems
+            Mostrando <strong className="text-brand-deep">{filteredItems.length === 0 ? 0 : (safePage - 1) * itemsPerPage + 1}</strong> &ndash;{' '}
+            <strong className="text-brand-deep">{Math.min(safePage * itemsPerPage, filteredItems.length)}</strong> de{' '}
+            <strong className="text-brand-deep">{filteredItems.length.toLocaleString('es-CO')}</strong> elementos filtrados (Total: {items.length.toLocaleString('es-CO')})
           </div>
-          <div>
-            Suma de Valoración:{' '}
-            <strong className="text-brand-deep font-bold">
-              ${filteredItems.reduce((acc, curr) => acc + curr.quantity * curr.unitPrice, 0).toLocaleString('es-CO')} COP
-            </strong>
-          </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage(1)}
+                className="p-1 rounded-lg border border-surface-border bg-white text-gsitText-secondary hover:bg-surface-main disabled:opacity-30 disabled:pointer-events-none"
+                title="Primera página"
+              >
+                <ChevronsLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="p-1 rounded-lg border border-surface-border bg-white text-gsitText-secondary hover:bg-surface-main disabled:opacity-30 disabled:pointer-events-none"
+                title="Página anterior"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+
+              <span className="px-2 text-xs font-bold text-brand-deep">
+                {safePage} / {totalPages}
+              </span>
+
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="p-1 rounded-lg border border-surface-border bg-white text-gsitText-secondary hover:bg-surface-main disabled:opacity-30 disabled:pointer-events-none"
+                title="Página siguiente"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className="p-1 rounded-lg border border-surface-border bg-white text-gsitText-secondary hover:bg-surface-main disabled:opacity-30 disabled:pointer-events-none"
+                title="Última página"
+              >
+                <ChevronsRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -523,6 +739,19 @@ export default function KardexTab({ project, items, canEdit = false, onRefresh }
               </div>
 
               <div className="flex items-center gap-3">
+                {onLocateOnBlueprint && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleCloseModal();
+                      onLocateOnBlueprint(activeItem.code, activeItem.zone);
+                    }}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-brand-primary/40 text-brand-primary hover:bg-brand-primary/10 transition-colors font-bold"
+                  >
+                    <MapPin className="w-4 h-4" />
+                    <span>Ver en Plano</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={handleCloseModal}
