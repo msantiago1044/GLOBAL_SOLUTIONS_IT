@@ -241,11 +241,8 @@ export function updateItemStatus(
   status: 'pending' | 'installed' | 'inspected',
   notesOrOptions?: string | { notes?: string; installerTeam?: string; photoUrl?: string }
 ): void {
-  if (typeof window !== 'undefined' && !isAuthenticated()) {
-    return;
-  }
   const items = getProjectItems(projectId);
-  const target = items.find((i) => i.id === itemId);
+  const target = items.find((i) => i.id === itemId || i.code === itemId);
   if (target) {
     target.status = status;
     if (typeof notesOrOptions === 'string') {

@@ -31,6 +31,7 @@ export default function BlueprintTab({
   const [selectedFloorId, setSelectedFloorId] = useState<string>(floors[0]?.id || '');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(highlightedItemCode || null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showItemsList, setShowItemsList] = useState(false);
 
   React.useEffect(() => {
     if (highlightedItemCode) {
@@ -308,20 +309,30 @@ export default function BlueprintTab({
         <EstadioBlueprint
           items={floorItems}
           currentZone={currentFloor?.name || 'Zona General'}
-          isEditable={canModifySchema}
+          isEditable={true}
           selectedItemId={selectedItemId}
           onSelectItem={(item) => setSelectedItemId(item.code)}
+          onStatusChange={() => onRefresh()}
         />
       </div>
 
-      {/* Items list in current zone */}
-      <div className="rounded-2xl border border-surface-border bg-white p-6 shadow-sm">
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-surface-border">
+      {/* Optional Collapsible Items list in current zone */}
+      <div className="rounded-2xl border border-surface-border bg-white shadow-sm overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowItemsList(!showItemsList)}
+          className="w-full flex items-center justify-between p-4 hover:bg-surface-subtle transition-colors cursor-pointer text-left"
+        >
           <h4 className="text-xs font-bold uppercase text-brand-deep flex items-center gap-2">
             <Wrench className="w-4 h-4 text-brand-primary" strokeWidth={2} />
-            Componentes del Esquema en {currentFloor?.name} ({floorItems.length})
+            <span>Componentes del Esquema en {currentFloor?.name} ({floorItems.length})</span>
           </h4>
-        </div>
+          <span className="text-xs font-mono text-brand-primary font-bold">
+            {showItemsList ? 'Ocultar listado ▲' : 'Ver listado completo ▼'}
+          </span>
+        </button>
+        {showItemsList && (
+          <div className="p-6 pt-0 border-t border-surface-border animate-in fade-in duration-150">
 
         {floorItems.length === 0 ? (
           <div className="py-8 text-center text-xs font-mono text-gsitText-muted">
@@ -390,6 +401,8 @@ export default function BlueprintTab({
                 </div>
               );
             })}
+          </div>
+        )}
           </div>
         )}
       </div>

@@ -2,6 +2,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { FloorItem } from '@/src/schemas/floor-item.schema';
+import { updateItemStatus } from '@/src/lib/projects-data';
+import { ItemsRepository } from '@/src/services/items.repository';
 import {
   ZoomIn,
   ZoomOut,
@@ -13,6 +15,7 @@ import {
   Minimize2,
   Flame,
   CheckCircle2,
+  ShieldCheck,
   Wrench,
   Cable,
 } from 'lucide-react';
@@ -29,6 +32,7 @@ interface Props {
   isEditable?: boolean;
   selectedItemId?: string | null;
   onSelectItem?: (item: FloorItem) => void;
+  onStatusChange?: (itemId: string, newStatus: 'pending' | 'installed' | 'inspected') => void;
 }
 
 interface HotspotNode {
@@ -59,7 +63,30 @@ export default function EstadioBlueprint({
   currentZone,
   selectedItemId,
   onSelectItem,
+  onStatusChange,
 }: Props) {
+  const [localItems, setLocalItems] = useState<FloorItem[]>(items);
+
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
+
+  const handleUpdateStatus = (itemId: string, newStatus: 'pending' | 'installed' | 'inspected') => {
+    setLocalItems((prev) =>
+      prev.map((i) => (i.id === itemId || i.code === itemId ? { ...i, status: newStatus } : i))
+    );
+    if (internalSelected && (internalSelected.id === itemId || internalSelected.code === itemId)) {
+      setInternalSelected({ ...internalSelected, status: newStatus });
+    }
+    updateItemStatus('estadio-metropolitano', itemId, newStatus);
+    try {
+      const repo = new ItemsRepository();
+      repo.updateItemStatus(itemId, { status: newStatus }).catch(() => {});
+    } catch {}
+    if (onStatusChange) {
+      onStatusChange(itemId, newStatus);
+    }
+  };
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Pan & Zoom state
@@ -180,7 +207,7 @@ export default function EstadioBlueprint({
   });
 
   const activeSelected = selectedItemId
-    ? items.find((i) => i.code === selectedItemId || i.id === selectedItemId) || internalSelected
+    ? localItems.find((i) => i.code === selectedItemId || i.id === selectedItemId) || internalSelected
     : internalSelected;
 
   const handleSelect = (item: FloorItem) => {
@@ -193,7 +220,7 @@ export default function EstadioBlueprint({
 
   // Pipe vs Cable generator helpers
   const getSectionTuberiaItem = (sec: BlueprintSection): FloorItem => {
-    const existing = items.find((i) => i.code === `TUB-${sec.code}` || i.code === `EST-${sec.code}-TUB`);
+    const existing = localItems.find((i) => i.code === `TUB-${sec.code}` || i.code === `EST-${sec.code}-TUB`);
     if (existing) return existing;
     return {
       id: `item-tub-${sec.code}`,
@@ -213,7 +240,7 @@ export default function EstadioBlueprint({
   };
 
   const getSectionCableItem = (sec: BlueprintSection): FloorItem => {
-    const existing = items.find((i) => i.code === `CAB-${sec.code}` || i.code === `EST-${sec.code}-CAB`);
+    const existing = localItems.find((i) => i.code === `CAB-${sec.code}` || i.code === `EST-${sec.code}-CAB`);
     if (existing) return existing;
     const cableLen = Math.round(sec.lengthMeters * 1.05);
     return {
@@ -467,7 +494,7 @@ export default function EstadioBlueprint({
       {/* Main Interactive CAD Blueprint Canvas */}
       <div
         className="relative w-full overflow-hidden bg-slate-100 rounded-xl border border-slate-300 flex justify-center items-center select-none shadow-inner cursor-grab active:cursor-grabbing"
-        style={{ minHeight: isFullscreen ? 'calc(100vh - 180px)' : '620px' }}
+        style={{ height: isFullscreen ? 'calc(100vh - 120px)' : 'clamp(360px, 48vh, 520px)' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
@@ -499,6 +526,8 @@ export default function EstadioBlueprint({
             {showPipes && (
               <g className="conduit-sections-layer">
                 {sections.map((sec) => {
+                  const secTuberia = getSectionTuberiaItem(sec);
+                  const isPipeInstalled = secTuberia.status === 'installed' || secTuberia.status === 'inspected';
                   const isSelected =
                     selectedSection?.id === sec.id ||
                     (activeSelected?.code ? activeSelected.code.includes(sec.code) : false);
@@ -525,14 +554,28 @@ export default function EstadioBlueprint({
                         strokeLinejoin="round"
                       />
 
+                      {/* Solid Green Pipe Line for Installed Sections */}
+                      {isPipeInstalled && (
+                        <path
+                          d={sec.pathD}
+                          fill="none"
+                          stroke="#10b981"
+                          strokeWidth={isSelected ? 5.5 : 3.8}
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeOpacity={0.95}
+                          className="drop-shadow-sm transition-all"
+                        />
+                      )}
+
                       {/* Highlighted Tube Outline on Hover or Selection */}
                       <path
                         d={sec.pathD}
                         fill="none"
-                        stroke={isSelected ? '#dc2626' : isHovered ? '#ea580c' : 'transparent'}
-                        strokeWidth={isSelected ? 4.5 : isHovered ? 3.8 : 0}
+                        stroke={isPipeInstalled ? (isSelected ? '#059669' : isHovered ? '#34d399' : '#10b981') : (isSelected ? '#dc2626' : isHovered ? '#ea580c' : 'transparent')}
+                        strokeWidth={isSelected ? 4.5 : isHovered ? 3.8 : isPipeInstalled ? 3.8 : 0}
                         strokeDasharray={isSelected ? '6,3' : undefined}
-                        strokeOpacity={isSelected ? 1.0 : isHovered ? 0.9 : 0}
+                        strokeOpacity={isSelected ? 1.0 : isHovered ? 0.9 : isPipeInstalled ? 0.95 : 0}
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="transition-all duration-150"
@@ -547,7 +590,7 @@ export default function EstadioBlueprint({
                             width="52"
                             height="13"
                             rx="3"
-                            fill={isSelected ? '#b91c1c' : '#0f172a'}
+                            fill={isPipeInstalled ? '#059669' : isSelected ? '#b91c1c' : '#0f172a'}
                             stroke="#ffffff"
                             strokeWidth="0.8"
                             opacity="0.95"
@@ -564,7 +607,7 @@ export default function EstadioBlueprint({
                             textAnchor="middle"
                             className="select-none pointer-events-none"
                           >
-                            ⚡ {sec.code}
+                            {isPipeInstalled ? `✓ ${sec.code} INSTALADO` : `⚡ ${sec.code}`}
                           </text>
                         </g>
                       )}
@@ -583,9 +626,9 @@ export default function EstadioBlueprint({
                     activeSelected?.name.toLowerCase().includes(node.name.toLowerCase());
                   const isHovered = hoveredNode?.code === node.code;
 
-                  // Match with FloorItem from props or create exact item
-                  const matchedItem = items.find(
-                    (i) => i.code === node.code || i.name.toLowerCase().includes(node.name.toLowerCase())
+                  // Match with FloorItem from local state
+                  const matchedItem = localItems.find(
+                    (i) => i.code === node.code || i.id === `hotspot-${node.code}` || i.name.toLowerCase().includes(node.name.toLowerCase())
                   ) || {
                     id: `hotspot-${node.code}`,
                     projectId: 'estadio-metropolitano',
@@ -601,6 +644,9 @@ export default function EstadioBlueprint({
                     notes: `Componente identificado en plano oficial de detección: ${node.room}`,
                   };
 
+                  const isInstalled = matchedItem.status === 'installed' || matchedItem.status === 'inspected';
+                  const isInspected = matchedItem.status === 'inspected';
+                  const nodeColor = isInspected ? '#059669' : isInstalled ? '#10b981' : node.color;
                   const isSquare = node.symbol === 'F';
                   const isRect = node.symbol === 'AR' || node.symbol === 'FACP';
 
@@ -642,7 +688,7 @@ export default function EstadioBlueprint({
                           width={isSelected || isHovered ? 9 : 7}
                           height={isSelected || isHovered ? 9 : 7}
                           rx="1.5"
-                          fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                          fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color)}
                           stroke="#ffffff"
                           strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
                           className="drop-shadow-sm transition-all duration-150"
@@ -654,7 +700,7 @@ export default function EstadioBlueprint({
                           width={isSelected || isHovered ? 14 : 11}
                           height={isSelected || isHovered ? 9 : 7}
                           rx="1.5"
-                          fill={isSelected ? '#991b1b' : isHovered ? '#7c3aed' : node.color}
+                          fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#991b1b' : isHovered ? '#7c3aed' : node.color)}
                           stroke="#ffffff"
                           strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
                           className="drop-shadow-sm transition-all duration-150"
@@ -664,7 +710,7 @@ export default function EstadioBlueprint({
                           cx={node.x}
                           cy={node.y}
                           r={isSelected || isHovered ? 5.8 : 4.2}
-                          fill={isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color}
+                          fill={isInstalled ? (isSelected ? '#047857' : isHovered ? '#059669' : '#10b981') : (isSelected ? '#b91c1c' : isHovered ? '#ef4444' : node.color)}
                           stroke="#ffffff"
                           strokeWidth={isSelected || isHovered ? 1.2 : 0.8}
                           className="drop-shadow-sm transition-all duration-150"
@@ -776,112 +822,175 @@ export default function EstadioBlueprint({
 
               <div className="grid grid-cols-1 gap-2.5 font-mono">
                 {/* Opción 1: Tubería EMT */}
-                <button
-                  onClick={() => handleSelect(getSectionTuberiaItem(selectedSection))}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-red-500/40 hover:border-red-400 text-left transition-all group cursor-pointer"
-                >
-                  <div className="p-2 rounded-lg bg-red-500/20 text-red-400 group-hover:scale-105 transition-transform mt-0.5">
-                    <Wrench className="w-4 h-4" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-slate-950 border border-red-500/40 hover:border-red-400 transition-all">
+                  <div
+                    onClick={() => handleSelect(getSectionTuberiaItem(selectedSection))}
+                    className="flex items-start gap-3 text-left flex-1 cursor-pointer"
+                  >
+                    <div className="p-2 rounded-lg bg-red-500/20 text-red-400 mt-0.5">
+                      <Wrench className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-white block">
+                        Tubería Conduit EMT {selectedSection.diameter} (Tramo {selectedSection.code})
+                      </span>
+                      <span className="text-[10px] text-red-400 font-bold block">
+                        TUB-{selectedSection.code} &bull; {selectedSection.lengthMeters}m
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-white block">
-                      Tubería Conduit EMT {selectedSection.diameter} (Tramo {selectedSection.code})
-                    </span>
-                    <span className="text-[11px] text-slate-400 block font-sans">
-                      Canalización física rígida de {selectedSection.lengthMeters}m entre {selectedSection.fromCode} y {selectedSection.toCode}.
-                    </span>
-                    <span className="text-[10px] text-red-400 font-bold block pt-0.5">
-                      Código: TUB-{selectedSection.code} &bull; {selectedSection.lengthMeters} Metros Lineales
-                    </span>
+                  <div className="shrink-0 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const tub = getSectionTuberiaItem(selectedSection);
+                        const newSt = tub.status === 'installed' ? 'pending' : 'installed';
+                        handleUpdateStatus(tub.id, newSt);
+                        handleSelect({ ...tub, status: newSt });
+                        setShowTramoPrompt(false);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        getSectionTuberiaItem(selectedSection).status === 'installed' || getSectionTuberiaItem(selectedSection).status === 'inspected'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-emerald-950/80 hover:bg-emerald-800 text-emerald-300 border border-emerald-500/50'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{getSectionTuberiaItem(selectedSection).status === 'installed' || getSectionTuberiaItem(selectedSection).status === 'inspected' ? 'Instalado ✓' : 'Marcar Instalado'}</span>
+                    </button>
                   </div>
-                </button>
+                </div>
 
                 {/* Opción 2: Cableado FPLR / Lazo SLC */}
-                <button
-                  onClick={() => handleSelect(getSectionCableItem(selectedSection))}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-sky-500/40 hover:border-sky-400 text-left transition-all group cursor-pointer"
-                >
-                  <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 group-hover:scale-105 transition-transform mt-0.5">
-                    <Cable className="w-4 h-4" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-slate-950 border border-sky-500/40 hover:border-sky-400 transition-all">
+                  <div
+                    onClick={() => handleSelect(getSectionCableItem(selectedSection))}
+                    className="flex items-start gap-3 text-left flex-1 cursor-pointer"
+                  >
+                    <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 mt-0.5">
+                      <Cable className="w-4 h-4" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="text-xs font-bold text-white block">
+                        Cable de Detección FPLR / Lazo SLC (Tramo {selectedSection.code})
+                      </span>
+                      <span className="text-[10px] text-sky-400 font-bold block">
+                        CAB-{selectedSection.code} &bull; {Math.round(selectedSection.lengthMeters * 1.05)}m
+                      </span>
+                    </div>
                   </div>
-                  <div className="space-y-0.5">
-                    <span className="text-xs font-bold text-white block">
-                      Cable de Detección FPLR / Lazo SLC (Tramo {selectedSection.code})
-                    </span>
-                    <span className="text-[11px] text-slate-400 block font-sans">
-                      Conductor blindado 2x14 AWG de {Math.round(selectedSection.lengthMeters * 1.05)}m tendido dentro de la tubería.
-                    </span>
-                    <span className="text-[10px] text-sky-400 font-bold block pt-0.5">
-                      Código: CAB-{selectedSection.code} &bull; {Math.round(selectedSection.lengthMeters * 1.05)} Metros
-                    </span>
+                  <div className="shrink-0 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const cab = getSectionCableItem(selectedSection);
+                        const newSt = cab.status === 'installed' ? 'pending' : 'installed';
+                        handleUpdateStatus(cab.id, newSt);
+                        handleSelect({ ...cab, status: newSt });
+                        setShowTramoPrompt(false);
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        getSectionCableItem(selectedSection).status === 'installed' || getSectionCableItem(selectedSection).status === 'inspected'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-sky-950/80 hover:bg-sky-800 text-sky-300 border border-sky-500/50'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{getSectionCableItem(selectedSection).status === 'installed' || getSectionCableItem(selectedSection).status === 'inspected' ? 'Instalado ✓' : 'Marcar Instalado'}</span>
+                    </button>
                   </div>
-                </button>
+                </div>
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Selected Element Inspection Card */}
+      {/* Selected Element Inspection Card with Interactive Status Controls */}
       {activeSelected && (
-        <div className="mt-4 p-4 rounded-xl border-2 border-red-500 bg-red-50/70 flex flex-wrap items-center justify-between gap-4 animate-in fade-in duration-150 shadow-sm">
+        <div className={`mt-3 p-3.5 rounded-xl border-2 flex flex-wrap items-center justify-between gap-3 animate-in fade-in duration-150 shadow-sm ${
+          activeSelected.status === 'inspected'
+            ? 'border-emerald-500 bg-emerald-50/90'
+            : activeSelected.status === 'installed'
+            ? 'border-emerald-500 bg-emerald-50/80'
+            : 'border-slate-300 bg-white'
+        }`}>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-red-600 text-white flex flex-col items-center justify-center font-bold font-mono shadow-sm">
+            <div className={`w-11 h-11 rounded-xl text-white flex flex-col items-center justify-center font-bold font-mono shadow-sm transition-colors ${
+              activeSelected.status === 'installed' || activeSelected.status === 'inspected'
+                ? 'bg-emerald-600'
+                : 'bg-red-600'
+            }`}>
               {activeSelected.type === 'tuberia' ? (
-                <Wrench className="w-5 h-5 text-amber-200" />
+                <Wrench className="w-4 h-4 text-white" />
               ) : activeSelected.type === 'cableado' ? (
-                <Cable className="w-5 h-5 text-sky-200" />
+                <Cable className="w-4 h-4 text-white" />
               ) : (
-                <Flame className="w-5 h-5 text-amber-200" />
+                <Flame className="w-4 h-4 text-white" />
               )}
-              <span className="text-[10px] uppercase">{activeSelected.type.slice(0, 3)}</span>
+              <span className="text-[9px] uppercase">{activeSelected.type.slice(0, 3)}</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-mono font-bold text-sm text-brand-deep">
+                <span className="font-mono font-bold text-xs sm:text-sm text-brand-deep">
                   {activeSelected.name}
                 </span>
-                <span className="text-xs px-2.5 py-0.5 rounded font-mono font-bold bg-white text-red-700 border border-red-300">
+                <span className={`text-[11px] px-2 py-0.5 rounded font-mono font-bold border ${
+                  activeSelected.status === 'installed' || activeSelected.status === 'inspected'
+                    ? 'bg-white text-emerald-800 border-emerald-300'
+                    : 'bg-white text-red-700 border-red-300'
+                }`}>
                   {activeSelected.code}
                 </span>
               </div>
-              <p className="text-xs text-slate-600 mt-1">
-                <strong>Modelo / Esp:</strong> {activeSelected.model} &middot; <strong>Ubicación:</strong>{' '}
-                {activeSelected.zone}
+              <p className="text-[11px] text-slate-600 mt-0.5">
+                {activeSelected.quantity} {activeSelected.unit} &middot; {activeSelected.zone}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-mono">
-            <div className="text-right">
-              <span className="text-slate-500 block text-[10px]">Metrado / Cantidad</span>
-              <strong className="text-brand-deep text-sm">
-                {activeSelected.quantity} {activeSelected.unit}
-              </strong>
-            </div>
-
-            <div className="text-right">
-              <span className="text-slate-500 block text-[10px]">Estado en Obra</span>
-              <span
-                className={`inline-flex items-center gap-1 font-bold text-xs ${
-                  activeSelected.status === 'inspected'
-                    ? 'text-emerald-700'
-                    : activeSelected.status === 'installed'
-                    ? 'text-blue-700'
-                    : 'text-amber-700'
+          {/* Action Buttons to Change Status Directly on Blueprint */}
+          <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+            <span className="text-slate-500 text-[10px] uppercase font-bold mr-1">Cambiar Estado:</span>
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus(activeSelected.id, 'pending')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  activeSelected.status === 'pending'
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-xs'
+                    : 'text-slate-600 hover:bg-white'
                 }`}
+                title="Marcar como Planificado/Pendiente (color rojo/ámbar)"
               >
-                {activeSelected.status === 'inspected' ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                ) : (
-                  <Clock className="w-3.5 h-3.5" />
-                )}
-                {activeSelected.status === 'inspected'
-                  ? 'Inspeccionado'
-                  : activeSelected.status === 'installed'
-                  ? 'Instalado'
-                  : 'Planificado'}
-              </span>
+                Planificado
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus(activeSelected.id, 'installed')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  activeSelected.status === 'installed'
+                    ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-300 font-extrabold'
+                    : 'text-emerald-700 hover:bg-emerald-50 border border-emerald-200'
+                }`}
+                title="Marcar como INSTALADO (se tornará en VERDE en el plano)"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Instalado</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus(activeSelected.id, 'inspected')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  activeSelected.status === 'inspected'
+                    ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-300 font-extrabold'
+                    : 'text-blue-700 hover:bg-blue-50 border border-blue-200'
+                }`}
+                title="Marcar como INSPECCIONADO (Interventoría)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Inspeccionado</span>
+              </button>
             </div>
 
             <button
@@ -889,8 +998,8 @@ export default function EstadioBlueprint({
                 setInternalSelected(null);
                 setSelectedSection(null);
               }}
-              className="p-1.5 rounded-lg hover:bg-red-200 text-slate-600 hover:text-slate-900 transition-all cursor-pointer"
-              title="Cerrar ficha técnica"
+              className="p-1.5 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-all cursor-pointer ml-1"
+              title="Cerrar ficha"
             >
               <X className="w-4 h-4" />
             </button>
