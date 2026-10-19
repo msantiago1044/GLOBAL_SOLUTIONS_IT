@@ -104,8 +104,8 @@ export default function EstadioBlueprint({
         sheetTitle: 'PLANTA NIVEL DE CANCHA',
         elevation: '-3.80 m',
         scale: '1:350',
-        srcCadGray: '/planos/cancha-cadgray.png',
-        srcOriginal: '/planos/cancha.png',
+        srcCadGray: '/planos/cancha-cadgray.webp',
+        srcOriginal: '/planos/cancha.webp',
         devices: canchaDevices as HotspotNode[],
       }
     : isMezanine
@@ -115,8 +115,8 @@ export default function EstadioBlueprint({
         sheetTitle: 'PLANTA NIVEL DE MEZANINE',
         elevation: '+45.57 m',
         scale: '1:500',
-        srcCadGray: '/planos/mezanine-cadgray.png',
-        srcOriginal: '/planos/mezanine.png',
+        srcCadGray: '/planos/mezanine-cadgray.webp',
+        srcOriginal: '/planos/mezanine.webp',
         devices: mezanineDevices as HotspotNode[],
       }
     : isNivel3
@@ -126,8 +126,8 @@ export default function EstadioBlueprint({
         sheetTitle: 'PLANTA NIVEL 3',
         elevation: '+52.45 m',
         scale: '1:350',
-        srcCadGray: '/planos/nivel-3-cadgray.png',
-        srcOriginal: '/planos/nivel-3.png',
+        srcCadGray: '/planos/nivel-3-cadgray.webp',
+        srcOriginal: '/planos/nivel-3.webp',
         devices: nivel3Devices as HotspotNode[],
       }
     : {
@@ -136,8 +136,8 @@ export default function EstadioBlueprint({
         sheetTitle: 'PLANTA NIVEL 1',
         elevation: '+42.08 m',
         scale: '1:350',
-        srcCadGray: '/planos/nivel-1-cadgray.png',
-        srcOriginal: '/planos/nivel-1.png',
+        srcCadGray: '/planos/nivel-1-cadgray.webp',
+        srcOriginal: '/planos/nivel-1.webp',
         devices: nivel1Devices as HotspotNode[],
       };
 
@@ -255,7 +255,7 @@ export default function EstadioBlueprint({
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY < 0 ? 0.15 : -0.15;
-    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.6), 4.0));
+    setZoomScale((prev) => Math.min(Math.max(prev + delta, 0.25), 5.0));
   };
 
   const currentImageSrc = viewMode === 'cadgray' ? levelMeta.srcCadGray : levelMeta.srcOriginal;
@@ -320,14 +320,14 @@ export default function EstadioBlueprint({
           {/* Zoom & Pan Controls */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 text-slate-700">
             <button
-              onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 4.0))}
+              onClick={() => setZoomScale((prev) => Math.min(prev + 0.25, 5.0))}
               className="p-1.5 rounded-lg hover:bg-white transition-all cursor-pointer"
               title="Acercar plano (+)"
             >
               <ZoomIn className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setZoomScale((prev) => Math.max(prev - 0.25, 0.6))}
+              onClick={() => setZoomScale((prev) => Math.max(prev - 0.25, 0.25))}
               className="p-1.5 rounded-lg hover:bg-white transition-all cursor-pointer"
               title="Alejar plano (-)"
             >
@@ -335,11 +335,25 @@ export default function EstadioBlueprint({
             </button>
             <button
               onClick={() => {
+                setZoomScale(0.25);
+                setPanOffset({ x: 0, y: 0 });
+              }}
+              className={`p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[11px] px-2 cursor-pointer ${
+                zoomScale <= 0.3 ? 'bg-white font-bold text-brand-deep shadow-xs' : ''
+              }`}
+              title="Vista general del estadio completo (25%)"
+            >
+              General
+            </button>
+            <button
+              onClick={() => {
                 setZoomScale(1);
                 setPanOffset({ x: 0, y: 0 });
               }}
-              className="p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[11px] px-2 cursor-pointer"
-              title="Restablecer vista 100%"
+              className={`p-1.5 rounded-lg hover:bg-white transition-all font-mono text-[11px] px-2 cursor-pointer ${
+                zoomScale === 1 ? 'bg-white font-bold text-brand-deep shadow-xs' : ''
+              }`}
+              title="Restablecer vista 100% normal"
             >
               <RotateCcw className="w-3.5 h-3.5 inline mr-1 text-slate-500" />
               {Math.round(zoomScale * 100)}%
@@ -466,11 +480,11 @@ export default function EstadioBlueprint({
             transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
           }}
         >
-          {/* 1. ACTUAL PDF BLUEPRINT IMAGE (High-definition 3006x2126 px) */}
+          {/* 1. ACTUAL PDF BLUEPRINT IMAGE (Ultra HD 6012x4251 px rendered at 4400px baseline) */}
           <img
             src={currentImageSrc}
             alt={`Plano Oficial Estadio Metropolitano - ${levelMeta.sheetTitle}`}
-            className="w-[1100px] h-auto max-w-none block pointer-events-none rounded shadow-md border border-slate-200"
+            className="w-[4400px] h-auto max-w-none block pointer-events-none rounded shadow-md border border-slate-200"
             draggable={false}
           />
 
